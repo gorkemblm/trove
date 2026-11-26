@@ -89,7 +89,12 @@ final class AppModel: ObservableObject {
             }
             startCapture()
         } else {
-            // Nothing is recorded until the user picks the storage location.
+            // Set up before (onboarding shown again): the history it already has opens, so the
+            // storage step shows that folder and nothing starts from scratch.
+            if settings.storageBookmark != nil {
+                _ = openStore(at: resolveStorageDirectory(), quitOnCancel: false)
+            }
+            // Nothing is recorded until onboarding is finished.
             showOnboarding()
         }
         log.info("Trove \(AppInfo.version, privacy: .public) started")
