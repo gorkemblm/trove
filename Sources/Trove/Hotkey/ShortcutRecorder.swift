@@ -45,7 +45,7 @@ struct ShortcutRecorder: View {
                         .buttonStyle(.link)
                 } else if role == .pause {
                     // The same line as the link above, so nothing moves when a shortcut is set.
-                    Text("Pauses and resumes recording from any app.").foregroundStyle(.secondary)
+                    Text("From any app. In the panel, ⌥P does it too.").foregroundStyle(.secondary)
                 } else {
                     Text(verbatim: " ")
                 }

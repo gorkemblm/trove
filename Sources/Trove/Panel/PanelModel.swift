@@ -524,6 +524,11 @@ final class PanelModel: ObservableObject {
         app?.unlockPanel()
     }
 
+    /// ⌥P in the panel (and ⌘K): pauses recording until resumed, or resumes it.
+    func togglePause() {
+        app?.togglePauseFromShortcut()
+    }
+
     /// "Recording paused" or "Paused until 14:20" for the footer, nil while recording.
     var pauseStatus: String? { app?.pauseDescription }
 
@@ -1335,6 +1340,10 @@ final class PanelModel: ObservableObject {
                 self?.requestDelete()
             })
         }
+        list.append(PanelAction(id: "pause", title: app?.isPaused == true ? L("Resume Recording") : L("Pause Recording"),
+                                symbol: app?.isPaused == true ? "record.circle" : "pause.circle", keys: ["⌥", "P"], section: 3) { [weak self] in
+            self?.togglePause()
+        })
         if !hasGroupSelection {
             list.append(PanelAction(id: "newSnippet", title: L("New Snippet…"), symbol: "bookmark.circle", section: 3) { [weak self] in
                 self?.requestNewSnippet()

@@ -358,6 +358,10 @@ final class PanelController {
         case (1, [.command]): // ⌘S: save as a snippet
             model.requestSaveSnippet()
             return true
+        case (35, [.option]): // ⌥P: pause or resume recording, then close. Held ⌥: "⌥ Space, P".
+            model.togglePause()
+            hide(reason: "⌥P")
+            return true
         case (14, [.command]): // ⌘E: edit and transform
             model.requestEdit()
             return true

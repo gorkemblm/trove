@@ -703,6 +703,7 @@ private struct ShortcutSettings: View {
         [
             (L("Panel"), [
                 (L("Open Trove"), GlobalHotKey.symbols(forCarbonModifiers: settings.hotKey.modifiers).map(String.init) + [settings.hotKey.keyLabel]),
+                (L("Pause or resume recording (in the panel)"), ["⌥", "P"]),
                 (L("Pause or resume recording"), settings.pauseHotKey.map {
                     GlobalHotKey.symbols(forCarbonModifiers: $0.modifiers).map(String.init) + [$0.keyLabel]
                 } ?? [L("Not set")]),

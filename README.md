@@ -205,6 +205,7 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 | --- | --- |
 | ⌥ Space | Open or close Trove (change it in Settings) |
 | *(your choice)* | Pause or resume recording (Settings › General › Pause Shortcut) |
+| ⌥ Space, then ⌥P | Pause or resume recording from the panel (keep ⌥ held) |
 
 **In the panel**
 
@@ -223,6 +224,7 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 | ⌘⇧C | Copy the text in an image (the matching line while searching) |
 | ⌘T | Open a file's folder in your terminal |
 | ⌘P | Pin or unpin |
+| ⌥P | Pause or resume recording, and close |
 | ⌘D | Delete (asks first) |
 | ⌘⇧S · ⌘-click · ⇧-click · ⇧↑↓ · ⌘A | Select several |
 | ⌘, | Settings |

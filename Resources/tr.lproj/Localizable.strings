@@ -216,6 +216,7 @@
 "Format JSON" = "JSON'u Düzenle";
 "Formatted" = "Biçimli";
 "From any app. Esc closes it." = "Her uygulamadan. Esc ile kapanır.";
+"From any app. In the panel, ⌥P does it too." = "Her uygulamadan. Panelde ⌥P de aynı işi yapar.";
 "General" = "Genel";
 "Get Started" = "Başla";
 "GitHub token" = "GitHub token'ı";
@@ -395,10 +396,11 @@
 "Pause for 1 Hour" = "1 Saat Duraklat";
 "Pause for 10 Minutes" = "10 Dakika Duraklat";
 "Pause or resume recording" = "Kaydı durdur ya da sürdür";
+"Pause or resume recording (in the panel)" = "Kaydı duraklat ya da sürdür (panelde)";
+"Pause Recording" = "Kaydı Duraklat";
 "Pause Shortcut" = "Durdurma Kısayolu";
 "Pause Until Resumed" = "Devam Ettirilene Kadar Duraklat";
 "Paused until %@" = "%@ saatine kadar duraklatıldı";
-"Pauses and resumes recording from any app." = "Kaydı her uygulamadan durdurur ve sürdürür.";
 "Payment card" = "Ödeme kartı";
 "Phone" = "Telefon";
 "Phones" = "Telefonlar";
