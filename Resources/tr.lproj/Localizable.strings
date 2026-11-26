@@ -39,6 +39,8 @@
 "A long passphrase is best: the key file may be copied by sync services." = "En iyisi uzun bir parola cümlesi: anahtar dosyası senkronizasyon servislerine kopyalanabilir.";
 "A recovery password is set. Change it later in Settings › Security." = "Kurtarma şifresi belirlendi. Daha sonra Ayarlar › Güvenlik'ten değiştirebilirsin.";
 "A synced folder works: everything in it is encrypted. To open the history on another Mac, set a recovery password in the next step." = "Senkronize bir klasör de olur: içindeki her şey şifrelidir. Geçmişi başka bir Mac'te açmak için bir sonraki adımda kurtarma şifresi belirle.";
+"Acknowledgements" = "Teşekkürler";
+"Acknowledgements…" = "Teşekkürler…";
 "Actions" = "Eylemler";
 "Add App…" = "Uygulama Ekle…";
 "Add new screenshots to history" = "Yeni ekran görüntülerini geçmişe ekle";
@@ -88,6 +90,7 @@
 "Clipboard History" = "Pano Geçmişi";
 "Clipboard History %@" = "Pano Geçmişi %@";
 "Clipboard Hotkey" = "Clipboard Kısayolu";
+"Clipboard is built with these open-source libraries." = "Clipboard bu açık kaynak kütüphanelerle yapıldı.";
 "Clipboard is locked" = "Clipboard kilitli";
 "Clipboard keeps what you copy, so you can find it again." = "Clipboard kopyaladıklarını saklar, böylece onları yeniden bulabilirsin.";
 "Clipboard now encrypts its history. The history in “%@” is not encrypted yet.\n\nClipboard makes an encrypted copy and checks it. Then the unencrypted original moves to the Trash, so you can still restore it. Empty the Trash to remove it for good. Sync services can keep older, unencrypted versions." = "Clipboard artık geçmişini şifreliyor. “%@” konumundaki geçmiş henüz şifreli değil.\n\nClipboard şifreli bir kopya oluşturup denetler. Ardından şifresiz özgün dosya Çöp Sepeti'ne taşınır, yani hâlâ geri alabilirsin. Kalıcı olarak silmek için Çöp Sepeti'ni boşalt. Senkronizasyon servisleri eski, şifresiz sürümleri saklıyor olabilir.";

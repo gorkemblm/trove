@@ -7,8 +7,12 @@ APP       := build/$(APP_NAME).app
 # Zetetic LLC, publisher of the official SQLCipher.xcframework.
 SQLCIPHER_TEAM := PD7G6HRMGV
 SWIFT     := swift build -c $(CONFIG) --scratch-path "$(SCRATCH)"
+# Daily builds sign without Apple's timestamp server; `make release` uses it (notarization needs it).
+TIMESTAMP ?= --timestamp=none
+# Saved once with: xcrun notarytool store-credentials clipboard-notary --apple-id <id> --team-id <team>
+NOTARY_PROFILE ?= clipboard-notary
 
-.PHONY: help build test layout window-check icon app run stop restart logs verify clean
+.PHONY: help build test layout window-check icon app release run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -17,6 +21,7 @@ help:
 	@echo "make window-check  Layout checks plus one that opens a real window on screen"
 	@echo "make icon     Redraw Resources/AppIcon.icns"
 	@echo "make app      Compile, assemble and sign $(APP)"
+	@echo "make release  Signed with a timestamp, notarized, stapled, in build/$(APP_NAME).dmg"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
 	@echo "make restart  stop + run"
@@ -55,7 +60,7 @@ app: build
 	cp "$$BIN/$(APP_NAME)" "$(APP)/Contents/MacOS/$(APP_NAME)"; \
 	cp Resources/Info.plist "$(APP)/Contents/Info.plist"; \
 	cp Resources/AppIcon.icns "$(APP)/Contents/Resources/AppIcon.icns"; \
-	cp -R Resources/en.lproj Resources/tr.lproj "$(APP)/Contents/Resources/"; \
+	cp -R Resources/en.lproj Resources/tr.lproj Resources/Licenses "$(APP)/Contents/Resources/"; \
 	for b in "$$BIN"/*.bundle; do [ -e "$$b" ] && cp -R "$$b" "$(APP)/Contents/Resources/"; done; \
 	FW="$$BIN/SQLCipher.framework"; \
 	codesign --verify --strict "$$FW" || { echo "SQLCipher.framework: invalid signature"; exit 1; }; \
@@ -63,11 +68,26 @@ app: build
 	mkdir -p "$(APP)/Contents/Frameworks"; \
 	ditto "$$FW" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
 	install_name_tool -add_rpath @executable_path/../Frameworks "$(APP)/Contents/MacOS/$(APP_NAME)"; \
-	codesign --force --options runtime --timestamp=none --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
-	codesign --force --options runtime --timestamp=none \
+	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
+	codesign --force --options runtime $(TIMESTAMP) \
 		--entitlements Resources/$(APP_NAME).entitlements \
 		--sign "$(SIGN_ID)" "$(APP)"
 	@echo "Built $(APP)"
+
+# Notarization: Apple checks the signed app and issues a ticket; the ticket is stapled to the
+# app and the disk image, so Gatekeeper accepts them offline on other Macs.
+release: TIMESTAMP = --timestamp
+release: app
+	rm -f build/$(APP_NAME).zip build/$(APP_NAME).dmg
+	ditto -c -k --keepParent "$(APP)" build/$(APP_NAME).zip
+	xcrun notarytool submit build/$(APP_NAME).zip --keychain-profile "$(NOTARY_PROFILE)" --wait
+	xcrun stapler staple "$(APP)"
+	hdiutil create -volname "$(APP_NAME)" -srcfolder "$(APP)" -ov -format UDZO build/$(APP_NAME).dmg
+	codesign --force --timestamp --sign "$(SIGN_ID)" build/$(APP_NAME).dmg
+	xcrun notarytool submit build/$(APP_NAME).dmg --keychain-profile "$(NOTARY_PROFILE)" --wait
+	xcrun stapler staple build/$(APP_NAME).dmg
+	spctl --assess --type open --context context:primary-signature -v build/$(APP_NAME).dmg
+	@echo "Notarized: build/$(APP_NAME).dmg"
 
 run: app
 	open "$(APP)"

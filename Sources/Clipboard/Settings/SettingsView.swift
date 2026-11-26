@@ -46,6 +46,7 @@ private struct GeneralSettings: View {
     @ObservedObject var app: AppModel
     @ObservedObject var settings: AppSettings
     @State private var loginError: String?
+    @State private var showingLicenses = false
     @State private var language = AppLanguage.saved
 
     private var languageBinding: Binding<AppLanguage> {
@@ -210,9 +211,11 @@ private struct GeneralSettings: View {
                 SettingRow(label: "Version") {
                     HStack(spacing: 14) {
                         Text("Clipboard \(AppInfo.version)").monospacedDigit()
+                        Button("Acknowledgements…") { showingLicenses = true }
                         Button("Quit Clipboard") { app.quit() }
                     }
                 }
+                .sheet(isPresented: $showingLicenses) { LicensesView() }
             }
         }
     }
@@ -818,3 +821,43 @@ private struct RecoveryPasswordSheet: View {
     }
 }
 
+
+/// The licences of the libraries inside the app (Resources/Licenses), as their terms require.
+struct LicensesView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private static let files = ["GRDB", "SQLCipher"]
+
+    private func text(_ name: String) -> String {
+        Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Licenses")
+            .flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? name
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Acknowledgements").font(.system(size: 17, weight: .semibold))
+            Text("Clipboard is built with these open-source libraries.")
+                .font(.system(size: 12.5))
+                .foregroundStyle(.secondary)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    ForEach(Self.files, id: \.self) { name in
+                        Text(verbatim: text(name))
+                            .font(.system(size: 11.5, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(14)
+            }
+            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Color.primary.opacity(0.09)))
+            HStack {
+                Spacer()
+                Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 560, height: 480)
+    }
+}
