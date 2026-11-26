@@ -16,7 +16,7 @@ TIMESTAMP ?= --timestamp=none
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout demos window-check icon app release appcast version run stop restart logs verify clean
+.PHONY: help build test layout demos window-check icon app release appcast site version run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -27,7 +27,8 @@ help:
 	@echo "make app      Compile, assemble and sign $(APP)"
 	@echo "make release  Signed with a timestamp, notarized, stapled: build/releases/$(APP_NAME)-<version>.dmg"
 	@echo "make appcast  Sparkle update list for build/releases, with release notes from CHANGELOG.md"
-	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge)"
+	@echo "make site     Website and appcast for GitHub Pages, in build/site"
+	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge, website)"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
 	@echo "make restart  stop + run"
@@ -132,12 +133,22 @@ appcast:
 	@grep -o 'url="[^"]*"' build/releases/appcast.xml
 	@echo "Appcast: build/releases/appcast.xml"
 
+# The website and update list for GitHub Pages (the releases repository), in build/site.
+site:
+	rm -rf build/site && mkdir -p build/site/demos
+	cp Site/index.html build/site/index.html
+	cp Docs/icon.png build/site/icon.png
+	cp Docs/demos/*.gif build/site/demos/
+	@if [ -f build/releases/appcast.xml ]; then cp build/releases/appcast.xml build/site/appcast.xml; else echo "No appcast yet: run make appcast"; fi
+	@echo "Site: build/site"
+
 # make version NEW=0.2.0: the version in Info.plist and the README badge. Then add a
 # "## 0.2.0" section to CHANGELOG.md.
 version:
 	@[ -n "$(NEW)" ] || { echo "Set NEW=x.y.z"; exit 1; }
 	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(NEW)" Resources/Info.plist
 	sed -E -i '' 's#badge/version-[0-9.]+-#badge/version-$(NEW)-#; s#alt="Version [0-9.]+"#alt="Version $(NEW)"#' README.md
+	sed -E -i '' 's#download/v[0-9.]+/$(APP_NAME)-[0-9.]+\.dmg#download/v$(NEW)/$(APP_NAME)-$(NEW).dmg#; s#<span id="version">[0-9.]+</span>#<span id="version">$(NEW)</span>#' Site/index.html
 	@grep -q "^## $(NEW)$$" CHANGELOG.md || echo "Now add a '## $(NEW)' section to CHANGELOG.md"
 
 run: app
