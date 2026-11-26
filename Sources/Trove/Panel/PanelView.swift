@@ -425,7 +425,7 @@ struct FooterView: View {
                 FooterAction(title: L("Plain Text"), symbol: "textformat", keys: ["⇧", "↵"]) { model.copySelected(plainText: true) }
             } else if model.pauseStatus == nil {
                 Image(systemName: "list.clipboard").foregroundStyle(Theme.muted).padding(.leading, 8)
-                Text("Clipboard History").font(.system(size: 12.5)).foregroundStyle(Theme.muted)
+                Text("Trove").font(.system(size: 12.5)).foregroundStyle(Theme.muted)
             }
             Spacer()
             if model.hasGroupSelection || model.selected != nil {
@@ -598,7 +598,7 @@ struct PanelLockView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "lock.fill").font(.system(size: 34)).foregroundStyle(Theme.faint)
-            Text("Clipboard is locked").font(.system(size: 17, weight: .semibold))
+            Text("Trove is locked").font(.system(size: 17, weight: .semibold))
             Text("Unlock with Touch ID or your password to see your history.")
                 .font(.system(size: 13))
                 .foregroundStyle(Theme.muted)

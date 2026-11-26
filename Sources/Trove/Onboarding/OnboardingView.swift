@@ -70,7 +70,7 @@ struct OnboardingView: View {
                 .keyboardShortcut(.defaultAction)
                 .disabled(RecoveryPasswordFields.problem(password, confirmation) != nil)
         default:
-            Button("Start Using Clipboard") { app.finishOnboarding(openAtLogin: openAtLogin) }
+            Button("Start Using Trove") { app.finishOnboarding(openAtLogin: openAtLogin) }
                 .keyboardShortcut(.defaultAction)
         }
     }
@@ -83,9 +83,9 @@ struct OnboardingView: View {
                 .resizable()
                 .frame(width: 72, height: 72)
                 .padding(.leading, -6) // The icon art has a margin of its own.
-            Text("Welcome to Clipboard")
+            Text("Welcome to Trove")
                 .font(.system(size: 26, weight: .bold))
-            Text("Clipboard keeps what you copy, so you can find it again.")
+            Text("Trove keeps what you copy, so you can find it again.")
                 .foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 16) {
                 Feature(symbol: "square.grid.2x2", title: "Text, links, images and files",
@@ -101,9 +101,9 @@ struct OnboardingView: View {
 
     private var storage: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Where should Clipboard keep your history?")
+            Text("Where should Trove keep your history?")
                 .font(.system(size: 22, weight: .bold))
-            Text("Choose a location. Clipboard creates a “\(StorageLocation.historyFolderName)” folder there. It holds an encrypted database, encrypted images and a key file.")
+            Text("Choose a location. Trove creates a “\(StorageLocation.historyFolderName)” folder there. It holds an encrypted database, encrypted images and a key file.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -136,7 +136,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
             }
             if app.store != nil {
-                Button("Import from Maccy, Alfred or a Clipboard export…") { app.importHistory() }
+                Button("Import from Maccy, Alfred or a Trove export…") { app.importHistory() }
                     .buttonStyle(.link)
             }
             Label("A synced folder works: everything in it is encrypted. To open the history on another Mac, set a recovery password in the next step.",
@@ -151,7 +151,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Your history is encrypted")
                 .font(.system(size: 22, weight: .bold))
-            Text("The database, its search index and every image are encrypted with AES-256. The key is kept in this Mac’s Keychain, so Clipboard never asks for a password.")
+            Text("The database, its search index and every image are encrypted with AES-256. The key is kept in this Mac’s Keychain, so Trove never asks for a password.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -176,7 +176,7 @@ struct OnboardingView: View {
             .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
             .padding(.top, 6)
 
-            Text("Clipboard does not store this password. If you forget it, the history still opens on this Mac.")
+            Text("Trove does not store this password. If you forget it, the history still opens on this Mac.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -203,7 +203,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("You’re all set")
                 .font(.system(size: 22, weight: .bold))
-            Text("Clipboard runs in the background, without a Dock or menu bar icon.")
+            Text("Trove runs in the background, without a Dock or menu bar icon.")
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 0) {
@@ -215,7 +215,7 @@ struct OnboardingView: View {
                 .padding(.top, 12)
                 .padding(.bottom, 4)
                 Divider()
-                switchRow("Open Clipboard at login", isOn: $openAtLogin)
+                switchRow("Open Trove at login", isOn: $openAtLogin)
                 Divider()
                 switchRow("Paste into the active app with ↵", isOn: Binding(
                     get: { settings.returnAction == .paste },

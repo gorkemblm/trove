@@ -61,8 +61,8 @@ struct KeychainKeyStore: KeyStore {
 
         var item = base
         item[kSecValueData as String] = key
-        item[kSecAttrLabel as String] = "Clipboard history key"
-        item[kSecAttrDescription as String] = "Clipboard encryption key"
+        item[kSecAttrLabel as String] = "Trove history key"
+        item[kSecAttrDescription as String] = "Trove encryption key"
         item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         let status = SecItemAdd(item as CFDictionary, nil)
         guard status == errSecSuccess else { throw KeychainError(status: status) }

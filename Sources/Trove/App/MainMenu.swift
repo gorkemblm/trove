@@ -10,8 +10,8 @@ enum MainMenu {
         settings.target = target
         appMenu.addItem(settings)
         appMenu.addItem(.separator())
-        appMenu.addItem(NSMenuItem(title: String(localized: "Quit Clipboard"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        main.addItem(submenu: appMenu, title: "Clipboard")
+        appMenu.addItem(NSMenuItem(title: String(localized: "Quit Trove"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        main.addItem(submenu: appMenu, title: "Trove")
 
         let edit = NSMenu(title: String(localized: "Edit"))
         edit.addItem(NSMenuItem(title: String(localized: "Undo"), action: Selector(("undo:")), keyEquivalent: "z"))

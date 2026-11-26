@@ -72,10 +72,10 @@ enum Transfer {
 
         var errorDescription: String? {
             switch self {
-            case .unknownFile: L("This file is not a Clipboard export, a Maccy database or an Alfred clipboard database.")
+            case .unknownFile: L("This file is not a Trove export, a Maccy database or an Alfred clipboard database.")
             case .wrongPassword: L("The password is not correct.")
             case .needsPassword: L("This export is encrypted. Enter its password.")
-            case .newerVersion: L("This export was made by a newer version of Clipboard.")
+            case .newerVersion: L("This export was made by a newer version of Trove.")
             }
         }
     }
@@ -133,7 +133,7 @@ enum Transfer {
 
         var title: String {
             switch self {
-            case .clipboardEncrypted, .clipboardJSON: L("a Clipboard export")
+            case .clipboardEncrypted, .clipboardJSON: L("a Trove export")
             case .maccy: "Maccy"
             case .alfred: "Alfred"
             }

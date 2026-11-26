@@ -85,7 +85,7 @@ private struct GeneralSettings: View {
         VStack(spacing: 0) {
             SettingsSection {
                 SettingRow(label: "Startup") {
-                    Toggle("Open Clipboard at login", isOn: Binding(
+                    Toggle("Open Trove at login", isOn: Binding(
                         get: { app.launchAtLogin },
                         set: { enabled in
                             do {
@@ -99,7 +99,7 @@ private struct GeneralSettings: View {
                     .toggleStyle(.checkbox)
                     if let loginError { SettingNote(verbatim: loginError, color: .red) }
                 }
-                SettingRow(label: "Clipboard Hotkey", alignment: .top, labelOffset: 9) {
+                SettingRow(label: "Trove Hotkey", alignment: .top, labelOffset: 9) {
                     ShortcutRecorder(app: app, settings: settings, width: 260, alignment: .leading)
                 }
                 SettingRow(label: "Recording") {
@@ -115,7 +115,7 @@ private struct GeneralSettings: View {
                             Button("Pause Until Resumed") { app.pauseRecording(minutes: nil) }
                         }
                     }
-                    SettingNote("While paused, nothing you copy is saved, screenshots included. Quitting Clipboard resumes recording.")
+                    SettingNote("While paused, nothing you copy is saved, screenshots included. Quitting Trove resumes recording.")
                 }
                 SettingRow(label: "Return Key") {
                     SettingMenu(selection: $settings.returnAction) {
@@ -144,7 +144,7 @@ private struct GeneralSettings: View {
                     }
                     if language != AppLanguage.atLaunch {
                         HStack(spacing: 10) {
-                            Text("Restart Clipboard to use the new language.")
+                            Text("Restart Trove to use the new language.")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.orange)
                                 .fixedSize()
@@ -153,11 +153,11 @@ private struct GeneralSettings: View {
                     }
                 }
                 SettingRow(label: "Menu Bar Icon") {
-                    Toggle("Show Clipboard in the menu bar", isOn: $settings.showMenuBarIcon).toggleStyle(.checkbox)
+                    Toggle("Show Trove in the menu bar", isOn: $settings.showMenuBarIcon).toggleStyle(.checkbox)
                 }
                 SettingRow(label: "Dock Icon") {
-                    Toggle("Show Clipboard in the Dock", isOn: $settings.showDockIcon).toggleStyle(.checkbox)
-                    SettingNote("Both icons are off by default: Clipboard runs in the background. Press ⌘, in the panel to open these settings.")
+                    Toggle("Show Trove in the Dock", isOn: $settings.showDockIcon).toggleStyle(.checkbox)
+                    SettingNote("Both icons are off by default: Trove runs in the background. Press ⌘, in the panel to open these settings.")
                 }
             }
             SettingsDivider()
@@ -181,7 +181,7 @@ private struct GeneralSettings: View {
                         }
                     }
                     SettingNote("""
-                        macOS saves screenshots as files, so they never reach the clipboard. Turn this on and Clipboard \
+                        macOS saves screenshots as files, so they never reach the clipboard. Turn this on and Trove \
                         suggests the folder macOS uses; one click allows it. Screenshots taken with ⌃ (for example ⌃⇧⌘4) \
                         go to the clipboard and are added in any case.
                         """)
@@ -210,9 +210,9 @@ private struct GeneralSettings: View {
             SettingsSection {
                 SettingRow(label: "Version") {
                     HStack(spacing: 14) {
-                        Text("Clipboard \(AppInfo.version)").monospacedDigit()
+                        Text("Trove \(AppInfo.version)").monospacedDigit()
                         Button("Acknowledgements…") { showingLicenses = true }
-                        Button("Quit Clipboard") { app.quit() }
+                        Button("Quit Trove") { app.quit() }
                     }
                 }
                 .sheet(isPresented: $showingLicenses) { LicensesView() }
@@ -401,7 +401,7 @@ private struct StorageSettings: View {
                         Button("Import…") { app.importHistory() }
                         Button("Export…") { exporting = true }
                     }
-                    SettingNote("Import from a Clipboard export, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported.")
+                    SettingNote("Import from a Trove export, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported.")
                 }
             }
         }
@@ -443,7 +443,7 @@ private struct ExportSheet: View {
                 GridRow {
                     Text("Format").foregroundStyle(.secondary).gridColumnAlignment(.trailing)
                     Picker("", selection: $options.format) {
-                        Text("Encrypted Clipboard export").tag(Transfer.Format.encrypted)
+                        Text("Encrypted Trove export").tag(Transfer.Format.encrypted)
                         Text("JSON (not encrypted)").tag(Transfer.Format.json)
                         Text("CSV, text only (not encrypted)").tag(Transfer.Format.csv)
                     }
@@ -474,7 +474,7 @@ private struct ExportSheet: View {
                     SecureField("Password", text: $password)
                     SecureField("Confirm password", text: $confirmation)
                     Text(verbatim: RecoveryPasswordFields.problem(password, confirmation)
-                         ?? L("Needed to import the file. Clipboard does not keep it."))
+                         ?? L("Needed to import the file. Trove does not keep it."))
                         .font(.caption)
                         .foregroundStyle(RecoveryPasswordFields.problem(password, confirmation) == nil ? Color.secondary : Color.orange)
                 }
@@ -567,7 +567,7 @@ private struct SecuritySettings: View {
                     if let error { SettingNote(verbatim: error, color: .red) }
                     SettingNote("""
                         With a recovery password, this history opens on another Mac or after a reinstall. \
-                        Clipboard does not store the password; if you forget it, the history still opens on this Mac. \
+                        Trove does not store the password; if you forget it, the history still opens on this Mac. \
                         Hidden items open only on this Mac.
                         """)
                 }
@@ -618,7 +618,7 @@ private struct PrivacySettings: View {
                     Text("Content they mark as concealed is never saved.")
                 }
                 SettingRow(label: "Network") {
-                    Text("Clipboard has no network access.")
+                    Text("Trove has no network access.")
                 }
             }
             SettingsDivider()
@@ -676,11 +676,11 @@ private struct ShortcutSettings: View {
     private var sections: [(title: String, rows: [(String, [String])])] {
         [
             (L("Panel"), [
-                (L("Open Clipboard"), GlobalHotKey.symbols(forCarbonModifiers: settings.hotKey.modifiers).map(String.init) + [settings.hotKey.keyLabel]),
+                (L("Open Trove"), GlobalHotKey.symbols(forCarbonModifiers: settings.hotKey.modifiers).map(String.init) + [settings.hotKey.keyLabel]),
                 (L("All actions"), ["⌘", "K"]),
                 (L("Settings"), ["⌘", ","]),
                 (L("Clear search, then close"), ["esc"]),
-                (L("Quit Clipboard"), ["⌘", "Q"]),
+                (L("Quit Trove"), ["⌘", "Q"]),
             ]),
             (L("Items"), [
                 (L("Paste (or copy) the selected item"), ["↵"]),
@@ -836,7 +836,7 @@ struct LicensesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Acknowledgements").font(.system(size: 17, weight: .semibold))
-            Text("Clipboard is built with these open-source libraries.")
+            Text("Trove is built with these open-source libraries.")
                 .font(.system(size: 12.5))
                 .foregroundStyle(.secondary)
             ScrollView {

@@ -60,7 +60,7 @@ enum VaultError: LocalizedError, Equatable {
         case .passwordTooShort:
             String(localized: "Use at least \(Vault.minimumPasswordLength.formatted()) characters.")
         case .noRecoveryPassword: L("This history has no recovery password.")
-        case .unsupportedKeyFile: L("The key file was made by a newer version of Clipboard.")
+        case .unsupportedKeyFile: L("The key file was made by a newer version of Trove.")
         }
     }
 }

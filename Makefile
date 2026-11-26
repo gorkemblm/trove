@@ -1,4 +1,4 @@
-APP_NAME  := Clipboard
+APP_NAME  := Trove
 CONFIG    ?= release
 SIGN_ID   ?= Developer ID Application
 # Build products stay outside the Seafile folder, so they do not sync.
@@ -9,8 +9,8 @@ SQLCIPHER_TEAM := PD7G6HRMGV
 SWIFT     := swift build -c $(CONFIG) --scratch-path "$(SCRATCH)"
 # Daily builds sign without Apple's timestamp server; `make release` uses it (notarization needs it).
 TIMESTAMP ?= --timestamp=none
-# Saved once with: xcrun notarytool store-credentials clipboard-notary --apple-id <id> --team-id <team>
-NOTARY_PROFILE ?= clipboard-notary
+# Saved once with: xcrun notarytool store-credentials trove-notary --apple-id <id> --team-id <team>
+NOTARY_PROFILE ?= trove-notary
 
 .PHONY: help build test layout window-check icon app release run stop restart logs verify clean
 

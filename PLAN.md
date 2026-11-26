@@ -277,4 +277,8 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | Kaynak uygulama tespiti yaklaşık | Arka planda script ile kopyalanan içerikte yanlış uygulama görünür | Detayda "yaklaşık" olarak kabul edilir |
 | Seafile ile senkronizasyon | SQLite bozulması, hassas verinin buluta gitmesi | Uyarı + zorunlu şifreleme |
 
+**İsim (26 Kasım 2026):** Uygulamanın adı **Trove**. Paket kimliği (`com.iokoda.clipboard`), anahtarlık servisi, veri klasörü adları ("Clipboard History") ve dışa aktarma biçimi (`.clipboardexport`) bilerek değişmedi: değişirse mevcut şifreli geçmiş, ayarlar ve izinler yeni uygulamaya geçmez. Dağıtımdan önce istenirse onaylı bir taşıma ile değiştirilebilir.
+
+**Lisanslar ve notarization:** Ayarlar › Genel › Teşekkürler GRDB ve SQLCipher lisanslarını gösterir. `make release` hazır; çalıştırmak için bir kez `xcrun notarytool store-credentials trove-notary --apple-id <id> --team-id 4PSA7V9J7N` (uygulamaya özel şifreyle) gerekir.
+
 **Sonraki adım (26 Kasım 2026):** İlk commit, elle deneme listesi ve bir hafta günlük kullanım; ardından lisans metinleri, isim, notarization (Aşama 4).

@@ -86,7 +86,7 @@ final class AppModel: ObservableObject {
             // Nothing is recorded until the user picks the storage location.
             showOnboarding()
         }
-        log.info("Clipboard \(AppInfo.version, privacy: .public) started")
+        log.info("Trove \(AppInfo.version, privacy: .public) started")
         log.info("macOS screenshot folder: \(self.systemScreenshotFolder?.path ?? "clipboard", privacy: .public)")
     }
 
@@ -236,8 +236,8 @@ final class AppModel: ObservableObject {
         let alert = NSAlert()
         alert.messageText = String(localized: "Paste directly into apps?")
         alert.informativeText = String(localized: """
-            With ↵, Clipboard can paste the chosen item into the app you were using, instead of only copying it. \
-            macOS asks you to allow this once, in Privacy & Security › Accessibility. Clipboard uses it only to send ⌘V.
+            With ↵, Trove can paste the chosen item into the app you were using, instead of only copying it. \
+            macOS asks you to allow this once, in Privacy & Security › Accessibility. Trove uses it only to send ⌘V.
             """)
         alert.addButton(withTitle: String(localized: "Allow…"))
         alert.addButton(withTitle: String(localized: "Only Copy"))
@@ -266,10 +266,10 @@ final class AppModel: ObservableObject {
     private func askToAddScreenshots() {
         guard let folder = systemScreenshotFolder else { return }
         let alert = NSAlert()
-        alert.messageText = String(localized: "Add screenshots to Clipboard?")
+        alert.messageText = String(localized: "Add screenshots to Trove?")
         alert.informativeText = String(localized: """
             macOS saves screenshots as files in “\(StorageLocation.displayPath(folder))”, so they never reach the clipboard. \
-            Clipboard can add each new screenshot to Images. Next, click Watch Folder to allow it.
+            Trove can add each new screenshot to Images. Next, click Watch Folder to allow it.
             """)
         alert.addButton(withTitle: String(localized: "Allow…"))
         alert.addButton(withTitle: String(localized: "Not Now"))
@@ -309,7 +309,7 @@ final class AppModel: ObservableObject {
         openPanel.prompt = String(localized: "Watch Folder")
         let system = systemScreenshotFolder
         openPanel.message = system.map {
-            String(localized: "macOS saves screenshots in “\(StorageLocation.displayPath($0))”. Click Watch Folder to let Clipboard add new ones, or choose another folder.")
+            String(localized: "macOS saves screenshots in “\(StorageLocation.displayPath($0))”. Click Watch Folder to let Trove add new ones, or choose another folder.")
         } ?? String(localized: "Choose the folder to watch for screenshots.")
         openPanel.directoryURL = system ?? URL(fileURLWithPath: StorageLocation.realHome).appendingPathComponent("Desktop")
         NSApp.activate()
@@ -865,7 +865,7 @@ final class AppModel: ObservableObject {
         guard let item = statusItem else { return }
         let paused = isPaused
         item.button?.image = NSImage(systemSymbolName: paused ? "pause.circle" : "list.clipboard",
-                                     accessibilityDescription: paused ? String(localized: "Clipboard, paused") : "Clipboard")
+                                     accessibilityDescription: paused ? String(localized: "Trove, paused") : "Trove")
         item.button?.toolTip = pauseDescription
         let open = MenuAction { [weak self] in self?.showPanel() }
         let prefs = MenuAction { [weak self] in self?.openSettings() }
@@ -876,7 +876,7 @@ final class AppModel: ObservableObject {
         let pauseAll = MenuAction { [weak self] in self?.pauseRecording(minutes: nil) }
         statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll]
         let menu = NSMenu()
-        menu.addItem(open.item(String(localized: "Open Clipboard")))
+        menu.addItem(open.item(String(localized: "Open Trove")))
         menu.addItem(.separator())
         if paused {
             let status = NSMenuItem(title: pauseDescription ?? "", action: nil, keyEquivalent: "")
@@ -890,7 +890,7 @@ final class AppModel: ObservableObject {
         }
         menu.addItem(.separator())
         menu.addItem(prefs.item(String(localized: "Settings…"), key: ","))
-        menu.addItem(quit.item(String(localized: "Quit Clipboard"), key: "q"))
+        menu.addItem(quit.item(String(localized: "Quit Trove"), key: "q"))
         item.menu = menu
     }
 
@@ -911,7 +911,7 @@ final class AppModel: ObservableObject {
             }
             return url
         }
-        storageWarning = String(localized: "The saved storage folder is not reachable. Clipboard uses the default folder.")
+        storageWarning = String(localized: "The saved storage folder is not reachable. Trove uses the default folder.")
         log.error("Storage bookmark could not be resolved")
         return StorageLocation.defaultDirectory
     }
@@ -966,13 +966,13 @@ final class AppModel: ObservableObject {
         let alert = NSAlert()
         alert.messageText = String(localized: "Encrypt your clipboard history?")
         alert.informativeText = String(localized: """
-            Clipboard now encrypts its history. The history in “\(StorageLocation.displayPath(directory))” is not encrypted yet.
+            Trove now encrypts its history. The history in “\(StorageLocation.displayPath(directory))” is not encrypted yet.
 
-            Clipboard makes an encrypted copy and checks it. Then the unencrypted original moves to the Trash, \
+            Trove makes an encrypted copy and checks it. Then the unencrypted original moves to the Trash, \
             so you can still restore it. Empty the Trash to remove it for good. Sync services can keep older, unencrypted versions.
             """)
         alert.addButton(withTitle: String(localized: "Encrypt"))
-        alert.addButton(withTitle: quitOnCancel ? String(localized: "Quit Clipboard") : String(localized: "Cancel"))
+        alert.addButton(withTitle: quitOnCancel ? String(localized: "Quit Trove") : String(localized: "Cancel"))
         NSApp.activate()
         let confirmed = alert.runModal() == .alertFirstButtonReturn
         if !confirmed, quitOnCancel {
@@ -986,7 +986,7 @@ final class AppModel: ObservableObject {
         var problem: String?
         while true {
             let alert = NSAlert()
-            alert.messageText = String(localized: "Unlock Clipboard History")
+            alert.messageText = String(localized: "Unlock Trove")
             alert.informativeText = (problem.map { $0 + "\n\n" } ?? "") + String(localized: """
                 The history in “\(StorageLocation.displayPath(directory))” was encrypted on another Mac, \
                 or this Mac’s Keychain no longer has its key. Enter the recovery password to open it here.
@@ -1042,7 +1042,7 @@ final class AppModel: ObservableObject {
         openPanel.canCreateDirectories = true
         openPanel.allowsMultipleSelection = false
         openPanel.prompt = String(localized: "Choose")
-        openPanel.message = String(localized: "Clipboard creates a “\(StorageLocation.historyFolderName)” folder in the location you choose.")
+        openPanel.message = String(localized: "Trove creates a “\(StorageLocation.historyFolderName)” folder in the location you choose.")
         NSApp.activate()
         guard openPanel.runModal() == .OK, let picked = openPanel.url else { return false }
 
@@ -1054,7 +1054,7 @@ final class AppModel: ObservableObject {
             alert.alertStyle = .informational
             alert.messageText = String(localized: "This folder is synced by \(provider)")
             alert.informativeText = String(localized: """
-                Clipboard encrypts the history, so \(provider) receives only unreadable files. \
+                Trove encrypts the history, so \(provider) receives only unreadable files. \
                 To open the history on another Mac, set a recovery password in Settings › Security.
 
                 Use this folder anyway?
@@ -1071,8 +1071,8 @@ final class AppModel: ObservableObject {
             let alert = NSAlert()
             alert.messageText = String(localized: "This folder already has clipboard history")
             alert.informativeText = store == nil
-                ? String(localized: "Clipboard continues with the history in this folder.")
-                : String(localized: "Clipboard switches to the history in this folder. The current history stays in the old folder.")
+                ? String(localized: "Trove continues with the history in this folder.")
+                : String(localized: "Trove switches to the history in this folder. The current history stays in the old folder.")
             alert.addButton(withTitle: String(localized: "Use Existing History"))
             alert.addButton(withTitle: String(localized: "Cancel"))
             guard alert.runModal() == .alertFirstButtonReturn else { return false }
@@ -1222,7 +1222,7 @@ final class AppModel: ObservableObject {
             }
             let savePanel = NSSavePanel()
             let stamp = Date().formatted(.iso8601.year().month().day().dateSeparator(.dash))
-            savePanel.nameFieldStringValue = String(localized: "Clipboard History \(stamp)") + "." + options.format.fileExtension
+            savePanel.nameFieldStringValue = String(localized: "Trove History \(stamp)") + "." + options.format.fileExtension
             savePanel.canCreateDirectories = true
             NSApp.activate()
             guard savePanel.runModal() == .OK, let url = savePanel.url else { return }
@@ -1244,7 +1244,7 @@ final class AppModel: ObservableObject {
         openPanel.canChooseDirectories = false
         openPanel.allowsMultipleSelection = false
         openPanel.prompt = L("Import")
-        openPanel.message = L("Choose a Clipboard export, Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb.")
+        openPanel.message = L("Choose a Trove export, Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb.")
         NSApp.activate()
         guard openPanel.runModal() == .OK, let url = openPanel.url else { return }
 

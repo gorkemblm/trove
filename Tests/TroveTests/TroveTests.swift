@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import Testing
 import GRDB
-@testable import Clipboard
+@testable import Trove
 
 struct ClassifierTests {
     @Test func testLinks() {
@@ -810,7 +810,7 @@ struct LocalizationTests {
         let single = try NSRegularExpression(pattern: opener + #""((?:[^"\\\n]|\\.)*)""#)
         let multi = try NSRegularExpression(pattern: opener + #"\"\"\"\n([\s\S]*?)\n([ \t]*)\"\"\""#)
         var keys = Set<String>()
-        let sources = root.appendingPathComponent("Sources/Clipboard")
+        let sources = root.appendingPathComponent("Sources/Trove")
         let files = FileManager.default.enumerator(at: sources, includingPropertiesForKeys: nil)!
         for case let url as URL in files where url.pathExtension == "swift" && !url.path.contains("/Debug/") {
             let text = try String(contentsOf: url, encoding: .utf8)

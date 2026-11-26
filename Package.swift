@@ -2,23 +2,23 @@
 import PackageDescription
 
 let package = Package(
-    name: "Clipboard",
+    name: "Trove",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(path: "Vendor/GRDB"),
     ],
     targets: [
         .executableTarget(
-            name: "Clipboard",
+            name: "Trove",
             dependencies: [
                 .product(name: "GRDB", package: "GRDB"),
             ],
-            path: "Sources/Clipboard"
+            path: "Sources/Trove"
         ),
         .testTarget(
-            name: "ClipboardTests",
-            dependencies: ["Clipboard"],
-            path: "Tests/ClipboardTests"
+            name: "TroveTests",
+            dependencies: ["Trove"],
+            path: "Tests/TroveTests"
         ),
     ]
 )
