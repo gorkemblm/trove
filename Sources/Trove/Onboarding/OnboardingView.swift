@@ -93,7 +93,7 @@ struct OnboardingView: View {
                 Feature(symbol: "keyboard", title: "Opens with \(settings.hotKey.display)",
                         detail: "From any app. Esc closes it.")
                 Feature(symbol: "lock.shield", title: "Encrypted, and stays on this Mac",
-                        detail: "The key is in your Keychain. No network access. Password manager content is never saved.")
+                        detail: "The key is in your Keychain. Your history never leaves this Mac. Password manager content is never saved.")
             }
             .padding(.top, 12)
         }

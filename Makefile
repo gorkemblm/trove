@@ -13,7 +13,7 @@ TIMESTAMP ?= --timestamp=none
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout window-check icon app release run stop restart logs verify clean
+.PHONY: help build test layout window-check icon app release appcast run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -70,6 +70,16 @@ app: build
 	ditto "$$FW" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
 	install_name_tool -add_rpath @executable_path/../Frameworks "$(APP)/Contents/MacOS/$(APP_NAME)"; \
 	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
+	SP="$$BIN/Sparkle.framework"; \
+	[ -d "$$SP" ] || { echo "Sparkle.framework missing in $$BIN"; exit 1; }; \
+	ditto "$$SP" "$(APP)/Contents/Frameworks/Sparkle.framework"; \
+	SPV="$(APP)/Contents/Frameworks/Sparkle.framework/Versions/B"; \
+	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/XPCServices/Installer.xpc"; \
+	codesign --force --options runtime $(TIMESTAMP) --entitlements Resources/SparkleDownloader.entitlements \
+		--sign "$(SIGN_ID)" "$$SPV/XPCServices/Downloader.xpc"; \
+	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Autoupdate"; \
+	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Updater.app"; \
+	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/Sparkle.framework"; \
 	codesign --force --options runtime $(TIMESTAMP) \
 		--entitlements Resources/$(APP_NAME).entitlements \
 		--sign "$(SIGN_ID)" "$(APP)"
@@ -89,6 +99,16 @@ release: app
 	xcrun stapler staple build/$(APP_NAME).dmg
 	spctl --assess --type open --context context:primary-signature -v build/$(APP_NAME).dmg
 	@echo "Notarized: build/$(APP_NAME).dmg"
+
+# The update list (Sparkle appcast) for the notarized disk images in build/releases. Each
+# image is signed with the EdDSA key in the login keychain (generate_keys made it once).
+# DOWNLOAD_PREFIX is where the images are published, for example a GitHub release URL.
+SPARKLE_BIN = $(SCRATCH)/artifacts/sparkle/Sparkle/bin
+appcast:
+	@[ -n "$(DOWNLOAD_PREFIX)" ] || { echo "Set DOWNLOAD_PREFIX=https://…/"; exit 1; }
+	mkdir -p build/releases
+	"$(SPARKLE_BIN)/generate_appcast" --download-url-prefix "$(DOWNLOAD_PREFIX)" build/releases
+	@echo "Appcast: build/releases/appcast.xml"
 
 run: app
 	open "$(APP)"

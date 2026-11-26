@@ -8,6 +8,16 @@
 	<string>Trove</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
+	<!-- Updates (Sparkle): the list of releases, the key that signs them, and the sandboxed
+	     services that download and install them. Automatic checks are asked about once. -->
+	<key>SUFeedURL</key>
+	<string>https://gorkemblm.github.io/trove-releases/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>kr1ZKH929CjdYah8NrdvxwtGAWho9b0KiLVCgmTeGxg=</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUEnableDownloaderService</key>
+	<true/>
 	<key>CFBundleIdentifier</key>
 	<string>com.iokoda.clipboard</string>
 	<key>CFBundleExecutable</key>

@@ -90,6 +90,8 @@
 "Change these later in Settings: press ⌘, while the panel is open." = "Bunları daha sonra Ayarlar'dan değiştirebilirsin: panel açıkken ⌘, tuşlarına bas.";
 "Change…" = "Değiştir…";
 "Characters" = "Karakter";
+"Check automatically" = "Otomatik denetle";
+"Check for Updates…" = "Güncellemeleri Denetle…";
 "Checking %@ items…" = "%@ öğe inceleniyor…";
 "Choose" = "Seç";
 "Choose a location. Trove creates a “%@” folder there. It holds an encrypted database, encrypted images and a key file." = "Bir konum seç. Trove orada “%@” adlı bir klasör oluşturur. Klasörde şifreli bir veritabanı, şifreli görseller ve bir anahtar dosyası bulunur.";
@@ -269,6 +271,7 @@
 "Last 30 days" = "Son 30 gün";
 "Last 7 Days" = "Son 7 Gün";
 "Last 7 days" = "Son 7 gün";
+"Last checked %@" = "Son denetim: %@";
 "Last copied" = "Son kopyalama";
 "Last Hour…" = "Son Bir Saat…";
 "Light" = "Açık";
@@ -527,6 +530,7 @@
 "The item could not be moved back" = "Öğe geri taşınamadı";
 "The key file was made by a newer version of Trove." = "Anahtar dosyası Trove'un daha yeni bir sürümüyle oluşturulmuş.";
 "The key is in your Keychain. No network access. Password manager content is never saved." = "Anahtar Anahtar Zinciri'nde durur. Ağ erişimi yoktur. Şifre yöneticisi içerikleri hiçbir zaman kaydedilmez.";
+"The key is in your Keychain. Your history never leaves this Mac. Password manager content is never saved." = "Anahtar, Anahtar Zinciri'nde durur. Geçmişin bu Mac'ten hiç çıkmaz. Parola yöneticilerinin içeriği hiçbir zaman kaydedilmez.";
 "The panel also locks when the screen locks, the Mac sleeps or another user takes over. While locked, no history is loaded. Touch ID or your Mac password unlocks it." = "Panel; ekran kilitlendiğinde, Mac uykuya geçtiğinde ya da başka bir kullanıcı oturum açtığında da kilitlenir. Kilitliyken hiçbir geçmiş yüklenmez. Kilidi Touch ID ya da Mac şifren açar.";
 "The password is not correct." = "Parola doğru değil.";
 "The password this export was made with" = "Bu dışa aktarımın parolası";
@@ -590,6 +594,8 @@
 "Unlock with Touch ID to see %@ items." = "%@ öğeyi görmek için Touch ID ile kilidi aç.";
 "Unlock with Touch ID to see 1 item." = "1 öğeyi görmek için Touch ID ile kilidi aç.";
 "Unpin" = "Sabitlemeyi Kaldır";
+"Updates" = "Güncellemeler";
+"Updates are signed and notarized. Your history is never sent anywhere." = "Güncellemeler imzalı ve notarize edilmiştir. Geçmişin hiçbir yere gönderilmez.";
 "UPPERCASE" = "BÜYÜK HARF";
 "URL Decode" = "URL Kodunu Çöz";
 "URL Encode" = "URL Kodla";
@@ -611,6 +617,7 @@
 "Yesterday" = "Dün";
 "You can keep working while it runs." = "Bu sürerken çalışmaya devam edebilirsin.";
 "Your history is encrypted" = "Geçmişin şifreli";
+"Your history never leaves this Mac. Trove itself has no network access; only its separate update checker connects, to read the list of releases." = "Geçmişin bu Mac'ten hiç çıkmaz. Trove'un kendisinin ağ erişimi yoktur; yalnızca ayrı çalışan güncelleme denetleyicisi, sürüm listesini okumak için bağlanır.";
 "Your Maximum Items limit would remove the %@ oldest items." = "En Fazla Öğe sınırın en eski %@ öğeyi siler.";
 "You’re all set" = "Her şey hazır";
 "“%@” does not apply to this text." = "“%@” bu metne uygulanamıyor.";

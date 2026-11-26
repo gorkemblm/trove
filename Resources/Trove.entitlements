@@ -11,6 +11,13 @@
 	<!-- Keeps access to that folder after a restart. -->
 	<key>com.apple.security.files.bookmarks.app-scope</key>
 	<true/>
+	<!-- Sparkle's installer and download services (XPC). Trove talks to them; only the download
+	     service has network access. -->
+	<key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+	<array>
+		<string>com.iokoda.clipboard-spks</string>
+		<string>com.iokoda.clipboard-spki</string>
+	</array>
 	<!-- Reads (never writes) where macOS saves screenshots, to suggest that folder. -->
 	<key>com.apple.security.temporary-exception.shared-preference.read-only</key>
 	<array>

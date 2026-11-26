@@ -41,6 +41,8 @@ final class AppModel: ObservableObject {
 
     private(set) lazy var panelModel = PanelModel(app: self)
     private(set) lazy var textIndexer = TextIndexer(app: self)
+    /// Sparkle. Started by `start()` only (tests and snapshots run without it).
+    private(set) var updates: Updates?
     private var panel: PanelController?
     private let toast = CopyToast()
     private let previewWindow = PreviewWindowController()
@@ -58,6 +60,7 @@ final class AppModel: ObservableObject {
 
     func start() {
         _ = AppLanguage.atLaunch // Read now: a later change in Settings then shows "Restart Now".
+        updates = Updates()
         panel = PanelController(model: panelModel)
         panel?.apply(settings.panelAppearance)
         toast.apply(settings.panelAppearance)
@@ -1004,11 +1007,12 @@ final class AppModel: ObservableObject {
         let open = MenuAction { [weak self] in self?.showPanel() }
         let prefs = MenuAction { [weak self] in self?.openSettings() }
         let quit = MenuAction { [weak self] in self?.quit() }
+        let update = MenuAction { [weak self] in self?.updates?.check() }
         let resume = MenuAction { [weak self] in self?.resumeRecording() }
         let pause10 = MenuAction { [weak self] in self?.pauseRecording(minutes: 10) }
         let pause60 = MenuAction { [weak self] in self?.pauseRecording(minutes: 60) }
         let pauseAll = MenuAction { [weak self] in self?.pauseRecording(minutes: nil) }
-        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll]
+        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll, update]
         let menu = NSMenu()
         menu.addItem(open.item(String(localized: "Open Trove")))
         menu.addItem(.separator())
@@ -1023,6 +1027,7 @@ final class AppModel: ObservableObject {
             menu.addItem(pauseAll.item(String(localized: "Pause Until Resumed")))
         }
         menu.addItem(.separator())
+        menu.addItem(update.item(String(localized: "Check for Updates…")))
         menu.addItem(prefs.item(String(localized: "Settings…"), key: ","))
         menu.addItem(quit.item(String(localized: "Quit Trove"), key: "q"))
         item.menu = menu

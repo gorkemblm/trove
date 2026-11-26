@@ -218,7 +218,9 @@ Bu aşama sadece uygulamayı başkalarına vermek istersen gerekir. Kişisel kul
 
 - [ ] Developer ID imzası (hesap mevcut, Aşama 0'dan beri kullanılıyor)
 - [x] Notarization (Gatekeeper uyarısı çıkmaması için) — `make release`, 26 Kasım 2026
-- [ ] Sparkle ile otomatik güncelleme. Bu, uygulamaya yalnızca güncelleme sunucusuna bağlanma izni açar.
+- [x] Sparkle ile güncelleme altyapısı (26 Kasım 2026): Sparkle 2.9.6 (SwiftPM, ikili çerçeve). Trove'un kendisinin ağ izni yok; yalnızca Sparkle'ın sandbox'lı indirme servisi (Downloader.xpc, `network.client`) bağlanır, kurulum servisi ayrı. Ana uygulamada yalnızca bu iki servise mach-lookup izni. Güncellemeler EdDSA ile imzalı (gizli anahtar giriş Anahtar Zinciri'nde, açık anahtar Info.plist'te) ve notarize. Otomatik denetim ilk kez Sparkle'ın standart sorusuyla sorulur; Ayarlar › Genel › Güncellemeler ve menü çubuğu menüsünde "Güncellemeleri Denetle…". `make appcast DOWNLOAD_PREFIX=…` güncelleme listesini üretir.
+- [ ] Güncelleme listesinin (appcast) ve DMG'lerin herkese açık yeri: karar bekliyor (öneri: herkese açık `trove-releases` deposu, GitHub Releases + Pages). SUFeedURL şimdilik `https://gorkemblm.github.io/trove-releases/appcast.xml`.
+- [ ] EdDSA gizli anahtarının yedeği (`generate_keys -x dosya`), güvenli bir yerde.
 - [x] İlk açılış ekranı (onboarding) — Aşama 1'de yapıldı
 - [x] DMG paketi (`make release` → build/Trove.dmg)
 - [ ] Basit bir tanıtım sayfası

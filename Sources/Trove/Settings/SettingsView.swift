@@ -224,6 +224,9 @@ private struct GeneralSettings: View {
                     }
                 }
                 .sheet(isPresented: $showingLicenses) { LicensesView() }
+                if let updates = app.updates {
+                    UpdatesRow(updates: updates)
+                }
             }
         }
     }
@@ -626,7 +629,8 @@ private struct PrivacySettings: View {
                     Text("Content they mark as concealed is never saved.")
                 }
                 SettingRow(label: "Network") {
-                    Text("Trove has no network access.")
+                    Text("Your history never leaves this Mac. Trove itself has no network access; only its separate update checker connects, to read the list of releases.")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             SettingsDivider()
@@ -854,7 +858,7 @@ private struct RecoveryPasswordSheet: View {
 struct LicensesView: View {
     @Environment(\.dismiss) private var dismiss
 
-    private static let files = ["GRDB", "SQLCipher"]
+    private static let files = ["GRDB", "SQLCipher", "Sparkle"]
 
     private func text(_ name: String) -> String {
         Bundle.main.url(forResource: name, withExtension: "txt", subdirectory: "Licenses")
@@ -908,6 +912,27 @@ private struct RecognitionStatus: View {
                     Button("Remove Recognized Text…") { app.confirmClearRecognizedText() }
                     SettingNote(verbatim: String(localized: "Kept for \(progress.done.formatted()) images"))
                 }
+            }
+        }
+    }
+}
+
+/// Settings › General › Updates: check now, and whether to check every day.
+private struct UpdatesRow: View {
+    @ObservedObject var updates: Updates
+
+    var body: some View {
+        SettingRow(label: "Updates") {
+            HStack(spacing: 14) {
+                Button("Check for Updates…", action: updates.check).disabled(!updates.canCheck)
+                Toggle("Check automatically", isOn: Binding(get: { updates.checksAutomatically },
+                                                            set: { updates.checksAutomatically = $0 }))
+                    .toggleStyle(.checkbox)
+            }
+            if let last = updates.lastCheck {
+                SettingNote(verbatim: String(localized: "Last checked \(last.formatted(.relative(presentation: .named)))"))
+            } else {
+                SettingNote("Updates are signed and notarized. Your history is never sent anywhere.")
             }
         }
     }
