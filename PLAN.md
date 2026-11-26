@@ -181,9 +181,9 @@ Bu aşamadaki maddeler birbirinden bağımsız. İstediğin sırayla yapılabili
 - [x] **Otomatik yapıştırma:** ↵ seçili kaydı önceki uygulamaya yapıştırır (varsayılan; Ayarlar › General › Return Tuşu'ndan "yalnızca kopyala" seçilebilir). Erişilebilirlik izni ister; izin yoksa kopyalar. ⌘V tuşu o anki klavye düzenine göre bulunur (Türkçe F dahil).
 - [ ] **Snippet'ler:** Kalıcı, isimli metinler. Ayrı bir sekmede durur, saklama süresinden etkilenmez.
 - [x] **Çoklu seçim:** Birden çok kaydı seç, aralarına satır sonu koyarak tek seferde yapıştır (26 Kasım 2026; sürükle-bırak ve toplu silme ile).
-- [ ] **Yapıştırmadan önce düzenle:** Kaydı panelde düzenleyip öyle yapıştır.
+- [x] **Yapıştırmadan önce düzenle (26 Kasım 2026):** ⌘E sağ tarafı düzenleyiciye çevirir; ⌘↵ sonucu yapıştırır ve geçmişe yeni kayıt olarak ekler, Esc vazgeçer. Görseldeki metin de düzenlenebilir.
 - [ ] **Uygulamaya göre filtre:** Aramada `app:Arc` gibi bir sözdizimi.
-- [ ] **Metin dönüşümleri:** Büyük/küçük harf, JSON formatla, URL encode/decode, boşlukları temizle.
+- [x] **Metin dönüşümleri (26 Kasım 2026):** Düzenleyicinin üstünde beş küçük menü (Harf, Temizle, Satırlar, Kodla, JSON) ve ⌘K'da aranabilir liste; yalnızca ⌘E ile açılır. Büyük/küçük harf uygulamanın diline göre (i → İ).
 - [x] **Büyük önizleme:** Detaydaki göz düğmesi metin, kod, veri ve görselleri büyük bir pencerede açar (kısayol yok, kullanıcı isteği).
 - [ ] **İstatistikler:** En çok kopyalanan uygulamalar, günlük kopyalama sayısı.
 
@@ -235,6 +235,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | ⌘D (⌘⌫ da çalışır) | Kaydı sil (onay ister) | Panel |
 | / | Gruba git (öneri listesi; ↵/⇥ seçer, boşluk ilk eşleşeni seçip aramaya devam eder; boş aramada ⌫ Tümü'ne döner) | Panel |
 | ⌘⇧C | Görseldeki metni kopyala | Panel |
+| ⌘E | Düzenle ve dönüştür (⌘↵ yapıştırır, Esc vazgeçer) | Panel |
 | ⌘T | Dosyanın klasörünü terminalde aç (Ayarlar › Genel › Terminal) | Panel |
 | ⌘K | Eylemler menüsü (aranabilir; tüm eylemler kısayollarıyla) | Panel |
 | ⌘⇧S | Seçim modunu aç / kapat | Panel |

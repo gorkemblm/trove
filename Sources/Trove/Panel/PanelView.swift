@@ -443,7 +443,9 @@ struct FooterView: View {
                 Image(systemName: "pause.circle.fill").foregroundStyle(.orange).padding(.leading, 8)
                 Text(paused).font(.system(size: 12.5)).foregroundStyle(.orange).monospacedDigit().padding(.trailing, 6)
             }
-            if model.hasGroupSelection {
+            if model.editing != nil {
+                FooterAction(title: L("Cancel"), keys: ["esc"]) { model.cancelEdit() }
+            } else if model.hasGroupSelection {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.selectTint).padding(.leading, 8)
                 Text(String(localized: "\(model.picked.count.formatted()) selected"))
                     .font(.system(size: 12.5)).monospacedDigit().foregroundStyle(Theme.text)
@@ -456,7 +458,10 @@ struct FooterView: View {
                 Text("Trove").font(.system(size: 12.5)).foregroundStyle(Theme.muted)
             }
             Spacer()
-            if model.hasGroupSelection || model.selected != nil {
+            if model.editing != nil {
+                FooterAction(title: model.returnTitle, keys: ["⌘", "↵"], prominent: true) { model.finishEdit() }
+                Theme.divider.frame(width: 1, height: 16).padding(.horizontal, 4)
+            } else if model.hasGroupSelection || model.selected != nil {
                 FooterAction(title: model.returnTitle, keys: ["↵"], prominent: true) { model.copySelected(plainText: false) }
                 Theme.divider.frame(width: 1, height: 16).padding(.horizontal, 4)
             }

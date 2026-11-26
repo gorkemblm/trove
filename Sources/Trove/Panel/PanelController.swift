@@ -223,7 +223,7 @@ final class PanelController {
     }
 
     /// Keys that, with ⌘, are panel shortcuts: T P D R H S ↵ , Q W ⌫ 1–5.
-    private static let panelShortcutKeys: Set<UInt16> = [17, 35, 2, 15, 4, 1, 36, 76, 43, 12, 13, 51, 18, 19, 20, 21, 23]
+    private static let panelShortcutKeys: Set<UInt16> = [17, 35, 2, 15, 4, 1, 14, 36, 76, 43, 12, 13, 51, 18, 19, 20, 21, 23]
 
     /// Panel shortcuts. The search field keeps focus, so plain keys go to it
     /// and every action uses a modifier, an arrow, Tab, Return or Esc.
@@ -242,6 +242,18 @@ final class PanelController {
             }
         }
 
+        // Editor: typing, ↵, ⌘Z and ⌘A go to the text. Esc cancels, ⌘↵ pastes, ⌘K shows the
+        // transforms. (Checked after the actions menu, which can be open over it.)
+        if model.editing != nil, !model.actionsOpen {
+            switch (event.keyCode, flags) {
+            case (53, []): model.cancelEdit(); return true
+            case (36, [.command]), (76, [.command]): model.finishEdit(); return true
+            case (40, [.command]): model.toggleActions(); return true
+            case (12, [.command]): NSApp.terminate(nil); return true
+            default: return false
+            }
+        }
+
         // Actions menu: ↑↓ move, ↵ runs, Esc or ⌘K closes. Typing filters it. A panel shortcut
         // (⌘T, ⌘P, ⌘D…) closes the menu and runs as it would with the menu closed; text keys
         // such as ⌘A, ⌘C and ⌘V stay with the menu's search field.
@@ -252,6 +264,7 @@ final class PanelController {
             case (36, []), (76, []): model.runPickedAction(); return true
             case (53, []), (40, [.command]): model.closeActions(); return true
             default:
+                guard model.editing == nil else { return false } // Over the editor: keys stay with the menu.
                 let isShortcut = Self.panelShortcutKeys.contains(event.keyCode) || (event.keyCode == 8 && flags == [.command, .shift])
                 guard flags.contains(.command), isShortcut else { return false }
                 model.closeActions()
@@ -329,6 +342,9 @@ final class PanelController {
             return true
         case (126, [.shift]):
             model.extendSelection(-1)
+            return true
+        case (14, [.command]): // ⌘E: edit and transform
+            model.requestEdit()
             return true
         case (8, [.command, .shift]): // ⌘⇧C: copy the text in the selected image
             model.copyImageText()

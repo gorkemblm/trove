@@ -701,6 +701,7 @@ private struct ShortcutSettings: View {
                 (L("Open link, compose email, call, show in Finder"), ["⌘", "↵"]),
                 (L("Open a file’s folder in the terminal"), ["⌘", "T"]),
                 (L("Copy the text in an image"), ["⌘", "⇧", "C"]),
+                (L("Edit and transform the text"), ["⌘", "E"]),
                 (L("Pin or unpin"), ["⌘", "P"]),
                 (L("Move to Hidden, or back"), ["⌘", "⇧", "H"]),
                 (L("Name a hidden item"), ["⌘", "R"]),

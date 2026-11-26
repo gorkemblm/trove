@@ -15,7 +15,9 @@ struct DetailView: View {
     static let maxRows = 9
 
     var body: some View {
-        if model.hasGroupSelection {
+        if model.editing != nil {
+            EditorView(model: model)
+        } else if model.hasGroupSelection {
             GroupSelectionView(model: model)
         } else if let clip = model.detail {
             VStack(alignment: .leading, spacing: 0) {
@@ -504,6 +506,78 @@ struct ImageTextPanel: View {
                 .foregroundStyle(Theme.faint)
                 .padding(.horizontal, 14)
                 .frame(height: 30, alignment: .leading)
+        }
+    }
+}
+
+/// ⌘E: the selected text in an editor, with the transforms in small menus above it. It opens
+/// only when asked and closes with Esc; ⌘↵ pastes the result.
+struct EditorView: View {
+    @ObservedObject var model: PanelModel
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        let session = model.editing
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "pencil").font(.system(size: 12, weight: .semibold)).foregroundStyle(Theme.selectTint)
+                Text("Edit").font(.system(size: 15, weight: .semibold))
+                Spacer()
+                if let session, session.text != session.original {
+                    Button(L("Undo All Changes"), action: model.resetEdit).buttonStyle(.link).font(.system(size: 12))
+                }
+            }
+            // Names when they fit; otherwise symbols only (with the name as a tooltip), so the
+            // panel never grows.
+            ViewThatFits(in: .horizontal) {
+                transformMenus(showNames: true)
+                transformMenus(showNames: false)
+            }
+            TextEditor(text: Binding(get: { model.editing?.text ?? "" }, set: { model.editing?.text = $0; model.editing?.note = nil }))
+                .font(.system(size: 13))
+                .scrollContentBackground(.hidden)
+                .focused($focused)
+                .padding(8)
+                .background(Theme.iconFill, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.selectTint.opacity(0.45)))
+            HStack {
+                if let note = session?.note {
+                    Label(note, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                } else {
+                    let text = session?.text ?? ""
+                    let lines = text.isEmpty ? 0 : text.split(separator: "\n", omittingEmptySubsequences: false).count
+                    Text(String(localized: "\(text.count.formatted()) characters · \(lines.formatted()) lines")).foregroundStyle(Theme.faint)
+                }
+                Spacer(minLength: 8)
+                Text("Transforms change the whole text. More in ⌘K.").foregroundStyle(Theme.faint)
+                    .lineLimit(1).truncationMode(.tail)
+            }
+            .lineLimit(1)
+            .font(.system(size: 11.5))
+            .monospacedDigit()
+        }
+        .padding(18)
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .onAppear { focused = true }
+        .onChange(of: model.editorFocusRequest) { focused = true }
+    }
+
+    private func transformMenus(showNames: Bool) -> some View {
+        HStack(spacing: 6) {
+            ForEach(TextTransform.Group.allCases) { group in
+                Menu {
+                    ForEach(group.transforms) { transform in
+                        Button(transform.title) { model.apply(transform) }
+                    }
+                } label: {
+                    if showNames { Label(group.title, systemImage: group.symbol) } else { Image(systemName: group.symbol) }
+                }
+                .menuStyle(.button)
+                .controlSize(.small)
+                .fixedSize()
+                .help(group.title)
+            }
+            Spacer(minLength: 0)
         }
     }
 }

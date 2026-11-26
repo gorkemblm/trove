@@ -730,6 +730,12 @@ final class AppModel: ObservableObject {
         previewWindow.close()
     }
 
+    /// The editor's result: saved as a new item (so it can be found again), then pasted or copied.
+    func useEditedText(_ text: String) {
+        ingest(ClipClassifier.textContent(text, rtf: nil), source: ClipSource(bundleID: AppInfo.bundleID, appName: "Trove", url: nil))
+        copyText(text, message: L("Copied Edited Text"))
+    }
+
     /// Copies derived text (for example re-indented JSON). The stored item does not change.
     func copyText(_ text: String, message: String) {
         let clip = Clip(id: nil, kind: .text, text: text, rtf: nil, byteSize: 0, contentHash: "",

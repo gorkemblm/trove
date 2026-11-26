@@ -104,6 +104,25 @@ enum SnapshotRunner {
                           to: outputDirectory.appendingPathComponent("large-preview-image-text.png"))
             }
 
+            // The editor (⌘E) on a JSON item, after "Format JSON".
+            model.selectedID = clips["json"]?.id
+            model.requestEdit()
+            model.apply(.jsonPretty)
+            let editorImage = render(model)
+            try write(editorImage, to: outputDirectory.appendingPathComponent("panel-editor.png"))
+            // The sidebar must stay where it is: a wider editor would push the whole panel.
+            model.cancelEdit()
+            let sidebarArea = CGRect(x: 0, y: 56, width: 196, height: 400)
+            let withoutEditor = render(model)
+            failures += check("Editor: the panel keeps its layout", diff(withoutEditor, editorImage, in: sidebarArea), maxWidth: 0.5)
+            model.requestEdit()
+            model.apply(.jsonPretty)
+            model.toggleActions()
+            model.actionFilter = "case"
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-editor-actions.png"))
+            model.closeActions()
+            model.cancelEdit()
+
             // The actions menu (⌘K) for a screenshot, and filtered.
             model.selectedID = clips["screenshot"]?.id
             model.toggleActions()

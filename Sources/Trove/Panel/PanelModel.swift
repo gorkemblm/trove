@@ -286,6 +286,7 @@ final class PanelModel: ObservableObject {
     @Published private(set) var counts: [ClipCategory: Int] = [:]
     @Published var selectedID: Int64? {
         didSet {
+            if editing != nil, selectedID != oldValue { editing = nil } // The editor belongs to one item.
             if let pending = pendingDelete, pending.count == 1, pending.first?.id != selectedID { pendingDelete = nil }
             loadDetail()
         }
@@ -299,6 +300,18 @@ final class PanelModel: ObservableObject {
     }
 
     @Published var naming: NamingRequest?
+
+    /// The editor (⌘E): the right side becomes a text editor with the transforms above it.
+    struct EditSession: Equatable {
+        var text: String
+        let original: String
+        /// What the transform could not do ("This is not valid JSON."), shown under the text.
+        var note: String?
+    }
+
+    @Published var editing: EditSession?
+    /// Incremented to give the keyboard to the editor (after the actions menu closes).
+    @Published private(set) var editorFocusRequest = 0
 
     /// The items waiting for delete confirmation (⌘D, then ↵). Nil when no confirmation is shown.
     @Published private(set) var pendingDelete: [Clip]?
@@ -437,6 +450,7 @@ final class PanelModel: ObservableObject {
         if !isVisible(category) { category = .all } // Turned off in Settings while selected.
         pendingDelete = nil
         naming = nil
+        editing = nil
         actionsOpen = false
         actionFilter = ""
         endSelecting()
@@ -823,6 +837,51 @@ final class PanelModel: ObservableObject {
         app?.copyText(value, message: String(localized: "Copied \(format)"))
     }
 
+    // MARK: - Editor (⌘E)
+
+    /// Text items, and images with text (their text is edited). Hidden items stay sealed.
+    var canEditSelected: Bool {
+        guard !hasGroupSelection, let detail else { return false }
+        return (detail.kind.isTextual && detail.text != nil) || imageText != nil
+    }
+
+    func requestEdit() {
+        guard canEditSelected, let detail else { NSSound.beep(); return }
+        let text = detail.kind.isTextual ? (detail.text ?? "") : (imageText ?? "")
+        editing = EditSession(text: text, original: text)
+        focusArea = .list
+    }
+
+    func apply(_ transform: TextTransform) {
+        guard let session = editing else { return }
+        guard let result = transform.apply(session.text) else {
+            editing?.note = String(localized: "“\(transform.title)” does not apply to this text.")
+            NSSound.beep()
+            return
+        }
+        editing?.text = result
+        editing?.note = nil
+        editorFocusRequest += 1
+    }
+
+    func resetEdit() {
+        guard let session = editing else { return }
+        editing = EditSession(text: session.original, original: session.original)
+        editorFocusRequest += 1
+    }
+
+    func cancelEdit() {
+        editing = nil
+        focusRequest += 1
+    }
+
+    /// ⌘↵: the edited text is pasted (or copied) and saved in history as a new item.
+    func finishEdit() {
+        guard let text = editing?.text, !text.isEmpty else { NSSound.beep(); return }
+        editing = nil
+        app?.useEditedText(text)
+    }
+
     // MARK: - Text in images
 
     /// The text Vision read in the selected image, when there is any.
@@ -1003,9 +1062,26 @@ final class PanelModel: ObservableObject {
     }
     @Published private(set) var actionPick = 0
 
-    /// What can be done now: with the selected item, with the picked items, or with none.
+    /// What can be done now: in the editor, with the selected item, with the picked items, or with none.
     var actions: [PanelAction] {
         var list: [PanelAction] = []
+        if editing != nil {
+            list.append(PanelAction(id: "finishEdit", title: returnPastes ? L("Paste Edited Text") : L("Copy Edited Text"),
+                                    symbol: "doc.on.clipboard", keys: ["⌘", "↵"], section: 0) { [weak self] in self?.finishEdit() })
+            for (index, group) in TextTransform.Group.allCases.enumerated() {
+                for transform in group.transforms {
+                    list.append(PanelAction(id: "transform." + transform.rawValue, title: transform.title, symbol: group.symbol,
+                                            section: index + 1) { [weak self] in self?.apply(transform) })
+                }
+            }
+            list.append(PanelAction(id: "resetEdit", title: L("Undo All Changes"), symbol: "arrow.uturn.backward", section: 9) { [weak self] in
+                self?.resetEdit()
+            })
+            list.append(PanelAction(id: "cancelEdit", title: L("Cancel Editing"), symbol: "xmark", keys: ["esc"], section: 9) { [weak self] in
+                self?.cancelEdit()
+            })
+            return list
+        }
         if hasGroupSelection {
             let count = picked.count.formatted()
             list.append(PanelAction(id: "paste", title: returnPastes ? String(localized: "Paste \(count) Items") : String(localized: "Copy \(count) Items"),
@@ -1038,6 +1114,10 @@ final class PanelModel: ObservableObject {
                     list.append(PanelAction(id: "imageText", title: L("Copy All Text from Image"), symbol: "text.viewfinder",
                                             keys: ["⌘", "⇧", "C"], section: 0) { [weak self] in self?.copyAllImageText() })
                 }
+            }
+            if canEditSelected {
+                list.append(PanelAction(id: "edit", title: L("Edit and Transform…"), symbol: "pencil.and.list.clipboard",
+                                        keys: ["⌘", "E"], section: 0) { [weak self] in self?.requestEdit() })
             }
             if canOpenInTerminal, let terminal = app?.terminal {
                 list.append(PanelAction(id: "terminal", title: String(localized: "Open in \(terminal.name)"), symbol: "terminal",
@@ -1098,7 +1178,8 @@ final class PanelModel: ObservableObject {
         guard actionsOpen else { return }
         actionsOpen = false
         actionFilter = ""
-        focusRequest += 1 // The keyboard goes back to the search field.
+        // The keyboard goes back to where it was: the editor, or the search field.
+        if editing != nil { editorFocusRequest += 1 } else { focusRequest += 1 }
     }
 
     func moveActionPick(_ delta: Int) {

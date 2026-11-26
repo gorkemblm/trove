@@ -1714,6 +1714,56 @@ struct ImageTextTests {
     }
 }
 
+struct TextTransformTests {
+    private let turkish = Locale(identifier: "tr_TR")
+
+    @Test func caseFollowsTheLanguage() {
+        #expect(TextTransform.uppercase.apply("istanbul ılık", locale: turkish) == "İSTANBUL ILIK")
+        #expect(TextTransform.lowercase.apply("İSTANBUL", locale: turkish) == "istanbul")
+        #expect(TextTransform.sentenceCase.apply("merhaba DÜNYA. nasılsın?", locale: turkish) == "Merhaba dünya. Nasılsın?")
+    }
+
+    @Test func linesAndSpaces() {
+        #expect(TextTransform.trimLines.apply("  a  \n b \n") == "a\nb")
+        #expect(TextTransform.collapseSpaces.apply("a    b\t\tc") == "a b c")
+        #expect(TextTransform.removeEmptyLines.apply("a\n\n  \nb") == "a\nb")
+        #expect(TextTransform.sortLines.apply("item10\nitem2\nb") == "b\nitem2\nitem10")
+        #expect(TextTransform.removeDuplicateLines.apply("a\nb\na") == "a\nb")
+        #expect(TextTransform.reverseLines.apply("1\n2\n3") == "3\n2\n1")
+    }
+
+    @Test func encodings() {
+        #expect(TextTransform.urlEncode.apply("a b&ç") == "a%20b%26%C3%A7")
+        #expect(TextTransform.urlDecode.apply("a%20b%26%C3%A7") == "a b&ç")
+        #expect(TextTransform.base64Encode.apply("Trove ✓") == "VHJvdmUg4pyT")
+        #expect(TextTransform.base64Decode.apply("VHJvdmUg4pyT") == "Trove ✓")
+        #expect(TextTransform.base64Decode.apply("not base64!") == nil)
+        #expect(TextTransform.jsonMinify.apply("{ \"a\" : [1, 2] }") == #"{"a":[1,2]}"#)
+        #expect(TextTransform.jsonPretty.apply("not json") == nil)
+    }
+
+    @Test @MainActor func editorPastesTheResultAndKeepsTheOriginal() throws {
+        let app = AppModel()
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+        app.installStoreForSnapshots(store, hiddenKey: SoftwareHiddenKey())
+        try store.ingest(ClipClassifier.textContent("merhaba dünya", rtf: nil), source: ClipSource(), at: Date())
+        let model = app.panelModel
+        model.willShow()
+        #expect(model.canEditSelected)
+        model.requestEdit()
+        model.apply(.uppercase)
+        #expect(model.editing?.text.hasPrefix("MERHABA") == true)
+        model.apply(.base64Decode) // Does not apply: the text stays, a note says why.
+        #expect(model.editing?.note != nil && model.editing?.text.hasPrefix("MERHABA") == true)
+        model.resetEdit()
+        #expect(model.editing?.text == "merhaba dünya")
+        model.cancelEdit()
+        #expect(model.editing == nil)
+        #expect(try store.counts()[.all] == 1) // Nothing was saved.
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))
