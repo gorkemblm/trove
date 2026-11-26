@@ -119,6 +119,15 @@ final class PanelController {
     var frame: NSRect { panel.frame }
 
     func toggle() {
+        // Behind Settings (opened from the panel), the shortcut brings it forward instead of
+        // closing a panel the user cannot see.
+        if panel.isVisible, behindSettings {
+            behindSettings = false
+            keepOpen = false
+            panel.level = .floating
+            panel.makeKeyAndOrderFront(nil)
+            return
+        }
         panel.isVisible ? hide(reason: "shortcut") : show()
     }
 
@@ -139,6 +148,10 @@ final class PanelController {
     }
 
     func show() {
+        // Always in front of every window, whatever an earlier flow left behind.
+        behindSettings = false
+        keepOpen = false
+        panel.level = .floating
         updateMaterial() // With System, macOS may have switched since the last show.
         model.willShow()
         centerOnActiveScreen()
