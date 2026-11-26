@@ -66,7 +66,9 @@ final class AppModel: ObservableObject {
             self?.panel?.refocus()
         }
         hotKey = GlobalHotKey { [weak self] in self?.togglePanel() }
+        pauseHotKey = GlobalHotKey { [weak self] in self?.togglePauseFromShortcut() }
         resumeHotKey()
+        resumeHotKey(.pause)
         if hotKeyError != nil {
             // After a restart (language change) the old copy may still hold the shortcut for a moment.
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in self?.resumeHotKey() }
@@ -122,6 +124,10 @@ final class AppModel: ObservableObject {
     func installStoreForSnapshots(_ store: Store, hiddenKey: HiddenKey) {
         self.store = store
         self.hiddenKey = hiddenKey
+        // Tests and snapshots share one defaults domain: each starts in All, not in the group
+        // an earlier one left open.
+        settings.openingGroup = .all
+        settings.lastGroup = ClipCategory.all.rawValue
     }
 
     // MARK: - Onboarding
@@ -881,31 +887,76 @@ final class AppModel: ObservableObject {
 
     // MARK: - Hot key
 
+    private var pauseHotKey: GlobalHotKey?
+
+    struct SameShortcutError: Error, CustomStringConvertible {
+        var description: String { L("This shortcut already opens the panel.") }
+    }
+
+    func hotKeySetting(_ role: HotKeyRole) -> HotKeySetting? {
+        role == .panel ? settings.hotKey : settings.pauseHotKey
+    }
+
     /// Registers the shortcut and saves it. On failure, the previous shortcut stays active.
-    func applyHotKey(_ setting: HotKeySetting) throws {
-        guard let hotKey else { return }
-        do {
-            try hotKey.register(setting.combo)
-            settings.hotKey = setting
-            hotKeyError = nil
-        } catch {
-            try? hotKey.register(settings.hotKey.combo)
-            throw error
+    /// Nil removes the pause shortcut (the panel always has one).
+    func applyHotKey(_ setting: HotKeySetting?, role: HotKeyRole = .panel) throws {
+        let other = hotKeySetting(role == .panel ? .pause : .panel)
+        if let setting, let other, setting.combo == other.combo { throw SameShortcutError() }
+        switch role {
+        case .panel:
+            guard let hotKey, let setting else { return }
+            do {
+                try hotKey.register(setting.combo)
+                settings.hotKey = setting
+                hotKeyError = nil
+            } catch {
+                try? hotKey.register(settings.hotKey.combo)
+                throw error
+            }
+        case .pause:
+            guard let pauseHotKey else { return }
+            guard let setting else {
+                pauseHotKey.unregister()
+                settings.pauseHotKey = nil
+                return
+            }
+            do {
+                try pauseHotKey.register(setting.combo)
+                settings.pauseHotKey = setting
+            } catch {
+                if let old = settings.pauseHotKey { try? pauseHotKey.register(old.combo) }
+                throw error
+            }
         }
     }
 
     /// Releases the shortcut while the recorder listens for a new one.
-    func suspendHotKey() {
-        hotKey?.unregister()
+    func suspendHotKey(_ role: HotKeyRole = .panel) {
+        (role == .panel ? hotKey : pauseHotKey)?.unregister()
     }
 
-    func resumeHotKey() {
+    func resumeHotKey(_ role: HotKeyRole = .panel) {
+        guard role == .panel else {
+            if let combo = settings.pauseHotKey?.combo { try? pauseHotKey?.register(combo) }
+            return
+        }
         do {
             try hotKey?.register(settings.hotKey.combo)
             hotKeyError = nil
         } catch {
             hotKeyError = String(describing: error)
             log.error("Global shortcut failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// The pause shortcut: pauses recording until pressed again, from any app.
+    func togglePauseFromShortcut() {
+        if isPaused {
+            resumeRecording()
+            toast.show(L("Recording resumed"), symbol: "record.circle", tint: .green)
+        } else {
+            pauseRecording(minutes: nil)
+            toast.show(L("Recording paused"), symbol: "pause.circle.fill", tint: .orange)
         }
     }
 
@@ -1353,7 +1404,8 @@ final class AppModel: ObservableObject {
         var secrets: [(text: String, finding: SensitiveDetector.Finding, item: Transfer.Item)] = []
         for item in items {
             guard let content = importContent(item) else { continue }
-            if content.kind.isTextual, let text = content.text, let finding = SensitiveDetector.detect(text) {
+            // Snippets were kept on purpose: they are not moved to Hidden.
+            if item.snippetName == nil, content.kind.isTextual, let text = content.text, let finding = SensitiveDetector.detect(text) {
                 secrets.append((text, finding, item))
                 continue
             }
@@ -1361,7 +1413,7 @@ final class AppModel: ObservableObject {
                 content: content,
                 source: ClipSource(bundleID: item.sourceBundleID, appName: item.sourceApp, url: item.sourceURL),
                 firstCopiedAt: item.firstCopiedAt, lastCopiedAt: item.lastCopiedAt,
-                timesCopied: item.timesCopied, pinned: item.pinned
+                timesCopied: item.timesCopied, pinned: item.pinned, snippetName: item.snippetName
             ))
         }
         let hiddenKey = settings.sensitiveRule == .discard ? nil : loadHiddenKey()

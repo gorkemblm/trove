@@ -22,6 +22,10 @@ final class GlobalHotKey {
     }
 
     private static let signature: OSType = 0x434C_4950 // "CLIP"
+    /// Each shortcut has its own id. Every handler sees every hot key event, so each one
+    /// acts only on its own id and passes the others on.
+    private static var nextID: UInt32 = 1
+    private let id: UInt32
 
     private let action: @MainActor () -> Void
     private var hotKeyRef: EventHotKeyRef?
@@ -29,13 +33,15 @@ final class GlobalHotKey {
 
     init(action: @escaping @MainActor () -> Void) {
         self.action = action
+        id = Self.nextID
+        Self.nextID += 1
         installHandler()
     }
 
     func register(_ combo: Combo) throws {
         unregister()
         var ref: EventHotKeyRef?
-        let id = EventHotKeyID(signature: Self.signature, id: 1)
+        let id = EventHotKeyID(signature: Self.signature, id: self.id)
         let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, id, GetApplicationEventTarget(), 0, &ref)
         guard status == noErr, let ref else { throw RegistrationError(status: status) }
         hotKeyRef = ref
@@ -48,18 +54,30 @@ final class GlobalHotKey {
 
     private func installHandler() {
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let callback: EventHandlerUPP = { _, _, userData in
-            guard let userData else { return OSStatus(eventNotHandledErr) }
-            // Carbon delivers hot key events on the main thread.
-            MainActor.assumeIsolated {
-                Unmanaged<GlobalHotKey>.fromOpaque(userData).takeUnretainedValue().action()
-            }
-            return noErr
+        let callback: EventHandlerUPP = { _, event, userData in
+            guard let userData, let event else { return OSStatus(eventNotHandledErr) }
+            var pressed = EventHotKeyID()
+            let status = GetEventParameter(event, EventParamName(kEventParamDirectObject), EventParamType(typeEventHotKeyID),
+                                           nil, MemoryLayout<EventHotKeyID>.size, nil, &pressed)
+            guard status == noErr else { return OSStatus(eventNotHandledErr) }
+            return GlobalHotKey.deliver(signature: pressed.signature, id: pressed.id, to: userData) ? noErr : OSStatus(eventNotHandledErr)
         }
         InstallEventHandler(
             GetApplicationEventTarget(), callback, 1, &eventType,
             Unmanaged.passUnretained(self).toOpaque(), &handlerRef
         )
+    }
+
+    /// Runs the action when the pressed shortcut is this one. Carbon calls on the main thread.
+    private nonisolated static func deliver(signature: OSType, id: UInt32, to userData: UnsafeMutableRawPointer) -> Bool {
+        guard signature == 0x434C_4950 else { return false }
+        nonisolated(unsafe) let pointer = userData
+        return MainActor.assumeIsolated {
+            let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(pointer).takeUnretainedValue()
+            guard hotKey.id == id else { return false }
+            hotKey.action()
+            return true
+        }
     }
 
     // MARK: - Conversions and labels

@@ -30,6 +30,8 @@ enum Transfer {
         var sourceBundleID: String?
         var sourceURL: String?
         var pinned: Bool
+        /// Snippets only: the name. Older exports have no such field.
+        var snippetName: String? = nil
         var timesCopied: Int
         var firstCopiedAt: Date
         var lastCopiedAt: Date

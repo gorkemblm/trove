@@ -117,6 +117,14 @@ private struct GeneralSettings: View {
                     }
                     SettingNote("While paused, nothing you copy is saved, screenshots included. Quitting Trove resumes recording.")
                 }
+                SettingRow(label: "Pause Shortcut", alignment: .top, labelOffset: 8) {
+                    ShortcutRecorder(app: app, settings: settings, width: 260, alignment: .leading, role: .pause)
+                }
+                SettingRow(label: "Panel Opens In") {
+                    SettingMenu(selection: $settings.openingGroup) {
+                        ForEach(OpeningGroup.allCases) { Text($0.title).tag($0) }
+                    }
+                }
                 SettingRow(label: "Return Key") {
                     SettingMenu(selection: $settings.returnAction) {
                         ForEach(ReturnAction.allCases) { Text($0.title).tag($0) }
@@ -463,7 +471,7 @@ private struct ExportSheet: View {
                 GridRow {
                     Color.clear.frame(width: 1, height: 1)
                     VStack(alignment: .leading, spacing: 6) {
-                        Toggle("Pinned items only", isOn: $options.pinnedOnly)
+                        Toggle("Pinned items and snippets only", isOn: $options.pinnedOnly)
                         Toggle("Include images", isOn: $options.includeImages).disabled(options.format == .csv)
                     }
                     .toggleStyle(.checkbox)
@@ -690,6 +698,9 @@ private struct ShortcutSettings: View {
         [
             (L("Panel"), [
                 (L("Open Trove"), GlobalHotKey.symbols(forCarbonModifiers: settings.hotKey.modifiers).map(String.init) + [settings.hotKey.keyLabel]),
+                (L("Pause or resume recording"), settings.pauseHotKey.map {
+                    GlobalHotKey.symbols(forCarbonModifiers: $0.modifiers).map(String.init) + [$0.keyLabel]
+                } ?? [L("Not set")]),
                 (L("All actions"), ["⌘", "K"]),
                 (L("Settings"), ["⌘", ","]),
                 (L("Clear search, then close"), ["esc"]),

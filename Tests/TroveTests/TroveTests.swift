@@ -1802,6 +1802,30 @@ struct SnippetTests {
         #expect(try store.clearCount(since: nil) == 2) // An ordinary item again.
     }
 
+    @Test func snippetsSurviveExportAndImport() throws {
+        let source = try store()
+        let clip = try source.ingest(ClipClassifier.textContent("Hürriyet Mah. 59010", rtf: nil), source: ClipSource(), at: Date())
+        try source.makeSnippet(id: try #require(clip.id), name: "Ev adresi")
+        try source.ingest(ClipClassifier.textContent("not kept", rtf: nil), source: ClipSource(), at: Date())
+
+        let kept = try source.exportItems(since: nil, pinnedOnly: true, includeImages: false)
+        #expect(kept.map(\.snippetName) == ["Ev adresi"]) // "Pinned items and snippets only".
+        let file = try Transfer.json(try source.exportItems(since: nil, pinnedOnly: false, includeImages: false))
+        let read = try Transfer.decoder().decode(Transfer.Document.self, from: file).items
+
+        let target = try store()
+        let records = read.compactMap { item -> Store.ImportRecord? in
+            guard let text = item.text else { return nil }
+            return Store.ImportRecord(content: ClipClassifier.textContent(text, rtf: nil), source: ClipSource(),
+                                      firstCopiedAt: item.firstCopiedAt, lastCopiedAt: item.lastCopiedAt,
+                                      timesCopied: item.timesCopied, pinned: item.pinned, snippetName: item.snippetName)
+        }
+        #expect(try target.importRecords(records).added == 2)
+        #expect(try target.fetch(category: .snippets, query: "", limit: 10).map(\.title) == ["Ev adresi"])
+        #expect(try target.importRecords(records).added == 0) // The same file again adds nothing.
+        #expect(try target.counts()[.snippets] == 1)
+    }
+
     @Test func newSnippetGetsItsTextFromTheEditor() throws {
         let store = try store()
         let snippet = try store.newSnippet(name: "Signature")
@@ -1890,6 +1914,41 @@ struct AppFilterTests {
         let (model, _) = try makeModel()
         model.query = "@nowhere"
         #expect(model.appFilterTyped == nil && model.searchQuery == "@nowhere")
+    }
+}
+
+@MainActor
+@Suite(.serialized)
+struct OpeningAndPauseTests {
+    private let app = AppModel()
+
+    @Test func panelOpensInTheGroupUsedLast() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        app.installStoreForSnapshots(try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images")), hiddenKey: SoftwareHiddenKey())
+        defer { app.settings.openingGroup = .all; app.settings.lastGroup = ClipCategory.all.rawValue }
+        let model = app.panelModel
+        app.settings.openingGroup = .last
+        model.willShow()
+        model.category = .links
+        model.didHide()
+        model.willShow()
+        #expect(model.category == .links)
+        #expect(app.settings.lastGroup == ClipCategory.links.rawValue) // Kept for the next launch.
+        model.category = .hidden
+        model.willShow()
+        #expect(model.category == .all) // Hidden is locked: it never opens by itself.
+        app.settings.openingGroup = .all
+        model.category = .links
+        model.willShow()
+        #expect(model.category == .all)
+    }
+
+    @Test func pauseShortcutTogglesRecording() {
+        let wasPaused = app.isPaused
+        app.togglePauseFromShortcut()
+        #expect(app.isPaused != wasPaused)
+        app.togglePauseFromShortcut()
+        #expect(app.isPaused == wasPaused)
     }
 }
 

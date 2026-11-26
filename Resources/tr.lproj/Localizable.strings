@@ -85,6 +85,7 @@
 "Clear History" = "Geçmişi Temizle";
 "Clear search, then close" = "Aramayı temizle, sonra kapat";
 "Click" = "Tık";
+"Click to set" = "Ayarlamak için tıkla";
 "Click, then press a key combination. Esc cancels." = "Tıkla, sonra bir tuş kombinasyonuna bas. Esc vazgeçer.";
 "Close" = "Kapat";
 "Code" = "Kod";
@@ -291,7 +292,7 @@
 "No unpinned items were copied in the last hour." = "Son bir saatte sabitlenmemiş öğe kopyalanmadı.";
 "Not encrypted: anyone with the file can read your history." = "Şifresiz: dosyaya sahip olan herkes geçmişini okuyabilir.";
 "Not Now" = "Şimdi Değil";
-"Not set" = "Belirlenmedi";
+"Not set" = "Ayarlı değil";
 "Nothing copied in these apps is saved." = "Bu uygulamalarda kopyalanan hiçbir şey kaydedilmez.";
 "Nothing to delete" = "Silinecek bir şey yok";
 "now" = "şimdi";
@@ -317,6 +318,7 @@
 "Opens with %@" = "%@ ile açılır";
 "Panel" = "Panel";
 "Panel Lock" = "Panel Kilidi";
+"Panel Opens In" = "Panel Açılınca";
 "Password" = "Parola";
 "Password Managers" = "Şifre Yöneticileri";
 "Paste" = "Yapıştır";
@@ -332,14 +334,18 @@
 "Pause 10 Minutes" = "10 Dakika Duraklat";
 "Pause for 1 Hour" = "1 Saat Duraklat";
 "Pause for 10 Minutes" = "10 Dakika Duraklat";
+"Pause or resume recording" = "Kaydı durdur ya da sürdür";
+"Pause Shortcut" = "Durdurma Kısayolu";
 "Pause Until Resumed" = "Devam Ettirilene Kadar Duraklat";
 "Paused until %@" = "%@ saatine kadar duraklatıldı";
+"Pauses and resumes recording from any app." = "Kaydı her uygulamadan durdurur ve sürdürür.";
 "Payment card" = "Ödeme kartı";
 "Phone" = "Telefon";
 "Phones" = "Telefonlar";
 "Pin" = "Sabitle";
 "Pin or unpin" = "Sabitle ya da sabitlemeyi kaldır";
 "Pinned" = "Sabitlenenler";
+"Pinned items and snippets only" = "Yalnızca sabitlenenler ve snippet'ler";
 "Pinned items are kept. This cannot be undone." = "Sabitlenen öğeler korunur. Bu işlem geri alınamaz.";
 "Pinned items are never deleted. When a limit is reached, the oldest items go first. A change that deletes items asks first." = "Sabitlenen öğeler hiçbir zaman silinmez. Bir sınıra ulaşıldığında önce en eski öğeler silinir. Öğe silecek bir değişiklik önce sorar.";
 "Pinned items only" = "Yalnızca sabitlenen öğeler";
@@ -358,6 +364,7 @@
 "Record the page address when copying from Chromium browsers" = "Chromium tarayıcılarından kopyalarken sayfa adresini kaydet";
 "Recording" = "Kayıt";
 "Recording paused" = "Kayıt duraklatıldı";
+"Recording resumed" = "Kayıt sürüyor";
 "Recovery Password" = "Kurtarma Şifresi";
 "Recovery password" = "Kurtarma şifresi";
 "Recovery password (optional)" = "Kurtarma şifresi (isteğe bağlı)";
@@ -367,6 +374,7 @@
 "Remove Empty Lines" = "Boş Satırları Sil";
 "Remove from Snippets" = "Snippet'lerden Çıkar";
 "Remove Recognized Text…" = "Tanınan Metni Sil…";
+"Remove Shortcut" = "Kısayolu Kaldır";
 "Remove the recovery password?" = "Kurtarma şifresi kaldırılsın mı?";
 "Remove the text read from images?" = "Görsellerden okunan metin silinsin mi?";
 "Remove…" = "Kaldır…";
@@ -470,6 +478,7 @@
 "The file no longer exists" = "Dosya artık yok";
 "The folder cannot be used" = "Klasör kullanılamıyor";
 "The folder cannot be watched" = "Klasör izlenemiyor";
+"The group used last" = "En son kullanılan grup";
 "The history could not be exported" = "Geçmiş dışa aktarılamadı";
 "The history could not be moved" = "Geçmiş taşınamadı";
 "The history could not be unlocked" = "Geçmişin kilidi açılamadı";
@@ -507,6 +516,7 @@
 "This history has no recovery password." = "Bu geçmişin kurtarma şifresi yok.";
 "This item cannot be opened" = "Bu öğe açılamıyor";
 "This Mac has no Secure Enclave, so hidden items cannot be protected." = "Bu Mac'te Secure Enclave yok; bu yüzden gizli öğeler korunamıyor.";
+"This shortcut already opens the panel." = "Bu kısayol zaten paneli açıyor.";
 "This shortcut is already in use by another app." = "Bu kısayol başka bir uygulama tarafından kullanılıyor.";
 "Times copied" = "Kopyalanma sayısı";
 "Title Case" = "Her Kelime Büyük";

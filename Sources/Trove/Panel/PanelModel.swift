@@ -357,6 +357,7 @@ final class PanelModel: ObservableObject {
     @Published var category: ClipCategory = .all {
         didSet {
             guard category != oldValue else { return }
+            app?.settings.lastGroup = category.rawValue
             endSelecting()
             reload(resetSelection: true)
         }
@@ -442,6 +443,13 @@ final class PanelModel: ObservableObject {
     init(app: AppModel) {
         self.app = app
         images.countLimit = 40
+    }
+
+    /// Settings › General › Panel Opens In. Hidden never opens by itself: it is locked.
+    private var openingCategory: ClipCategory {
+        guard let settings = app?.settings, settings.openingGroup == .last,
+              let last = ClipCategory(rawValue: settings.lastGroup), last != .hidden else { return .all }
+        return last
     }
 
     var selected: Clip? {
@@ -533,6 +541,7 @@ final class PanelModel: ObservableObject {
 
     func willShow() {
         isVisible = true
+        category = openingCategory
         if !isVisible(category) { category = .all } // Turned off in Settings while selected.
         pendingDelete = nil
         naming = nil

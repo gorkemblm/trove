@@ -37,6 +37,22 @@ enum SensitiveRule: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// What ↵ does with the chosen item.
+/// Which group the panel shows when it opens.
+enum OpeningGroup: String, CaseIterable, Identifiable, Sendable {
+    /// The group it showed last time, also after a restart (Hidden opens as All: it is locked).
+    case last
+    case all
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .last: L("The group used last")
+        case .all: L("All")
+        }
+    }
+}
+
 enum ReturnAction: String, CaseIterable, Identifiable, Sendable {
     /// Copies, then pastes into the app in front (needs Accessibility permission).
     case paste
@@ -78,6 +94,12 @@ enum PanelAppearance: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+/// What a global shortcut does.
+enum HotKeyRole: Sendable {
+    case panel
+    case pause
+}
+
 struct HotKeySetting: Codable, Equatable, Sendable {
     var keyCode: UInt32
     var modifiers: UInt32
@@ -110,11 +132,14 @@ final class AppSettings: ObservableObject {
         static let returnAction = "returnAction"
         static let terminalBundleID = "terminalBundleID"
         static let recognizeText = "recognizeText"
+        static let openingGroup = "openingGroup"
+        static let lastGroup = "lastGroup"
         static let lockPanel = "lockPanel"
         static let lockAfterMinutes = "lockAfterMinutes"
         static let pastePromptAnswered = "pastePromptAnswered"
         static let excludedApps = "excludedApps"
         static let hotKey = "hotKey"
+        static let pauseHotKey = "pauseHotKey"
         static let storageBookmark = "storageBookmark"
         static let onboardingCompleted = "onboardingCompleted"
     }
@@ -135,6 +160,12 @@ final class AppSettings: ObservableObject {
     @Published var sensitiveRule: SensitiveRule { didSet { defaults.set(sensitiveRule.rawValue, forKey: Key.sensitiveRule) } }
     @Published var excludedApps: [ExcludedApp] { didSet { save(excludedApps, Key.excludedApps) } }
     @Published var hotKey: HotKeySetting { didSet { save(hotKey, Key.hotKey) } }
+    /// Pauses or resumes recording from any app. Nil: no shortcut (the default).
+    @Published var pauseHotKey: HotKeySetting? {
+        didSet {
+            if let pauseHotKey { save(pauseHotKey, Key.pauseHotKey) } else { defaults.removeObject(forKey: Key.pauseHotKey) }
+        }
+    }
     /// The screenshot folder to watch. Nil: screenshots saved as files are not added.
     @Published var screenshotBookmark: Data? { didSet { defaults.set(screenshotBookmark, forKey: Key.screenshotBookmark) } }
     /// Touch ID (or the Mac password) before the panel shows the history.
@@ -142,6 +173,9 @@ final class AppSettings: ObservableObject {
     /// Minutes without use before the panel locks again. 0: every time it opens.
     @Published var lockAfterMinutes: Int { didSet { defaults.set(lockAfterMinutes, forKey: Key.lockAfterMinutes) } }
     @Published var returnAction: ReturnAction { didSet { defaults.set(returnAction.rawValue, forKey: Key.returnAction) } }
+    @Published var openingGroup: OpeningGroup { didSet { defaults.set(openingGroup.rawValue, forKey: Key.openingGroup) } }
+    /// The group the panel showed last (ClipCategory raw value).
+    @Published var lastGroup: Int { didSet { defaults.set(lastGroup, forKey: Key.lastGroup) } }
     /// Read the text in images (Vision, on this Mac), so search finds them by it.
     @Published var recognizeText: Bool { didSet { defaults.set(recognizeText, forKey: Key.recognizeText) } }
     /// The terminal for "Open in Terminal". Nil: the first installed one (see TerminalApp).
@@ -178,6 +212,7 @@ final class AppSettings: ObservableObject {
         sensitiveRule = defaults.string(forKey: Key.sensitiveRule).flatMap(SensitiveRule.init(rawValue:)) ?? .hide
         excludedApps = Self.load([ExcludedApp].self, Key.excludedApps, from: defaults) ?? ExcludedApp.defaults
         hotKey = Self.load(HotKeySetting.self, Key.hotKey, from: defaults) ?? .default
+        pauseHotKey = Self.load(HotKeySetting.self, Key.pauseHotKey, from: defaults)
         storageBookmark = defaults.data(forKey: Key.storageBookmark)
         screenshotBookmark = defaults.data(forKey: Key.screenshotBookmark)
         screenshotPromptAnswered = defaults.bool(forKey: Key.screenshotPromptAnswered)
@@ -188,6 +223,8 @@ final class AppSettings: ObservableObject {
         pastePromptAnswered = defaults.bool(forKey: Key.pastePromptAnswered)
         terminalBundleID = defaults.string(forKey: Key.terminalBundleID)
         recognizeText = defaults.bool(forKey: Key.recognizeText)
+        openingGroup = defaults.string(forKey: Key.openingGroup).flatMap(OpeningGroup.init(rawValue:)) ?? .last
+        lastGroup = defaults.integer(forKey: Key.lastGroup)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
     }
 

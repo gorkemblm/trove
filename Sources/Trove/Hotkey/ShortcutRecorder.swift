@@ -7,6 +7,8 @@ struct ShortcutRecorder: View {
     @ObservedObject var settings: AppSettings
     var width: CGFloat = 170
     var alignment: HorizontalAlignment = .trailing
+    /// The panel shortcut (always set), or the pause shortcut (optional).
+    var role: HotKeyRole = .panel
     @State private var recording = false
     @State private var monitor: Any?
     @State private var message: String?
@@ -16,7 +18,7 @@ struct ShortcutRecorder: View {
             Button {
                 recording ? stop(restore: true) : start()
             } label: {
-                Text(verbatim: recording ? L("Press a shortcut…") : settings.hotKey.spacedDisplay)
+                Text(verbatim: recording ? L("Press a shortcut…") : (current?.spacedDisplay ?? L("Click to set")))
                     .font(.system(size: recording ? 13 : 15, weight: .medium))
                     .foregroundStyle(recording ? Color.secondary : Color.primary)
                     .frame(width: width, height: 34)
@@ -33,11 +35,17 @@ struct ShortcutRecorder: View {
             .help("Click, then press a key combination. Esc cancels.")
             // Fixed height, so the rows below do not move when the link appears.
             Group {
-                if let message = message ?? app.hotKeyError {
+                if let message = message ?? (role == .panel ? app.hotKeyError : nil) {
                     Text(message).foregroundStyle(.red)
-                } else if settings.hotKey != .default {
+                } else if role == .panel, settings.hotKey != .default {
                     Button("Reset to \(HotKeySetting.default.display)") { apply(.default) }
                         .buttonStyle(.link)
+                } else if role == .pause, settings.pauseHotKey != nil {
+                    Button("Remove Shortcut") { apply(nil) }
+                        .buttonStyle(.link)
+                } else if role == .pause {
+                    // The same line as the link above, so nothing moves when a shortcut is set.
+                    Text("Pauses and resumes recording from any app.").foregroundStyle(.secondary)
                 } else {
                     Text(verbatim: " ")
                 }
@@ -51,7 +59,7 @@ struct ShortcutRecorder: View {
     private func start() {
         message = nil
         recording = true
-        app.suspendHotKey()
+        app.suspendHotKey(role)
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let keyCode = event.keyCode
             let flags = event.modifierFlags.intersection([.command, .option, .control, .shift])
@@ -80,9 +88,11 @@ struct ShortcutRecorder: View {
         apply(setting)
     }
 
-    private func apply(_ setting: HotKeySetting) {
+    private var current: HotKeySetting? { role == .panel ? settings.hotKey : settings.pauseHotKey }
+
+    private func apply(_ setting: HotKeySetting?) {
         do {
-            try app.applyHotKey(setting)
+            try app.applyHotKey(setting, role: role)
             message = nil
         } catch {
             message = String(describing: error)
@@ -92,7 +102,7 @@ struct ShortcutRecorder: View {
     private func stop(restore: Bool) {
         if let monitor { NSEvent.removeMonitor(monitor) }
         monitor = nil
-        if recording, restore { app.resumeHotKey() }
+        if recording, restore { app.resumeHotKey(role) }
         recording = false
     }
 }

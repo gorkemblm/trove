@@ -624,6 +624,7 @@ final class Store {
         var lastCopiedAt: Date
         var timesCopied: Int
         var pinned: Bool
+        var snippetName: String? = nil
     }
 
     /// Saves imported items in one transaction. An item already in the history is merged, not
@@ -633,7 +634,13 @@ final class Store {
             var added = 0
             var merged = 0
             for record in records {
-                if var existing = try Clip.filter(Column("contentHash") == record.content.hash).fetchOne(db) {
+                // A snippet keeps its own content key; the same snippet (name and text) is not added twice.
+                if let name = record.snippetName {
+                    if try Clip.filter(Column("snippetName") == name && Column("text") == record.content.text).fetchCount(db) > 0 {
+                        merged += 1
+                        continue
+                    }
+                } else if var existing = try Clip.filter(Column("contentHash") == record.content.hash).fetchOne(db) {
                     existing.firstCopiedAt = min(existing.firstCopiedAt, record.firstCopiedAt)
                     existing.lastCopiedAt = max(existing.lastCopiedAt, record.lastCopiedAt)
                     existing.timesCopied = max(existing.timesCopied, record.timesCopied)
@@ -652,6 +659,10 @@ final class Store {
                     pinned: record.pinned, timesCopied: max(1, record.timesCopied),
                     firstCopiedAt: record.firstCopiedAt, lastCopiedAt: record.lastCopiedAt, format: content.format
                 )
+                if let name = record.snippetName {
+                    clip.snippetName = name
+                    clip.contentHash = "snippet:" + UUID().uuidString
+                }
                 clip.prepareDerivedFields()
                 try clip.insert(db)
                 added += 1
@@ -665,14 +676,15 @@ final class Store {
         let clips = try dbQueue.read { db in
             var request = Clip.filter(Column("kind") != ClipKind.secret.rawValue)
             if let since { request = request.filter(Column("lastCopiedAt") >= since) }
-            if pinnedOnly { request = request.filter(Column("pinned") == true) }
+            // "Pinned items and snippets only": what the user chose to keep.
+            if pinnedOnly { request = request.filter(Column("pinned") == true || Column("snippetName") != nil) }
             return try request.order(Column("lastCopiedAt").desc).fetchAll(db)
         }
         return clips.compactMap { clip in
             var item = Transfer.Item(
                 kind: clip.kind.rawValue, format: clip.format, sourceApp: clip.sourceAppName,
                 sourceBundleID: clip.sourceBundleID, sourceURL: clip.sourceURL, pinned: clip.pinned,
-                timesCopied: clip.timesCopied, firstCopiedAt: clip.firstCopiedAt, lastCopiedAt: clip.lastCopiedAt
+                snippetName: clip.snippetName, timesCopied: clip.timesCopied, firstCopiedAt: clip.firstCopiedAt, lastCopiedAt: clip.lastCopiedAt
             )
             switch clip.kind {
             case .image:
