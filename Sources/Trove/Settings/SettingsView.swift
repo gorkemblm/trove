@@ -714,6 +714,7 @@ private struct ShortcutSettings: View {
                 (L("Change group (in groups)"), ["↑", "↓"]),
                 (L("All, Text, Links, Images, Files"), ["⌘", "1…5"]),
                 (L("Go to a group"), ["/"]),
+                (L("Only items from one app"), ["@"]),
             ]),
             (L("Selecting"), [
                 (L("Select several items"), ["⌘", "⇧", "S"]),

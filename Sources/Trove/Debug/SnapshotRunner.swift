@@ -91,6 +91,15 @@ enum SnapshotRunner {
             try write(render(model), to: outputDirectory.appendingPathComponent("panel-group-chip.png"))
             model.category = .all
 
+            // "@" app suggestions, and the app chip next to a group chip.
+            model.query = "@"
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-apps-at.png"))
+            model.query = "/text "
+            model.query = "@tel "
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-app-chip.png"))
+            model.clearAppFilter()
+            model.category = .all
+
             // Text in images: a search that matches the text in the screenshot, the boxes on it,
             // the list line, and the large preview with the text next to the image.
             model.query = "invoice"

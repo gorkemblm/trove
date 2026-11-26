@@ -52,7 +52,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
     /// The search field placeholder, a full sentence per group (word order differs by language).
     var searchPrompt: String {
         switch self {
-        case .all: L("Search clipboard, or type / for a group…")
+        case .all: L("Search, or type / for a group, @ for an app…")
         case .text: L("Search text…")
         case .links: L("Search links…")
         case .images: L("Search images…")
@@ -196,8 +196,9 @@ final class PanelModel: ObservableObject {
             guard query != oldValue else { return }
             focusArea = .list // Typing returns to the items.
             if groupFilter != nil { groupPick = 0 }
-            // "/ima " with a space: the first matching group is chosen, the rest is the search.
-            if applyGroupBySpace() { return }
+            if appFilterTyped != nil { appPick = 0 }
+            // "/ima " or "@arc " with a space: the first match is chosen, the rest is the search.
+            if applyGroupBySpace() || applyAppBySpace() { return }
             // While "/…" is typed the list keeps its items: that text names a group, it is no search.
             guard searchQuery != searchQuery(for: oldValue) else { return }
             reload(resetSelection: true)
@@ -233,7 +234,7 @@ final class PanelModel: ObservableObject {
     var searchQuery: String { searchQuery(for: query) }
 
     private func searchQuery(for text: String) -> String {
-        groupFilter(for: text) == nil ? text : ""
+        groupFilter(for: text) == nil && appFilterText(for: text) == nil ? text : ""
     }
 
     func moveGroupPick(_ delta: Int) {
@@ -274,12 +275,83 @@ final class PanelModel: ObservableObject {
         if !search.isEmpty { focusArea = .list }
     }
 
-    /// ⌫ in an empty search: back to All.
+    /// ⌫ in an empty search: the app chip goes first, then the group (back to All).
     func clearGroup() -> Bool {
-        guard query.isEmpty, category != .all else { return false }
+        guard query.isEmpty else { return false }
+        if appFilter != nil {
+            clearAppFilter()
+            return true
+        }
+        guard category != .all else { return false }
         category = .all
         focusArea = .list
         return true
+    }
+
+    // MARK: - Apps by typing "@"
+
+    /// Only items copied in this app ("@Arc"), shown as a chip in the search field.
+    @Published private(set) var appFilter: SourceApp?
+    @Published var appPick = 0
+    private var sourceAppsCache: [SourceApp]?
+
+    private var sourceApps: [SourceApp] {
+        if let sourceAppsCache { return sourceAppsCache }
+        let apps = (try? app?.store?.sourceApps()) ?? []
+        sourceAppsCache = apps
+        return apps
+    }
+
+    /// The text after "@" while an app is being typed. Text that matches no app (an e-mail
+    /// address part, "@home") is an ordinary search.
+    var appFilterTyped: String? { appFilterText(for: query) }
+
+    private func appFilterText(for text: String) -> String? {
+        guard text.hasPrefix("@"), !text.contains(" ") else { return nil }
+        let typed = String(text.dropFirst())
+        return sourceApps.contains { $0.matches(typed) } ? typed : nil
+    }
+
+    var appSuggestions: [SourceApp] {
+        guard let typed = appFilterTyped else { return [] }
+        return Array(sourceApps.filter { $0.matches(typed) }.prefix(10))
+    }
+
+    func moveAppPick(_ delta: Int) {
+        let count = appSuggestions.count
+        guard count > 0 else { return }
+        appPick = min(max(appPick + delta, 0), count - 1)
+    }
+
+    func chooseAppSuggestion() {
+        let suggestions = appSuggestions
+        guard suggestions.indices.contains(appPick) else { NSSound.beep(); return }
+        applyApp(suggestions[appPick], search: "")
+    }
+
+    func chooseApp(_ app: SourceApp) {
+        applyApp(app, search: "")
+    }
+
+    private func applyAppBySpace() -> Bool {
+        guard query.hasPrefix("@"), let space = query.firstIndex(of: " ") else { return false }
+        let typed = String(query[query.index(after: query.startIndex)..<space])
+        guard !typed.isEmpty, let match = sourceApps.first(where: { $0.matches(typed) }) else { return false }
+        applyApp(match, search: String(query[query.index(after: space)...]))
+        return true
+    }
+
+    private func applyApp(_ chosen: SourceApp, search: String) {
+        query = search // Inside query's didSet this does not run didSet again: reload below.
+        appPick = 0
+        appFilter = chosen
+        focusArea = .list
+        reload(resetSelection: true)
+    }
+
+    func clearAppFilter() {
+        appFilter = nil
+        reload(resetSelection: true)
     }
     @Published var focusArea: FocusArea = .list
     @Published var category: ClipCategory = .all {
@@ -465,6 +537,8 @@ final class PanelModel: ObservableObject {
         pendingDelete = nil
         naming = nil
         editing = nil
+        appFilter = nil
+        sourceAppsCache = nil
         actionsOpen = false
         actionFilter = ""
         endSelecting()
@@ -518,7 +592,7 @@ final class PanelModel: ObservableObject {
         let start = ContinuousClock.now
         do {
             let search = searchQuery
-            let fetched = hiddenLocked ? [] : try store.fetch(category: category, query: search, limit: Self.fetchLimit)
+            let fetched = hiddenLocked ? [] : try store.fetch(category: category, query: search, app: appFilter, limit: Self.fetchLimit)
             counts = try store.counts()
             sections = Self.group(fetched, splitPinned: search.isEmpty && category != .pinned)
             clips = sections.flatMap(\.clips)

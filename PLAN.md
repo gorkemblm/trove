@@ -182,10 +182,10 @@ Bu aşamadaki maddeler birbirinden bağımsız. İstediğin sırayla yapılabili
 - [x] **Snippet'ler (26 Kasım 2026):** ⌘S bir metin kaydını adıyla snippet yapar; kenar çubuğunda Snippet'ler grubu. Sınırlar ve Temizle silmez (migration v9, `snippetName`). Aynı metin yeniden kopyalanınca snippet yerinde kalır, geçmişe yeni kayıt girer. ⌘R yeniden adlandırır, ⌘E içeriği düzenler (⌘S kaydeder), ⌘K › Yeni Snippet… boş başlar. Dışa aktarma henüz snippet adını taşımıyor.
 - [x] **Çoklu seçim:** Birden çok kaydı seç, aralarına satır sonu koyarak tek seferde yapıştır (26 Kasım 2026; sürükle-bırak ve toplu silme ile).
 - [x] **Yapıştırmadan önce düzenle (26 Kasım 2026):** ⌘E sağ tarafı düzenleyiciye çevirir; ⌘↵ sonucu yapıştırır ve geçmişe yeni kayıt olarak ekler, Esc vazgeçer. Görseldeki metin de düzenlenebilir.
-- [ ] **Uygulamaya göre filtre:** Aramada `app:Arc` gibi bir sözdizimi.
+- [x] **Uygulamaya göre filtre (26 Kasım 2026):** Arama kutusunda `@` geçmişteki uygulamaları (simgeleri ve sayılarıyla, en çok kullanılan önce) listeler; seçilen uygulama grup etiketinin yanında etiket olur (`[Metin] [Arc] fatura`). Boşluk ilk eşleşeni seçer, boş aramada ⌫ önce uygulamayı sonra grubu kaldırır. Hiçbir uygulamayla eşleşmeyen `@…` normal aranır.
 - [x] **Metin dönüşümleri (26 Kasım 2026):** Düzenleyicinin üstünde beş küçük menü (Harf, Temizle, Satırlar, Kodla, JSON) ve ⌘K'da aranabilir liste; yalnızca ⌘E ile açılır. Büyük/küçük harf uygulamanın diline göre (i → İ).
 - [x] **Büyük önizleme:** Detaydaki göz düğmesi metin, kod, veri ve görselleri büyük bir pencerede açar (kısayol yok, kullanıcı isteği).
-- [ ] **İstatistikler:** En çok kopyalanan uygulamalar, günlük kopyalama sayısı.
+- [ ] **İstatistikler:** En çok kopyalanan uygulamalar, günlük kopyalama sayısı. (26 Kasım 2026: şimdilik gerek yok.)
 
 ## İçe / dışa aktarma (26 Kasım 2026'da yapıldı)
 
@@ -233,6 +233,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | ⇧Enter | Düz metin olarak yapıştır / kopyala | Panel |
 | ⌘P | Pin / pin kaldır | Panel |
 | ⌘D (⌘⌫ da çalışır) | Kaydı sil (onay ister) | Panel |
+| @ | Yalnızca bir uygulamanın öğeleri (öneri listesi) | Panel |
 | / | Gruba git (öneri listesi; ↵/⇥ seçer, boşluk ilk eşleşeni seçip aramaya devam eder; boş aramada ⌫ Tümü'ne döner) | Panel |
 | ⌘⇧C | Görseldeki metni kopyala | Panel |
 | ⌘E | Düzenle ve dönüştür (⌘↵ yapıştırır, Esc vazgeçer) | Panel |

@@ -43,6 +43,11 @@ struct PanelView: View {
                 NamingCard(model: model)
             } else if model.actionsOpen {
                 ActionsMenu(model: model)
+            } else if !model.appSuggestions.isEmpty {
+                AppSuggestionsView(model: model)
+                    .padding(.top, 50)
+                    .padding(.leading, 40)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else if !model.groupSuggestions.isEmpty {
                 // Under the search text, over the list.
                 GroupSuggestionsView(model: model)
@@ -62,6 +67,9 @@ struct PanelView: View {
                 .foregroundStyle(Theme.muted)
             if model.category != .all {
                 GroupChip(category: model.category) { model.category = .all }
+            }
+            if let app = model.appFilter {
+                AppChip(app: app, remove: model.clearAppFilter)
             }
             TextField(
                 "Search",
@@ -264,6 +272,82 @@ struct GroupChip: View {
         .frame(height: 24)
         .background(Theme.accentFill, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
         .fixedSize()
+    }
+}
+
+/// The chosen app, after the group chip. ⌫ in an empty search or ✕ removes it.
+struct AppChip: View {
+    let app: SourceApp
+    let remove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 5) {
+            if let icon = AppIcons.icon(for: app.bundleID) {
+                Image(nsImage: icon).resizable().frame(width: 14, height: 14)
+            } else {
+                Image(systemName: "app").font(.system(size: 11))
+            }
+            Text(verbatim: app.name).font(.system(size: 12.5, weight: .medium)).lineLimit(1)
+            Button(action: remove) {
+                Image(systemName: "xmark").font(.system(size: 8.5, weight: .bold)).frame(width: 14, height: 14).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .help(L("Show all apps (⌫)"))
+        }
+        .foregroundStyle(Theme.accentText)
+        .padding(.leading, 7)
+        .padding(.trailing, 4)
+        .frame(height: 24)
+        .background(Theme.accentFill, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .fixedSize()
+    }
+}
+
+/// The apps that match "@…" in the search field, most used first.
+struct AppSuggestionsView: View {
+    @ObservedObject var model: PanelModel
+
+    var body: some View {
+        let suggestions = model.appSuggestions
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, app in
+                Button { model.chooseApp(app) } label: {
+                    HStack(spacing: 10) {
+                        if let icon = AppIcons.icon(for: app.bundleID) {
+                            Image(nsImage: icon).resizable().frame(width: 18, height: 18)
+                        } else {
+                            Image(systemName: "app").font(.system(size: 12)).frame(width: 18)
+                        }
+                        Text(verbatim: app.name).font(.system(size: 13)).lineLimit(1)
+                        Spacer(minLength: 12)
+                        Text(app.count.formatted()).font(.system(size: 11.5)).monospacedDigit()
+                            .foregroundStyle(index == model.appPick ? Theme.accentText.opacity(0.8) : Theme.faint)
+                    }
+                    .foregroundStyle(index == model.appPick ? Theme.accentText : Theme.text)
+                    .padding(.horizontal, 10)
+                    .frame(height: 30)
+                    .background(index == model.appPick ? Theme.accentFillFocused : .clear, in: RoundedRectangle(cornerRadius: 7))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+            }
+            Theme.divider.frame(height: 1).padding(.vertical, 4)
+            HStack(spacing: 12) {
+                HStack(spacing: 4) { Kbd("↵"); Text("Only this app") }
+                HStack(spacing: 4) { Kbd("esc"); Text("Cancel") }
+            }
+            .font(.system(size: 11.5))
+            .foregroundStyle(Theme.faint)
+            .padding(.horizontal, 6)
+            .padding(.bottom, 2)
+        }
+        .padding(6)
+        .frame(width: 280)
+        .background(Theme.dialog, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.panelStroke))
+        .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
     }
 }
 

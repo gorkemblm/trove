@@ -12,6 +12,22 @@ enum StoreError: LocalizedError {
     }
 }
 
+/// An app things were copied in. Items without a bundle identifier match by name.
+struct SourceApp: Identifiable, Equatable, Sendable {
+    let bundleID: String?
+    let name: String
+    var count: Int = 0
+    var id: String { bundleID ?? name }
+
+    /// "ar" finds Arc; "code" finds Visual Studio Code.
+    func matches(_ typed: String) -> Bool {
+        let typed = typed.searchFolded
+        guard !typed.isEmpty else { return true }
+        let folded = name.searchFolded
+        return folded.hasPrefix(typed) || folded.split(separator: " ").contains { $0.hasPrefix(typed) }
+    }
+}
+
 struct StoreUsage: Equatable, Sendable {
     var count = 0
     var totalBytes = 0
@@ -687,6 +703,20 @@ final class Store {
     }
 
     /// The complete clip, with full text and rich text. List queries return only a preview.
+    // MARK: - Apps
+
+    /// The apps things were copied in, most used first (for "@" in the search field).
+    func sourceApps(limit: Int = 100) throws -> [SourceApp] {
+        try dbQueue.read { db in
+            try Row.fetchAll(db, sql: """
+                SELECT sourceBundleID, sourceAppName, COUNT(*) AS n FROM clip
+                WHERE kind != 'secret' AND sourceAppName IS NOT NULL
+                GROUP BY COALESCE(sourceBundleID, sourceAppName) ORDER BY n DESC LIMIT ?
+                """, arguments: [limit])
+                .map { SourceApp(bundleID: $0["sourceBundleID"], name: $0["sourceAppName"], count: $0["n"]) }
+        }
+    }
+
     // MARK: - Snippets
 
     /// Makes a text item a snippet. It gets its own content key, so copying the same text again
@@ -924,10 +954,21 @@ final class Store {
     ///
     /// Two steps keep this fast with large histories: the inner query picks the ids from indexes
     /// and small columns only; the outer query then reads list columns for those ids alone.
-    func fetch(category: ClipCategory, query: String, limit: Int) throws -> [Clip] {
+    func fetch(category: ClipCategory, query: String, app: SourceApp? = nil, limit: Int) throws -> [Clip] {
         try dbQueue.read { db in
             var conditions: [String] = []
             var arguments = StatementArguments()
+
+            // "@Arc": only what was copied in that app.
+            if let app {
+                if let bundleID = app.bundleID {
+                    conditions.append("sourceBundleID = ?")
+                    _ = arguments.append(contentsOf: [bundleID])
+                } else {
+                    conditions.append("sourceAppName = ?")
+                    _ = arguments.append(contentsOf: [app.name])
+                }
+            }
 
             if category == .screenshots {
                 conditions.append("kind = 'image' AND sourceBundleID = '\(Clip.screenshotSource)'")

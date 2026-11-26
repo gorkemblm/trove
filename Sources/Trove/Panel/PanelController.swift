@@ -305,6 +305,17 @@ final class PanelController {
             }
         }
 
+        // "@" app suggestions: the same keys.
+        if model.appFilterTyped != nil {
+            switch (event.keyCode, flags) {
+            case (126, []): model.moveAppPick(-1); return true
+            case (125, []): model.moveAppPick(1); return true
+            case (36, []), (76, []), (48, []): model.chooseAppSuggestion(); return true
+            case (53, []): model.query = ""; return true
+            default: return false
+            }
+        }
+
         // ⌫ in an empty search leaves the chosen group.
         if event.keyCode == 51, flags.isEmpty, model.clearGroup() { return true }
 

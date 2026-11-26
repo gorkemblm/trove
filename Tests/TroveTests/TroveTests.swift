@@ -1829,6 +1829,70 @@ struct SnippetTests {
     }
 }
 
+@MainActor
+@Suite(.serialized)
+struct AppFilterTests {
+    private let app = AppModel()
+
+    private func makeModel() throws -> (PanelModel, Store) {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+        app.installStoreForSnapshots(store, hiddenKey: SoftwareHiddenKey())
+        let arc = ClipSource(bundleID: "company.thebrowser.Browser", appName: "Arc", url: nil)
+        let code = ClipSource(bundleID: "com.microsoft.VSCode", appName: "Visual Studio Code", url: nil)
+        try store.ingest(ClipClassifier.textContent("fatura arc", rtf: nil), source: arc, at: Date())
+        try store.ingest(ClipClassifier.textContent("fatura code", rtf: nil), source: code, at: Date())
+        try store.ingest(ClipClassifier.textContent("other arc", rtf: nil), source: arc, at: Date())
+        app.panelModel.willShow()
+        return (app.panelModel, store)
+    }
+
+    @Test func storeListsAppsAndFiltersByOne() throws {
+        let (_, store) = try makeModel()
+        let apps = try store.sourceApps()
+        #expect(apps.map(\.name) == ["Arc", "Visual Studio Code"]) // Most used first.
+        #expect(apps.first?.count == 2)
+        #expect(try store.fetch(category: .all, query: "fatura", app: apps[0], limit: 10).compactMap(\.text) == ["fatura arc"])
+        #expect(SourceApp(bundleID: nil, name: "Visual Studio Code").matches("code"))
+    }
+
+    @Test func atListsAppsAndChoosesOne() throws {
+        let (model, _) = try makeModel()
+        model.query = "@"
+        #expect(model.appSuggestions.map(\.name) == ["Arc", "Visual Studio Code"])
+        #expect(model.clips.count == 3) // "@…" is no search.
+        model.query = "@vis"
+        #expect(model.appSuggestions.map(\.name) == ["Visual Studio Code"])
+        model.chooseAppSuggestion()
+        #expect(model.appFilter?.name == "Visual Studio Code" && model.query.isEmpty)
+        #expect(model.clips.compactMap(\.text) == ["fatura code"])
+    }
+
+    @Test func spaceChoosesTheAppAndKeepsTheSearch() throws {
+        let (model, _) = try makeModel()
+        model.query = "@arc fatura"
+        #expect(model.appFilter?.name == "Arc" && model.query == "fatura")
+        #expect(model.clips.compactMap(\.text) == ["fatura arc"])
+    }
+
+    @Test func backspaceRemovesTheAppThenTheGroup() throws {
+        let (model, _) = try makeModel()
+        model.query = "/text "
+        model.query = "@arc "
+        #expect(model.category == .text && model.appFilter != nil)
+        #expect(model.clearGroup())
+        #expect(model.appFilter == nil && model.category == .text)
+        #expect(model.clearGroup())
+        #expect(model.category == .all)
+    }
+
+    @Test func unknownAppIsAnOrdinarySearch() throws {
+        let (model, _) = try makeModel()
+        model.query = "@nowhere"
+        #expect(model.appFilterTyped == nil && model.searchQuery == "@nowhere")
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))

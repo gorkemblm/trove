@@ -298,6 +298,8 @@
 "Number" = "Numara";
 "Older" = "Daha Eski";
 "Only Copy" = "Yalnızca Kopyala";
+"Only items from one app" = "Yalnızca bir uygulamanın öğeleri";
+"Only this app" = "Yalnızca bu uygulama";
 "Open" = "Aç";
 "Open a file’s folder in the terminal" = "Dosyanın klasörünü terminalde aç";
 "Open a larger preview" = "Daha büyük önizlemeyi aç";
@@ -410,6 +412,7 @@
 "Search snippets…" = "Snippet'lerde ara…";
 "Search text…" = "Metinlerde ara…";
 "Search then finds screenshots and images by the words in them, and ⌘⇧C copies their text. Apple’s Vision reads them on this Mac; the text is stored encrypted with your history. Images already in your history are read in the background." = "Böylece arama, ekran görüntülerini ve görselleri içlerindeki kelimelerle bulur; ⌘⇧C de metinlerini kopyalar. Apple'ın Vision çatısı bunları bu Mac'te okur; metin, geçmişinle birlikte şifreli saklanır. Geçmişindeki görseller arka planda okunur.";
+"Search, or type / for a group, @ for an app…" = "Ara; grup için / ya da uygulama için @ yaz…";
 "Security" = "Güvenlik";
 "Select a range" = "Aralık seç";
 "Select All" = "Tümünü Seç";
@@ -428,6 +431,7 @@
 "Settings" = "Ayarlar";
 "Settings…" = "Ayarlar…";
 "Shortcuts" = "Kısayollar";
+"Show all apps (⌫)" = "Tüm uygulamaları göster (⌫)";
 "show hidden clipboard items" = "gizli pano öğelerini göstermek";
 "Show in Finder" = "Finder'da Göster";
 "Show menu bar icon" = "Menü çubuğu simgesini göster";
