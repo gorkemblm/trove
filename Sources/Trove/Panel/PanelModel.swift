@@ -818,6 +818,26 @@ final class PanelModel: ObservableObject {
         app?.copyText(value, message: String(localized: "Copied \(format)"))
     }
 
+    // MARK: - Text in images
+
+    /// The text Vision read in the selected image, when there is any.
+    var imageText: String? {
+        guard !hasGroupSelection, let detail, detail.kind == .image || detail.isImageFiles else { return nil }
+        return detail.recognizedText?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+    }
+
+    /// ⌘⇧C: the text in the selected image goes to the clipboard (or is pasted).
+    func copyImageText() {
+        guard let imageText else { NSSound.beep(); return }
+        app?.copyText(imageText, message: L("Copied Text from Image"))
+    }
+
+    /// The text indexer read an image: the selected one shows its text at once.
+    func recognitionDidUpdate(id: Int64) {
+        guard isVisible, selectedID == id else { return }
+        loadDetail()
+    }
+
     /// File and folder items open in a terminal (⌘T), when one is installed.
     var canOpenInTerminal: Bool {
         !hasGroupSelection && detail?.kind == .file && app?.terminal != nil
@@ -971,6 +991,10 @@ final class PanelModel: ObservableObject {
                 list.append(PanelAction(id: "secondary", title: secondary.title, symbol: secondary.symbol, keys: ["⌘", "↵"], section: 0) { [weak self] in
                     self?.performSecondaryAction()
                 })
+            }
+            if imageText != nil {
+                list.append(PanelAction(id: "imageText", title: L("Copy Text from Image"), symbol: "text.viewfinder",
+                                        keys: ["⌘", "⇧", "C"], section: 0) { [weak self] in self?.copyImageText() })
             }
             if canOpenInTerminal, let terminal = app?.terminal {
                 list.append(PanelAction(id: "terminal", title: String(localized: "Open in \(terminal.name)"), symbol: "terminal",

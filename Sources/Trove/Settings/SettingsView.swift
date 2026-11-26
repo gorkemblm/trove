@@ -623,6 +623,19 @@ private struct PrivacySettings: View {
             }
             SettingsDivider()
             SettingsSection {
+                SettingRow(label: "Text in Images") {
+                    Toggle("Recognize text in images", isOn: Binding(get: { settings.recognizeText }, set: { app.setRecognizeText($0) }))
+                        .toggleStyle(.checkbox)
+                    SettingNote("""
+                        Search then finds screenshots and images by the words in them, and ⌘⇧C copies their text. \
+                        Apple’s Vision reads them on this Mac; the text is stored encrypted with your history. \
+                        Images already in your history are read in the background.
+                        """)
+                    RecognitionStatus(app: app, settings: settings)
+                }
+            }
+            SettingsDivider()
+            SettingsSection {
                 SettingRow(label: "Source") {
                     Toggle("Record the page address when copying from Chromium browsers", isOn: $settings.recordSourceURL)
                         .toggleStyle(.checkbox)
@@ -687,6 +700,7 @@ private struct ShortcutSettings: View {
                 (L("Paste (or copy) as plain text"), ["⇧", "↵"]),
                 (L("Open link, compose email, call, show in Finder"), ["⌘", "↵"]),
                 (L("Open a file’s folder in the terminal"), ["⌘", "T"]),
+                (L("Copy the text in an image"), ["⌘", "⇧", "C"]),
                 (L("Pin or unpin"), ["⌘", "P"]),
                 (L("Move to Hidden, or back"), ["⌘", "⇧", "H"]),
                 (L("Name a hidden item"), ["⌘", "R"]),
@@ -859,5 +873,28 @@ struct LicensesView: View {
         }
         .padding(20)
         .frame(width: 560, height: 480)
+    }
+}
+
+/// "Reading images: 120 of 300" while the first run goes on; the remove button while it is off.
+private struct RecognitionStatus: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var settings: AppSettings
+
+    var body: some View {
+        // Refreshes while Settings is open, without the indexer touching the view.
+        TimelineView(.periodic(from: .now, by: 2)) { _ in
+            let progress = (try? app.store?.recognitionProgress()) ?? (done: 0, total: 0)
+            if settings.recognizeText {
+                if progress.total > 0, progress.done < progress.total {
+                    SettingNote(verbatim: String(localized: "Reading images: \(progress.done.formatted()) of \(progress.total.formatted())"))
+                }
+            } else if progress.done > 0 {
+                HStack(spacing: 10) {
+                    Button("Remove Recognized Text…") { app.confirmClearRecognizedText() }
+                    SettingNote(verbatim: String(localized: "Kept for \(progress.done.formatted()) images"))
+                }
+            }
+        }
     }
 }

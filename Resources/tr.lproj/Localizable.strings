@@ -95,12 +95,16 @@
 "Copied as Plain Text" = "Düz Metin Olarak Kopyalandı";
 "Copied Formatted" = "Biçimli Kopyalandı";
 "Copied from" = "Kopyalandığı yer";
+"Copied Text from Image" = "Görseldeki Metin Kopyalandı";
 "Copied to Clipboard" = "Panoya Kopyalandı";
 "Copy" = "Kopyala";
 "Copy %@ Items" = "%@ Öğeyi Kopyala";
 "Copy as %@" = "%@ olarak kopyala";
 "Copy as Plain Text" = "Düz Metin Olarak Kopyala";
 "Copy Formatted" = "Biçimli Kopyala";
+"Copy Text from Image" = "Görseldeki Metni Kopyala";
+"Copy the text in an image" = "Görseldeki metni kopyala";
+"Copy the text in this image (⌘⇧C)" = "Bu görseldeki metni kopyala (⌘⇧C)";
 "Copy to the clipboard" = "Panoya kopyala";
 "CSV, text only (not encrypted)" = "CSV, yalnızca metin (şifresiz)";
 "Cut" = "Kes";
@@ -149,6 +153,7 @@
 "File" = "Dosya";
 "File size" = "Dosya boyutu";
 "Files" = "Dosyalar";
+"Find images by the text in them" = "Görselleri içlerindeki metinle bul";
 "First copied" = "İlk kopyalama";
 "Forever" = "Süresiz";
 "Format" = "Biçim";
@@ -203,6 +208,7 @@
 "Keep History" = "Geçmişi Sakla";
 "Keep in Hidden" = "Gizli'de sakla";
 "Keep in Hidden for 1 minute" = "Gizli'de 1 dakika sakla";
+"Kept for %@ images" = "%@ görsel için saklanıyor";
 "Key" = "Anahtar";
 "Keychain error %@: %@" = "Anahtar Zinciri hatası %@: %@";
 "Language" = "Dil";
@@ -311,6 +317,9 @@
 "Private key" = "Özel anahtar";
 "Property List" = "Özellik Listesi";
 "Quit Trove" = "Trove'dan Çık";
+"Read on this Mac. Images already in your history are read in the background." = "Bu Mac'te okunur. Geçmişindeki görseller arka planda okunur.";
+"Reading images: %@ of %@" = "Görseller okunuyor: %@ / %@";
+"Recognize text in images" = "Görsellerdeki metni tanı";
 "Record the page address when copying from Chromium browsers" = "Chromium tarayıcılarından kopyalarken sayfa adresini kaydet";
 "Recording" = "Kayıt";
 "Recording paused" = "Kayıt duraklatıldı";
@@ -319,7 +328,9 @@
 "Recovery password (optional)" = "Kurtarma şifresi (isteğe bağlı)";
 "Redo" = "Yinele";
 "Remove" = "Kaldır";
+"Remove Recognized Text…" = "Tanınan Metni Sil…";
 "Remove the recovery password?" = "Kurtarma şifresi kaldırılsın mı?";
+"Remove the text read from images?" = "Görsellerden okunan metin silinsin mi?";
 "Remove…" = "Kaldır…";
 "Rename Hidden Item" = "Gizli Öğeyi Adlandır";
 "Rename hidden item" = "Gizli öğeyi yeniden adlandır";
@@ -348,10 +359,12 @@
 "Search hidden items…" = "Gizli öğelerde ara…";
 "Search images…" = "Görsellerde ara…";
 "Search links…" = "Bağlantılarda ara…";
+"Search no longer finds images by their text. The images stay in your history." = "Arama, görselleri artık içlerindeki metinle bulamaz. Görseller geçmişinde kalır.";
 "Search phone numbers…" = "Telefon numaralarında ara…";
 "Search pinned items…" = "Sabitlenenlerde ara…";
 "Search screenshots…" = "Ekran resimlerinde ara…";
 "Search text…" = "Metinlerde ara…";
+"Search then finds screenshots and images by the words in them, and ⌘⇧C copies their text. Apple’s Vision reads them on this Mac; the text is stored encrypted with your history. Images already in your history are read in the background." = "Böylece arama, ekran görüntülerini ve görselleri içlerindeki kelimelerle bulur; ⌘⇧C de metinlerini kopyalar. Apple'ın Vision çatısı bunları bu Mac'te okur; metin, geçmişinle birlikte şifreli saklanır. Geçmişindeki görseller arka planda okunur.";
 "Security" = "Güvenlik";
 "Select a range" = "Aralık seç";
 "Select All" = "Tümünü Seç";
@@ -389,6 +402,7 @@
 "System" = "Sistem";
 "Terminal" = "Terminal";
 "Text" = "Metin";
+"Text in Images" = "Görsellerdeki Metin";
 "Text, links, images and files" = "Metin, bağlantı, görsel ve dosyalar";
 "The content is sealed with this Mac’s Secure Enclave and leaves your history and search. Touch ID opens it." = "İçerik bu Mac'in Secure Enclave'iyle mühürlenir; geçmişinden ve aramadan çıkar. Touch ID ile açılır.";
 "The database, its search index and every image are encrypted with AES-256. The key is kept in this Mac’s Keychain, so Trove never asks for a password." = "Veritabanı, arama dizini ve tüm görseller AES-256 ile şifrelenir. Anahtar bu Mac'in Anahtar Zinciri'nde tutulur; bu yüzden Trove hiçbir zaman şifre sormaz.";
@@ -419,6 +433,7 @@
 "The recovery password is not correct." = "Kurtarma şifresi doğru değil.";
 "The saved storage folder is not reachable. Trove uses the default folder." = "Kayıtlı depolama klasörüne ulaşılamıyor. Trove varsayılan klasörü kullanıyor.";
 "The shortcut could not be registered (OSStatus %@)." = "Kısayol kaydedilemedi (OSStatus %@).";
+"The text could not be removed" = "Metin silinemedi";
 "The unencrypted original of your history is in “%@”. Delete it when you no longer need it." = "Geçmişinin şifresiz özgün hali “%@” konumunda. Artık gerekmediğinde sil.";
 "There are no unpinned items." = "Sabitlenmemiş öğe yok.";
 "This cannot be undone." = "Bu işlem geri alınamaz.";

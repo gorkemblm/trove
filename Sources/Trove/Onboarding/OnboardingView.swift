@@ -233,6 +233,10 @@ struct OnboardingView: View {
                     }
                 ))
                 Divider()
+                switchRow("Find images by the text in them", isOn: Binding(
+                    get: { settings.recognizeText }, set: { app.setRecognizeText($0) }
+                ), note: "Read on this Mac. Images already in your history are read in the background.")
+                Divider()
                 switchRow("Show menu bar icon", isOn: $settings.showMenuBarIcon)
             }
             .padding(.horizontal, 14)
@@ -246,13 +250,18 @@ struct OnboardingView: View {
     }
 
     /// Label on the left, switch on the right edge.
-    private func switchRow(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+    private func switchRow(_ title: LocalizedStringKey, isOn: Binding<Bool>, note: LocalizedStringKey? = nil) -> some View {
         HStack {
-            Text(title)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                if let note {
+                    Text(note).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
             Spacer()
             Toggle(title, isOn: isOn).toggleStyle(.switch).labelsHidden()
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, note == nil ? 8 : 6)
     }
 }
 

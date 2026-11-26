@@ -40,6 +40,7 @@ final class AppModel: ObservableObject {
     private var screenshotWatcher: ScreenshotWatcher?
 
     private(set) lazy var panelModel = PanelModel(app: self)
+    private(set) lazy var textIndexer = TextIndexer(app: self)
     private var panel: PanelController?
     private let toast = CopyToast()
     private let previewWindow = PreviewWindowController()
@@ -188,6 +189,37 @@ final class AppModel: ObservableObject {
             log.error("Saving a clip failed: \(error.localizedDescription, privacy: .public)")
         }
         panelModel.storeDidChange()
+        if content.imageData != nil { textIndexer.start() } // Its text is read in the background.
+    }
+
+    // MARK: - Text in images
+
+    /// Settings and onboarding. On: images not read yet are read in the background.
+    func setRecognizeText(_ on: Bool) {
+        settings.recognizeText = on
+        if on { textIndexer.start() } else { textIndexer.stop() }
+    }
+
+    /// A text was read: the detail shows its badge and "Copy Text" at once.
+    func recognitionDidUpdate(id: Int64) {
+        panelModel.recognitionDidUpdate(id: id)
+    }
+
+    /// Settings › Privacy, while recognition is off: forgets every recognized text, after asking.
+    func confirmClearRecognizedText() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Remove the text read from images?")
+        alert.informativeText = String(localized: "Search no longer finds images by their text. The images stay in your history.")
+        alert.addButton(withTitle: String(localized: "Remove"))
+        alert.addButton(withTitle: String(localized: "Cancel"))
+        alert.buttons.first?.hasDestructiveAction = true
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        do {
+            try store?.clearRecognizedText()
+            panelModel.storeDidChange()
+        } catch {
+            showError(String(localized: "The text could not be removed"), error)
+        }
     }
 
     // MARK: - Screenshots
@@ -950,6 +982,8 @@ final class AppModel: ObservableObject {
             }
             storageDirectory = directory
             hasRecoveryPassword = vault.hasRecoveryPassword(directory: directory)
+            textIndexer.stop()
+            textIndexer.start() // Images not read yet (new store, or the first run after an update).
             log.info("Store ready at \(directory.path, privacy: .public)")
             return true
         } catch {

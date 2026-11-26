@@ -89,6 +89,9 @@ struct Clip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, Mutabl
     var expiresAt: Date? = nil
     /// Code: the language guess ("Swift"). Data: the format ("JSON").
     var format: String? = nil
+    /// Images: the text Vision found in the picture, for search and "Copy Text". Nil: not read
+    /// yet; empty: read, no text. List queries do not load it.
+    var recognizedText: String? = nil
 
     var rowID: Int64 { id ?? -1 }
 

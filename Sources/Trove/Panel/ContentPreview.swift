@@ -291,3 +291,25 @@ final class PreviewWindowController: NSObject, NSWindowDelegate {
         }
     }
 }
+
+/// On images with text: Vision found text in it. A click copies the text (as ⌘⇧C does).
+struct ImageTextBadge: View {
+    let copy: () -> Void
+
+    var body: some View {
+        Button(action: copy) {
+            HStack(spacing: 4) {
+                Image(systemName: "text.viewfinder").font(.system(size: 10.5, weight: .semibold))
+                Text("Text").font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(Theme.muted)
+            .padding(.horizontal, 8)
+            .frame(height: 22)
+            .background(.ultraThinMaterial, in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(L("Copy the text in this image (⌘⇧C)"))
+    }
+}

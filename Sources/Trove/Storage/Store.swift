@@ -404,6 +404,21 @@ final class Store {
                 try db.execute(sql: "UPDATE clip SET format = ? WHERE id = ?", arguments: [Clip.imageFilesFormat, row["id"] as Int64])
             }
         }
+        // v7: text found in images. Search covers it, so the search index is built again with
+        // a third column. Images are read later, in the background (TextIndexer).
+        migrator.registerMigration("v7-recognized-text") { db in
+            try db.execute(sql: "ALTER TABLE clip ADD COLUMN recognizedText TEXT")
+            try db.dropFTS5SynchronizationTriggers(forTable: "clip_fts")
+            try db.drop(table: "clip_fts")
+            try db.create(virtualTable: "clip_fts", using: FTS5()) { t in
+                t.synchronize(withTable: "clip")
+                t.tokenizer = FTS5TokenizerDescriptor(components: ["trigram"])
+                t.column("searchText")
+                t.column("sourceAppName")
+                t.column("recognizedText")
+            }
+            try db.execute(sql: "INSERT INTO clip_fts(clip_fts) VALUES('rebuild')")
+        }
         return migrator
     }
 
@@ -417,7 +432,8 @@ final class Store {
         fileSize, byteSize, contentHash, sourceBundleID, sourceAppName, sourceURL, pinned, timesCopied,
         firstCopiedAt, lastCopiedAt, textCharacters, textWords, textLines,
         CASE WHEN kind = 'secret' THEN secretReason END AS secretReason,
-        CASE WHEN kind IN ('code', 'data', 'secret', 'file') THEN format END AS format
+        CASE WHEN kind IN ('code', 'data', 'secret', 'file') THEN format END AS format,
+        NULL AS recognizedText
         """
 
     // MARK: - Writing
@@ -647,6 +663,43 @@ final class Store {
     }
 
     /// The complete clip, with full text and rich text. List queries return only a preview.
+    // MARK: - Text in images
+
+    /// Images (and image files with a preview) whose text has not been read yet, newest first.
+    func imagesAwaitingRecognition(limit: Int) throws -> [Clip] {
+        try dbQueue.read { db in
+            try Clip.fetchAll(db, sql: """
+                SELECT * FROM clip WHERE recognizedText IS NULL AND imageFile IS NOT NULL AND kind IN ('image', 'file')
+                ORDER BY lastCopiedAt DESC LIMIT ?
+                """, arguments: [limit])
+        }
+    }
+
+    /// How many images are read, and how many there are (for Settings).
+    func recognitionProgress() throws -> (done: Int, total: Int) {
+        try dbQueue.read { db in
+            let row = try Row.fetchOne(db, sql: """
+                SELECT COUNT(*) AS total, COUNT(recognizedText) AS done FROM clip
+                WHERE imageFile IS NOT NULL AND kind IN ('image', 'file')
+                """)
+            return (row?["done"] ?? 0, row?["total"] ?? 0)
+        }
+    }
+
+    /// Saves what Vision read; an empty text marks an image without text.
+    func setRecognizedText(id: Int64, _ text: String) throws {
+        try dbQueue.write { db in
+            try db.execute(sql: "UPDATE clip SET recognizedText = ? WHERE id = ?", arguments: [text, id])
+        }
+    }
+
+    /// Settings › Privacy: forgets every recognized text. The images stay.
+    func clearRecognizedText() throws {
+        try dbQueue.write { db in
+            try db.execute(sql: "UPDATE clip SET recognizedText = NULL WHERE recognizedText IS NOT NULL")
+        }
+    }
+
     func clip(id: Int64) throws -> Clip? {
         try dbQueue.read { db in try Clip.fetchOne(db, key: id) }
     }
@@ -803,8 +856,8 @@ final class Store {
             // Shorter terms (trigrams need 3 characters) are checked with LIKE on the remaining rows.
             for term in terms where term.count < 3 {
                 let pattern = "%" + Self.escapeLike(term) + "%"
-                conditions.append("(searchText LIKE ? ESCAPE '\\' OR sourceAppName LIKE ? ESCAPE '\\')")
-                _ = arguments.append(contentsOf: [pattern, pattern])
+                conditions.append("(searchText LIKE ? ESCAPE '\\' OR sourceAppName LIKE ? ESCAPE '\\' OR recognizedText LIKE ? ESCAPE '\\')")
+                _ = arguments.append(contentsOf: [pattern, pattern, pattern])
             }
 
             let filter = conditions.isEmpty ? "" : "WHERE " + conditions.joined(separator: " AND ")

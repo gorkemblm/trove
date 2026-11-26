@@ -109,6 +109,7 @@ final class AppSettings: ObservableObject {
         static let hiddenGroups = "hiddenSidebarGroups"
         static let returnAction = "returnAction"
         static let terminalBundleID = "terminalBundleID"
+        static let recognizeText = "recognizeText"
         static let lockPanel = "lockPanel"
         static let lockAfterMinutes = "lockAfterMinutes"
         static let pastePromptAnswered = "pastePromptAnswered"
@@ -141,6 +142,8 @@ final class AppSettings: ObservableObject {
     /// Minutes without use before the panel locks again. 0: every time it opens.
     @Published var lockAfterMinutes: Int { didSet { defaults.set(lockAfterMinutes, forKey: Key.lockAfterMinutes) } }
     @Published var returnAction: ReturnAction { didSet { defaults.set(returnAction.rawValue, forKey: Key.returnAction) } }
+    /// Read the text in images (Vision, on this Mac), so search finds them by it.
+    @Published var recognizeText: Bool { didSet { defaults.set(recognizeText, forKey: Key.recognizeText) } }
     /// The terminal for "Open in Terminal". Nil: the first installed one (see TerminalApp).
     @Published var terminalBundleID: String? { didSet { defaults.set(terminalBundleID, forKey: Key.terminalBundleID) } }
     /// True once the user answered "Paste directly into apps?" (or decided in onboarding).
@@ -162,6 +165,7 @@ final class AppSettings: ObservableObject {
             Key.showMenuBarIcon: false,
             Key.showDockIcon: false,
             Key.recordSourceURL: true,
+            Key.recognizeText: true,
         ])
         retentionDays = defaults.integer(forKey: Key.retentionDays)
         maxItems = defaults.integer(forKey: Key.maxItems)
@@ -183,6 +187,7 @@ final class AppSettings: ObservableObject {
         returnAction = defaults.string(forKey: Key.returnAction).flatMap(ReturnAction.init(rawValue:)) ?? .paste
         pastePromptAnswered = defaults.bool(forKey: Key.pastePromptAnswered)
         terminalBundleID = defaults.string(forKey: Key.terminalBundleID)
+        recognizeText = defaults.bool(forKey: Key.recognizeText)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)
     }
 

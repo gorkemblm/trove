@@ -1641,6 +1641,53 @@ struct ImageGroupTests {
     }
 }
 
+struct ImageTextTests {
+    /// A white image with black text, as a screenshot of a document would be.
+    static func imageWithText(_ text: String) throws -> Data {
+        let image = NSImage(size: NSSize(width: 900, height: 200), flipped: false) { rect in
+            NSColor.white.setFill(); rect.fill()
+            (text as NSString).draw(at: NSPoint(x: 40, y: 80), withAttributes: [
+                .font: NSFont.systemFont(ofSize: 44, weight: .medium), .foregroundColor: NSColor.black,
+            ])
+            return true
+        }
+        let rep = try #require(image.tiffRepresentation.flatMap(NSBitmapImageRep.init(data:)))
+        return try #require(rep.representation(using: .png, properties: [:]))
+    }
+
+    @Test func visionReadsTurkishText() throws {
+        let text = try #require(TextRecognizer.recognize(try Self.imageWithText("Fatura Şubat 2026 ödendi")))
+        #expect(text.localizedCaseInsensitiveContains("fatura"))
+        #expect(text.contains("2026"))
+        #expect(TextRecognizer.recognize(Data("not an image".utf8)) == nil)
+    }
+
+    @Test @MainActor func searchFindsImagesByTheirText() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+        let content = try #require(ClipClassifier.imageContent(data: try Self.imageWithText("x"), maxBytes: 10_000_000))
+        let clip = try store.ingest(content, source: ClipSource(), at: Date())
+        let id = try #require(clip.id)
+
+        #expect(try store.imagesAwaitingRecognition(limit: 10).map(\.id) == [id])
+        #expect(try store.recognitionProgress() == (done: 0, total: 1))
+        try store.setRecognizedText(id: id, "Kargo takip numarası 4815")
+        #expect(try store.imagesAwaitingRecognition(limit: 10).isEmpty)
+        #expect(try store.recognitionProgress() == (done: 1, total: 1))
+
+        #expect(try store.fetch(category: .images, query: "kargo", limit: 10).map(\.id) == [id]) // Trigram index.
+        #expect(try store.fetch(category: .all, query: "48", limit: 10).map(\.id) == [id])      // Short terms: LIKE.
+        #expect(try store.fetch(category: .all, query: "fatura", limit: 10).isEmpty)
+        // The list does not load it; the detail does.
+        #expect(try store.fetch(category: .images, query: "", limit: 10).first?.recognizedText == nil)
+        #expect(try store.clip(id: id)?.recognizedText == "Kargo takip numarası 4815")
+
+        try store.clearRecognizedText()
+        #expect(try store.fetch(category: .all, query: "kargo", limit: 10).isEmpty)
+        #expect(try store.recognitionProgress() == (done: 0, total: 1))
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))

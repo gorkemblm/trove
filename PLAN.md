@@ -168,8 +168,7 @@ Bu aşama sonunda geçmiş diskte şifreli durur, hassas içerik otomatik ayrı�
 
 ## Gelecek
 
-- [ ] Ekran görüntülerinde yazıyla arama (Vision, cihaz üzerinde), Raycast'teki gibi.
-- [ ] Görseldeki metni kopyalama (aynı altyapı, ⌘↵ eylemi olarak).
+- [x] **Görsellerde yazıyla arama ve metni kopyalama (26 Kasım 2026):** Vision bu Mac'te okur (Türkçe/İngilizce, dil otomatik). Tanınan metin şifreli veritabanında `recognizedText` sütununda, arama indeksinde üçüncü sütun (migration v7). Yeni görseller kaydedilince, eskiler açılışta arka planda en yeniden eskiye okunur; kaldığı yerden devam eder. Detayda "Metin" rozeti, ⌘⇧C ve ⌘K'da "Görseldeki Metni Kopyala". Ayar: Gizlilik › Görsellerdeki Metin (varsayılan açık, onboarding'de sorulur); kapalıyken "Tanınan Metni Sil…" önce sorar.
 - [ ] Raycast'ten içe aktarma (şifreli veritabanı; tek seferlik yardımcı gerekir, bkz. içe/dışa aktarma bölümü).
 - [ ] Gizli mod için global kısayol.
 - [ ] **Nasıl çalışır animasyonları:** Onboarding'de kısa döngülü demolar (⌥Space ile açma, `/` ile gruba geçiş, ⌘K, sürükle-bırak, Gizli). Aynı kaynaktan README için GIF/video üretilir, ikisi hep aynı kalır (snapshot altyapısı kareleri üretebilir).
@@ -234,6 +233,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | ⌘P | Pin / pin kaldır | Panel |
 | ⌘D (⌘⌫ da çalışır) | Kaydı sil (onay ister) | Panel |
 | / | Gruba git (öneri listesi; ↵/⇥ seçer, boşluk ilk eşleşeni seçip aramaya devam eder; boş aramada ⌫ Tümü'ne döner) | Panel |
+| ⌘⇧C | Görseldeki metni kopyala | Panel |
 | ⌘T | Dosyanın klasörünü terminalde aç (Ayarlar › Genel › Terminal) | Panel |
 | ⌘K | Eylemler menüsü (aranabilir; tüm eylemler kısayollarıyla) | Panel |
 | ⌘⇧S | Seçim modunu aç / kapat | Panel |

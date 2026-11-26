@@ -332,6 +332,11 @@ enum SnapshotRunner {
                 at: now.addingTimeInterval(-300), expiresAt: nil)
             if let id = clips["secret"]?.id { try store.renameSecret(id: id, name: "Work GitHub token") }
         }
+        // The screenshot has text in it (the "Text" badge in the detail).
+        if let id = clips["screenshot"]?.id {
+            try store.setRecognizedText(id: id, "Invoice 2026-114 · paid")
+            clips["screenshot"] = try store.clip(id: id)
+        }
 
         if manyItems {
             for i in 0..<1234 {

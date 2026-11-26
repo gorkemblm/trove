@@ -35,6 +35,7 @@ struct DetailView: View {
                     .overlay(alignment: .topTrailing) {
                         HStack(spacing: 6) {
                             if model.preview?.formatted == true { FormattedBadge() }
+                            if model.imageText != nil { ImageTextBadge(copy: model.copyImageText) }
                             if model.canRenameSelected {
                                 PreviewButton(symbol: "pencil", help: L("Name this hidden item (⌘R)"), action: model.requestRename)
                             }

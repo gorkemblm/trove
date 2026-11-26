@@ -252,7 +252,8 @@ final class PanelController {
             case (36, []), (76, []): model.runPickedAction(); return true
             case (53, []), (40, [.command]): model.closeActions(); return true
             default:
-                guard flags.contains(.command), Self.panelShortcutKeys.contains(event.keyCode) else { return false }
+                let isShortcut = Self.panelShortcutKeys.contains(event.keyCode) || (event.keyCode == 8 && flags == [.command, .shift])
+                guard flags.contains(.command), isShortcut else { return false }
                 model.closeActions()
             }
         }
@@ -328,6 +329,9 @@ final class PanelController {
             return true
         case (126, [.shift]):
             model.extendSelection(-1)
+            return true
+        case (8, [.command, .shift]): // ⌘⇧C: copy the text in the selected image
+            model.copyImageText()
             return true
         case (17, [.command]): // ⌘T: open the folder in a terminal
             model.openInTerminal()
