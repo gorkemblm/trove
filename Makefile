@@ -9,8 +9,9 @@ SQLCIPHER_TEAM := PD7G6HRMGV
 SWIFT     := swift build -c $(CONFIG) --scratch-path "$(SCRATCH)"
 # Daily builds sign without Apple's timestamp server; `make release` uses it (notarization needs it).
 TIMESTAMP ?= --timestamp=none
-# Saved once with: xcrun notarytool store-credentials trove-notary --apple-id <id> --team-id <team>
-NOTARY_PROFILE ?= trove-notary
+# The team's App Store Connect API key ("Hashdrop notarization", Developer access), saved in the
+# keychain as this notarytool profile. A team key works for every app of the team.
+NOTARY_PROFILE ?= hashdrop-notary
 
 .PHONY: help build test layout window-check icon app release run stop restart logs verify clean
 
