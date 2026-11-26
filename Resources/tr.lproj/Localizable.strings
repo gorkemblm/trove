@@ -48,7 +48,9 @@
 "A file exported from Trove on this or another Mac (.clipboardexport or .json)." = "Bu ya da başka bir Mac'teki Trove'dan dışa aktarılmış bir dosya (.clipboardexport ya da .json).";
 "A group you turn off leaves the sidebar only: its items still show in All and in search." = "Kapattığın grup yalnızca kenar çubuğundan kalkar; öğeleri Tümü'nde ve aramada görünmeye devam eder.";
 "A long passphrase is best: the key file may be copied by sync services." = "En iyisi uzun bir parola cümlesi: anahtar dosyası senkronizasyon servislerine kopyalanabilir.";
+"A one-line JSON from the terminal" = "Terminalden tek satırlık bir JSON";
 "A recovery password is set. Change it later in Settings › Security." = "Kurtarma şifresi belirlendi. Daha sonra Ayarlar › Güvenlik'ten değiştirebilirsin.";
+"A screenshot of an invoice" = "Bir faturanın ekran görüntüsü";
 "A synced folder works: everything in it is encrypted. To open the history on another Mac, set a recovery password in the next step." = "Senkronize bir klasör de olur: içindeki her şey şifrelidir. Geçmişi başka bir Mac'te açmak için bir sonraki adımda kurtarma şifresi belirle.";
 "a Trove export" = "Trove dışa aktarımı";
 "Acknowledgements" = "Teşekkürler";
@@ -96,11 +98,13 @@
 "Choose" = "Seç";
 "Choose a location. Trove creates a “%@” folder there. It holds an encrypted database, encrypted images and a key file." = "Bir konum seç. Trove orada “%@” adlı bir klasör oluşturur. Klasörde şifreli bir veritabanı, şifreli görseller ve bir anahtar dosyası bulunur.";
 "Choose a Trove export, a Raycast export (.rayconfig), Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb." = "Bir Trove dışa aktarımı, bir Raycast dışa aktarımı (.rayconfig), Maccy'nin Storage.sqlite dosyasını ya da Alfred'in clipboard.alfdb dosyasını seç.";
+"Choose an item" = "Bir öğe seç";
 "Choose the folder to watch for screenshots." = "Ekran görüntüleri için izlenecek klasörü seç.";
 "Choose…" = "Seç…";
 "Clean Up" = "Temizle";
 "Clear History" = "Geçmişi Temizle";
 "Clear search, then close" = "Aramayı temizle, sonra kapat";
+"click" = "tık";
 "Click" = "Tık";
 "Click to set" = "Ayarlamak için tıkla";
 "Click, then press a key combination. Esc cancels." = "Tıkla, sonra bir tuş kombinasyonuna bas. Esc vazgeçer.";
@@ -174,7 +178,11 @@
 "Each one asks first and shows how many items it deletes. Pinned items are kept." = "Her biri önce sorar ve kaç öğe sileceğini gösterir. Sabitlenen öğeler korunur.";
 "Edit" = "Düzenle";
 "Edit and transform the text" = "Metni düzenle ve dönüştür";
+"Edit and transform with ⌘E" = "⌘E ile düzenle ve dönüştür";
 "Edit and Transform…" = "Düzenle ve Dönüştür…";
+"Edit it right here" = "Tam burada düzenle";
+"Eight short demos. ← → move between them." = "Sekiz kısa demo. ← → aralarında gezer.";
+"Eight short demos. ← → move between them; ⌘K shows them again later." = "Sekiz kısa demo. ← → aralarında gezer; ⌘K ile sonra yeniden izleyebilirsin.";
 "Email" = "E-posta";
 "Emails" = "E-postalar";
 "Empty snippet" = "Boş snippet";
@@ -188,8 +196,11 @@
 "Enter the password this export was made with." = "Bu dışa aktarımı oluştururken kullanılan parolayı gir.";
 "Enter the password you set when exporting from Raycast. Raycast keeps images outside its export, so they are not imported." = "Raycast'ten dışa aktarırken girdiğin parolayı yaz. Raycast görselleri dışa aktarmanın dışında tuttuğu için görseller aktarılmaz.";
 "Esc closes" = "Esc kapatır";
+"Every action also has its own shortcut" = "Her eylemin kendi kısayolu da var";
+"Every action with ⌘K" = "⌘K ile bütün eylemler";
 "Every time it opens" = "Her açılışta";
 "Everything in the history folder is encrypted, including the search index. The key never leaves this Mac and is not synced to iCloud Keychain." = "Geçmiş klasöründeki her şey, arama dizini dahil, şifrelidir. Anahtar bu Mac'ten hiç çıkmaz ve iCloud Anahtar Zinciri'ne senkronize edilmez.";
+"Everything you can do with it" = "Onunla yapabileceğin her şey";
 "Everything…" = "Tümü…";
 "Export History" = "Geçmişi Dışa Aktar";
 "Exported %@ items" = "%@ öğe dışa aktarıldı";
@@ -197,6 +208,7 @@
 "File" = "Dosya";
 "File size" = "Dosya boyutu";
 "Files" = "Dosyalar";
+"Find and paste" = "Bul ve yapıştır";
 "Find images by the text in them" = "Görselleri içlerindeki metinle bul";
 "First copied" = "İlk kopyalama";
 "Forever" = "Süresiz";
@@ -207,6 +219,7 @@
 "General" = "Genel";
 "Get Started" = "Başla";
 "GitHub token" = "GitHub token'ı";
+"Give it a name" = "Bir ad ver";
 "Go to a group" = "Bir gruba git";
 "Go to group" = "Gruba git";
 "Go to groups, back to items" = "Gruplara geç, öğelere dön";
@@ -221,6 +234,9 @@
 "Hide" = "Gizle";
 "History could not be cleared" = "Geçmiş temizlenemedi";
 "History lives in a “%@” folder. Changing the location moves it." = "Geçmiş “%@” adlı bir klasörde durur. Konumu değiştirmek onu da taşır.";
+"How Trove Works" = "Trove Nasıl Çalışır";
+"How Trove works" = "Trove nasıl çalışır";
+"How Trove Works…" = "Trove Nasıl Çalışır…";
 "HSL" = "HSL";
 "IBAN" = "IBAN";
 "Ignore" = "Yoksay";
@@ -244,6 +260,7 @@
 "Import More…" = "Başka Bir Kaynaktan…";
 "Importing…" = "İçe aktarılıyor…";
 "Import…" = "İçe Aktar…";
+"In an empty search: back to All" = "Boş aramada: Tümü'ne döner";
 "In Raycast: Settings › Advanced › Export, with Clipboard History. Then choose the .rayconfig file." = "Raycast'te: Settings › Advanced › Export, Clipboard History seçili. Sonra .rayconfig dosyasını seç.";
 "In the Keychain on this Mac" = "Bu Mac'in Anahtar Zinciri'nde";
 "In Use" = "Kullanılan";
@@ -258,11 +275,15 @@
 "JSON (not encrypted)" = "JSON (şifresiz)";
 "JSON Lines" = "JSON Satırları";
 "JSON Web Token" = "JSON Web Token";
+"Jump to a group with /" = "/ ile bir gruba geç";
 "Keep History" = "Geçmişi Sakla";
 "Keep in Hidden" = "Gizli'de sakla";
 "Keep in Hidden for 1 minute" = "Gizli'de 1 dakika sakla";
+"Keep it as a snippet" = "Snippet olarak sakla";
+"Keep snippets with ⌘S" = "⌘S ile snippet sakla";
 "Keep Them: Lift These Limits" = "Hepsini Sakla: Bu Sınırları Kaldır";
 "Kept for %@ images" = "%@ görsel için saklanıyor";
+"Kept for good, found by its name" = "Kalıcı olarak saklanır, adıyla bulunur";
 "Key" = "Anahtar";
 "Keychain error %@: %@" = "Anahtar Zinciri hatası %@: %@";
 "Language" = "Dil";
@@ -330,7 +351,9 @@
 "Older" = "Daha Eski";
 "Only Copy" = "Yalnızca Kopyala";
 "Only items from one app" = "Yalnızca bir uygulamanın öğeleri";
+"Only one app with @" = "@ ile yalnızca bir uygulama";
 "Only this app" = "Yalnızca bu uygulama";
+"Only what you copied in Arc" = "Yalnızca Arc'ta kopyaladıkların";
 "Open" = "Aç";
 "Open a file’s folder in the terminal" = "Dosyanın klasörünü terminalde aç";
 "Open a larger preview" = "Daha büyük önizlemeyi aç";
@@ -343,6 +366,7 @@
 "Open the panel with" = "Paneli açan kısayol";
 "Open Trove" = "Trove'u Aç";
 "Open Trove at login" = "Oturum açılınca Trove'u başlat";
+"Open Trove over any app" = "Trove'u her uygulamanın üstünde aç";
 "open your clipboard history" = "pano geçmişini açmak";
 "OpenAI API key" = "OpenAI API anahtarı";
 "Opening the file…" = "Dosya açılıyor…";
@@ -363,6 +387,9 @@
 "Paste Edited Text" = "Düzenlenmiş Metni Yapıştır";
 "Paste into the active app" = "Etkin uygulamaya yapıştır";
 "Paste into the active app with ↵" = "↵ ile etkin uygulamaya yapıştır";
+"Pastes it into the app you were in" = "Bulunduğun uygulamaya yapıştırır";
+"Pastes the result · Esc cancels" = "Sonucu yapıştırır · Esc vazgeçer";
+"Pastes them all · or drag them to any app" = "Hepsini yapıştırır · ya da istediğin uygulamaya sürükle";
 "Pause 1 Hour" = "1 Saat Duraklat";
 "Pause 10 Minutes" = "10 Dakika Duraklat";
 "Pause for 1 Hour" = "1 Saat Duraklat";
@@ -375,6 +402,8 @@
 "Payment card" = "Ödeme kartı";
 "Phone" = "Telefon";
 "Phones" = "Telefonlar";
+"Pick several, drag anywhere" = "Birkaçını seç, istediğin yere sürükle";
+"Picks items · ⇧-click picks a range" = "Öğeleri seçer · ⇧-tık bir aralık seçer";
 "Pin" = "Sabitle";
 "Pin or unpin" = "Sabitle ya da sabitlemeyi kaldır";
 "Pinned" = "Sabitlenenler";
@@ -418,6 +447,7 @@
 "Rename Snippet…" = "Snippet'i Yeniden Adlandır…";
 "Require Touch ID to open the panel" = "Paneli açmak için Touch ID iste";
 "Reset to %@" = "%@ olarak sıfırla";
+"Restart in This Language" = "Bu Dilde Yeniden Başlat";
 "Restart Now" = "Şimdi Yeniden Başlat";
 "Restart Trove to use the new language." = "Yeni dili kullanmak için Trove'u yeniden başlat.";
 "Resume" = "Devam Et";
@@ -444,6 +474,7 @@
 "Search emails…" = "E-postalarda ara…";
 "Search files…" = "Dosyalarda ara…";
 "Search finds hidden items by name, never by content." = "Arama gizli öğeleri içeriğiyle değil, yalnızca ismiyle bulur.";
+"Search for a word that is only in the image" = "Yalnızca görselde geçen bir kelimeyi ara";
 "Search hidden items…" = "Gizli öğelerde ara…";
 "Search images…" = "Görsellerde ara…";
 "Search links…" = "Bağlantılarda ara…";
@@ -453,12 +484,14 @@
 "Search screenshots…" = "Ekran resimlerinde ara…";
 "Search snippets…" = "Snippet'lerde ara…";
 "Search text…" = "Metinlerde ara…";
+"Search the text in screenshots" = "Ekran görüntülerindeki yazıda ara";
 "Search then finds screenshots and images by the words in them, and ⌘⇧C copies their text. Apple’s Vision reads them on this Mac; the text is stored encrypted with your history. Images already in your history are read in the background." = "Böylece arama, ekran görüntülerini ve görselleri içlerindeki kelimelerle bulur; ⌘⇧C de metinlerini kopyalar. Apple'ın Vision çatısı bunları bu Mac'te okur; metin, geçmişinle birlikte şifreli saklanır. Geçmişindeki görseller arka planda okunur.";
 "Search, or type / for a group, @ for an app…" = "Ara; grup için / ya da uygulama için @ yaz…";
 "Security" = "Güvenlik";
 "Select a range" = "Aralık seç";
 "Select All" = "Tümünü Seç";
 "Select all (while selecting)" = "Hepsini seç (seçim modunda)";
+"Select an item" = "Bir öğe seç";
 "Select any part and press ⌘C." = "İstediğin kısmı seç ve ⌘C'ye bas.";
 "Select several items" = "Birden çok öğe seç";
 "Select Several Items" = "Birden Çok Öğe Seç";
@@ -472,6 +505,7 @@
 "Set Recovery Password" = "Kurtarma Şifresi Belirle";
 "Settings" = "Ayarlar";
 "Settings…" = "Ayarlar…";
+"Several items at once" = "Aynı anda birden çok öğe";
 "Shortcuts" = "Kısayollar";
 "Show all apps (⌫)" = "Tüm uygulamaları göster (⌫)";
 "show hidden clipboard items" = "gizli pano öğelerini göstermek";
@@ -488,6 +522,7 @@
 "Snippet Saved" = "Snippet Kaydedildi";
 "Snippets" = "Snippet'ler";
 "Snippets are kept for good: no limit and no Clear removes them. Search finds them by name." = "Snippet'ler kalıcıdır: hiçbir sınır ya da temizleme onları silmez. Arama onları adlarıyla bulur.";
+"Something you paste often" = "Sık yapıştırdığın bir şey";
 "Sort Lines A–Z" = "Satırları Sırala (A–Z)";
 "Source" = "Kaynak";
 "Start Using Trove" = "Trove'u Kullanmaya Başla";
@@ -505,6 +540,7 @@
 "Text in image · 1 line" = "Görseldeki metin · 1 satır";
 "Text in Images" = "Görsellerdeki Metin";
 "Text, links, images and files" = "Metin, bağlantı, görsel ve dosyalar";
+"The apps that match, most used first" = "Eşleşen uygulamalar, en çok kullanılan önce";
 "The content is sealed with this Mac’s Secure Enclave and leaves your history and search. Touch ID opens it." = "İçerik bu Mac'in Secure Enclave'iyle mühürlenir; geçmişinden ve aramadan çıkar. Touch ID ile açılır.";
 "The database, its search index and every image are encrypted with AES-256. The key is kept in this Mac’s Keychain, so Trove never asks for a password." = "Veritabanı, arama dizini ve tüm görseller AES-256 ile şifrelenir. Anahtar bu Mac'in Anahtar Zinciri'nde tutulur; bu yüzden Trove hiçbir zaman şifre sormaz.";
 "The encrypted copy of the history did not match the original. Nothing was changed." = "Geçmişin şifreli kopyası özgün haliyle eşleşmedi. Hiçbir şey değiştirilmedi.";
@@ -512,7 +548,9 @@
 "The file no longer exists" = "Dosya artık yok";
 "The folder cannot be used" = "Klasör kullanılamıyor";
 "The folder cannot be watched" = "Klasör izlenemiyor";
+"The group opens and stays as a chip" = "Grup açılır ve etiket olarak kalır";
 "The group used last" = "En son kullanılan grup";
+"The groups that match" = "Eşleşen gruplar";
 "The history could not be exported" = "Geçmiş dışa aktarılamadı";
 "The history could not be moved" = "Geçmiş taşınamadı";
 "The history could not be unlocked" = "Geçmişin kilidi açılamadı";
@@ -542,6 +580,7 @@
 "The snippet could not be saved" = "Snippet kaydedilemedi";
 "The text could not be removed" = "Metin silinemedi";
 "The unencrypted original of your history is in “%@”. Delete it when you no longer need it." = "Geçmişinin şifresiz özgün hali “%@” konumunda. Artık gerekmediğinde sil.";
+"The word is boxed; this copies its line" = "Kelime çerçevelenir; bu, satırını kopyalar";
 "There are no unpinned items." = "Sabitlenmemiş öğe yok.";
 "This cannot be undone." = "Bu işlem geri alınamaz.";
 "This export is encrypted. Enter its password." = "Bu dışa aktarım şifreli. Parolasını gir.";
@@ -563,6 +602,7 @@
 "Today" = "Bugün";
 "Touch ID is not available" = "Touch ID kullanılamıyor";
 "Transforms change the whole text. More in ⌘K." = "Dönüşümler tüm metne uygulanır; hepsi ⌘K'da.";
+"Transforms in the menus above" = "Dönüşümler üstteki menülerde";
 "Trim Spaces at Line Ends" = "Satır Sonu Boşluklarını Sil";
 "Trove" = "Trove";
 "Trove %@" = "Trove %@";
@@ -579,9 +619,16 @@
 "Trove is locked" = "Trove kilitli";
 "Trove keeps what you copy, so you can find it again." = "Trove kopyaladıklarını saklar, böylece onları yeniden bulabilirsin.";
 "Trove now encrypts its history. The history in “%@” is not encrypted yet.\n\nTrove makes an encrypted copy and checks it. Then the unencrypted original moves to the Trash, so you can still restore it. Empty the Trash to remove it for good. Sync services can keep older, unencrypted versions." = "Trove artık geçmişini şifreliyor. “%@” konumundaki geçmiş henüz şifreli değil.\n\nTrove şifreli bir kopya oluşturup denetler. Ardından şifresiz özgün dosya Çöp Sepeti'ne taşınır, yani hâlâ geri alabilirsin. Kalıcı olarak silmek için Çöp Sepeti'ni boşalt. Senkronizasyon servisleri eski, şifresiz sürümleri saklıyor olabilir.";
+"Trove reads the text in images on this Mac. Search finds a screenshot by a word in it, the word is boxed, and ⌘⇧C copies the matching line." = "Trove görsellerdeki yazıyı bu Mac'te okur. Arama, bir ekran görüntüsünü içindeki bir kelimeyle bulur; kelime çerçevelenir ve ⌘⇧C eşleşen satırı kopyalar.";
 "Trove runs in the background, without a Dock or menu bar icon." = "Trove arka planda, Dock ya da menü çubuğu simgesi olmadan çalışır.";
 "Trove switches to the history in this folder. The current history stays in the old folder." = "Trove bu klasördeki geçmişe geçer. Mevcut geçmiş eski klasörde kalır.";
 "Trove, paused" = "Trove, duraklatıldı";
+"Type / and the start of a group’s name: Images, Links, Code… ↵ or a space opens it, and it stays as a chip. ⌫ in an empty search takes it away." = "/ ve bir grubun adının başını yaz: Görseller, Bağlantılar, Kod… ↵ ya da boşluk onu açar ve etiket olarak kalır. Boş aramada ⌫ etiketi kaldırır.";
+"Type / to jump to a group" = "Bir gruba geçmek için / yaz";
+"Type @ and an app’s name to see only what you copied there. Combine it with a group and a search: [Images] [Arc] invoice." = "@ ve bir uygulamanın adını yaz; yalnızca orada kopyaladıkların görünür. Bir grup ve aramayla birleştir: [Görseller] [Arc] fatura.";
+"Type @ for the apps you copied in" = "Kopyaladığın uygulamalar için @ yaz";
+"Type to filter the actions" = "Eylemleri süzmek için yaz";
+"Type to search everything" = "Her şeyde aramak için yaz";
 "Undo" = "Geri Al";
 "Undo All Changes" = "Tümünü Geri Al";
 "Unknown" = "Bilinmiyor";
@@ -621,5 +668,11 @@
 "Your Maximum Items limit would remove the %@ oldest items." = "En Fazla Öğe sınırın en eski %@ öğeyi siler.";
 "You’re all set" = "Her şey hazır";
 "“%@” does not apply to this text." = "“%@” bu metne uygulanamıyor.";
+"…and search inside it" = "…ve onun içinde ara";
 "← → groups and items" = "← → gruplar ve öğeler";
+"⌘-click, ⇧-click or ⌘⇧S picks several items. ↵ pastes them all, ⌘D deletes them, and dragging takes them to any app or folder." = "⌘-tık, ⇧-tık ya da ⌘⇧S birden çok öğe seçer. ↵ hepsini yapıştırır, ⌘D siler, sürükleyince istediğin uygulamaya ya da klasöre gider.";
+"⌘E turns the preview into an editor. Change the text, or use the menus: case, clean-up, lines, URL, Base64, JSON. ⌘↵ pastes the result; Esc cancels." = "⌘E önizlemeyi bir düzenleyiciye çevirir. Metni değiştir ya da menüleri kullan: harf, temizleme, satırlar, URL, Base64, JSON. ⌘↵ sonucu yapıştırır; Esc vazgeçer.";
+"⌘K lists everything you can do with the selected item, with its shortcut. Type to filter; the shortcuts also work without the menu." = "⌘K seçili öğeyle yapabileceğin her şeyi kısayoluyla listeler. Yazarak süz; kısayollar menü açılmadan da çalışır.";
+"⌘S keeps an item as a named snippet: no limit and no Clear removes it, and search finds it by name. ⌘E edits it later." = "⌘S bir öğeyi adlı bir snippet olarak saklar: hiçbir sınır ya da temizleme onu silmez, arama onu adıyla bulur. ⌘E ile sonra düzenlenir.";
 "⌘T on a file or folder opens its folder there." = "Bir dosya ya da klasörde ⌘T, klasörünü orada açar.";
+"⌥Space opens Trove over any app. Type to search, ↑↓ to choose, ↵ to paste into the app you were in. ← → move between the groups and the items." = "⌥Space Trove'u her uygulamanın üstünde açar. Aramak için yaz, ↑↓ ile seç, ↵ ile bulunduğun uygulamaya yapıştır. ← → gruplarla öğeler arasında gezer.";

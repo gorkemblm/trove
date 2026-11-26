@@ -219,6 +219,7 @@ private struct GeneralSettings: View {
                 SettingRow(label: "Version") {
                     HStack(spacing: 14) {
                         Text("Trove \(AppInfo.version)").monospacedDigit()
+                        Button("How Trove Works…") { app.showTour() }
                         Button("Acknowledgements…") { showingLicenses = true }
                         Button("Quit Trove") { app.quit() }
                     }

@@ -1580,7 +1580,7 @@ struct ActionsMenuTests {
         model.closeActions()
 
         model.pickAll()
-        #expect(model.actions.map(\.id) == ["paste", "all", "done", "delete", "settings"])
+        #expect(model.actions.map(\.id) == ["paste", "all", "done", "delete", "tour", "settings"])
     }
 }
 

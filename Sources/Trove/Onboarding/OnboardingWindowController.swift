@@ -15,7 +15,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     init(app: AppModel) {
         self.app = app
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 500),
+            contentRect: NSRect(origin: .zero, size: OnboardingView.size),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false

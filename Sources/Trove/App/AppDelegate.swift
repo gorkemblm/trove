@@ -8,6 +8,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if SNAPSHOTS
         // `make layout` only: renders the panel to PNG files and checks layout stability.
         // The shipped app is built without this code.
+        if let index = CommandLine.arguments.firstIndex(of: "--demos") {
+            let dir = CommandLine.arguments.dropFirst(index + 1).first ?? "demos"
+            exit(DemoMaker.run(outputDirectory: URL(fileURLWithPath: dir)))
+        }
         if let index = CommandLine.arguments.firstIndex(of: "--snapshot") {
             let dir = CommandLine.arguments.dropFirst(index + 1).first ?? "snapshots"
             exit(SnapshotRunner.run(outputDirectory: URL(fileURLWithPath: dir)))

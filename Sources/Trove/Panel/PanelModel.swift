@@ -1340,6 +1340,9 @@ final class PanelModel: ObservableObject {
                 self?.requestNewSnippet()
             })
         }
+        list.append(PanelAction(id: "tour", title: L("How Trove Works…"), symbol: "play.rectangle", section: 3) { [weak self] in
+            self?.app?.showTour()
+        })
         list.append(PanelAction(id: "settings", title: L("Settings…"), symbol: "gearshape", keys: ["⌘", ","], section: 3) { [weak self] in
             self?.openSettings()
         })

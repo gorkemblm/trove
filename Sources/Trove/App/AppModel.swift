@@ -1008,11 +1008,12 @@ final class AppModel: ObservableObject {
         let prefs = MenuAction { [weak self] in self?.openSettings() }
         let quit = MenuAction { [weak self] in self?.quit() }
         let update = MenuAction { [weak self] in self?.updates?.check() }
+        let tour = MenuAction { [weak self] in self?.showTour() }
         let resume = MenuAction { [weak self] in self?.resumeRecording() }
         let pause10 = MenuAction { [weak self] in self?.pauseRecording(minutes: 10) }
         let pause60 = MenuAction { [weak self] in self?.pauseRecording(minutes: 60) }
         let pauseAll = MenuAction { [weak self] in self?.pauseRecording(minutes: nil) }
-        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll, update]
+        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll, update, tour]
         let menu = NSMenu()
         menu.addItem(open.item(String(localized: "Open Trove")))
         menu.addItem(.separator())
@@ -1027,6 +1028,7 @@ final class AppModel: ObservableObject {
             menu.addItem(pauseAll.item(String(localized: "Pause Until Resumed")))
         }
         menu.addItem(.separator())
+        menu.addItem(tour.item(String(localized: "How Trove Works…")))
         menu.addItem(update.item(String(localized: "Check for Updates…")))
         menu.addItem(prefs.item(String(localized: "Settings…"), key: ","))
         menu.addItem(quit.item(String(localized: "Quit Trove"), key: "q"))
@@ -1379,6 +1381,14 @@ final class AppModel: ObservableObject {
     /// Reads a Trove export, or Raycast, Maccy or Alfred history, shows what it holds and asks before
     /// saving. Duplicates merge; secrets follow the sensitive content rule.
     private var importWindow: ImportWindowController?
+    private var tourWindow: TourWindowController?
+
+    /// "How Trove Works": the onboarding demos again.
+    func showTour() {
+        hidePanel()
+        if tourWindow == nil { tourWindow = TourWindowController(appearance: settings.panelAppearance) }
+        tourWindow?.show()
+    }
 
     /// Settings › Storage › Import… and onboarding: the import window (sources, summary, progress).
     func importHistory() {

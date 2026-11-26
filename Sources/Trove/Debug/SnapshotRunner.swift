@@ -42,7 +42,7 @@ enum SnapshotRunner {
 
             model.selectedID = clips["text"]?.id
             model.requestHideToggle()
-            model.naming?.name = "Toplantı notu"
+            model.naming?.name = "Meeting note"
             try write(render(model), to: outputDirectory.appendingPathComponent("panel-naming.png"))
             model.cancelNaming()
 
@@ -191,9 +191,9 @@ enum SnapshotRunner {
             }
 
             // Onboarding steps, for visual review of the fixed-size window.
-            for step in 0..<4 {
+            for step in 0..<5 {
                 let view = OnboardingView(app: app, settings: app.settings, step: step)
-                try write(renderView(view, size: NSSize(width: 560, height: 500)),
+                try write(renderView(view, size: OnboardingView.size),
                           to: outputDirectory.appendingPathComponent("onboarding-\(step).png"))
             }
 
@@ -350,7 +350,7 @@ enum SnapshotRunner {
 
     // MARK: - Sample data
 
-    private static func makeScene(manyItems: Bool) throws -> (AppModel, PanelModel, [String: Clip]) {
+    static func makeScene(manyItems: Bool) throws -> (AppModel, PanelModel, [String: Clip]) {
         let app = AppModel()
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("clipboard-snapshot-\(UUID().uuidString)")
         let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
@@ -370,7 +370,7 @@ enum SnapshotRunner {
             )
         }
 
-        let telegram = String(repeating: "Toplantı Perşembe 14:00'te başlıyor, gündem ekte. ", count: 6)
+        let telegram = String(repeating: "The meeting starts Thursday at 2 pm, the agenda is attached. ", count: 5)
         clips["text"] = try store.insert(clip(.text, telegram, app: "Telegram", bundle: "ru.keepcoder.Telegram", minutesAgo: 2))
         clips["textOther"] = try store.insert(clip(.text, String(repeating: "deploy notes 8 ", count: 82) + "\nline two\nline three",
                                                    app: "Telegram", bundle: "ru.keepcoder.Telegram", minutesAgo: 600, times: 128, firstDaysAgo: 9))
@@ -401,8 +401,8 @@ enum SnapshotRunner {
             // The screenshot is of a document with text, so Vision has something to read.
             let page = NSImage(size: NSSize(width: 960, height: 540), flipped: true) { rect in
                 NSColor.white.setFill(); rect.fill()
-                let lines = [("Invoice 2026-114", 46.0, NSFont.Weight.bold), ("Customer: Ayşe Yılmaz", 30, .regular),
-                             ("Amount due: 1.250 TL", 30, .regular), ("Due date: 30 November 2026", 30, .regular),
+                let lines = [("Invoice 2026-114", 46.0, NSFont.Weight.bold), ("Customer: Jane Miller", 30, .regular),
+                             ("Amount due: $1,250.00", 30, .regular), ("Due date: 30 November 2026", 30, .regular),
                              ("Status: paid", 30, .medium)]
                 var y = 60.0
                 for (text, size, weight) in lines {
@@ -431,13 +431,13 @@ enum SnapshotRunner {
         }
 
         for (name, text, app, bundle, minutes) in [
-            ("email", "ayse.yilmaz@example.com", "Mail", "com.apple.mail", 30.0),
-            ("phone", "+90 532 123 45 67", "Messages", "com.apple.MobileSMS", 40.0),
+            ("email", "jane.miller@example.com", "Mail", "com.apple.mail", 30.0),
+            ("phone", "+1 415 555 0132", "Messages", "com.apple.MobileSMS", 40.0),
             ("code", "func greet(name: String) -> String {\n    return \"Hello, \\(name)\"\n}", "Code", "com.microsoft.VSCode", 50.0),
             ("json", #"{"name":"Clipboard","version":"0.1.0","features":["search","hidden","screenshots"],"limits":{"items":5000,"days":30},"encrypted":true}"#,
              "Terminal", "com.apple.Terminal", 55.0),
             ("yaml", "apiVersion: v1\nkind: Pod\nmetadata:\n  name: web # front end\n  labels:\n    app: web\nspec:\n  replicas: 3", "Code", "com.microsoft.VSCode", 56.0),
-            ("csv", "Ürün\tAdet\tFiyat\tToplam\nKalem\t3\t12,50\t37,50\nDefter\t1\t40,00\t40,00\nSilgi\t2\t5,00\t10,00", "Numbers", "com.apple.iWork.Numbers", 57.0),
+            ("csv", "Item\tQty\tPrice\tTotal\nPen\t3\t2.50\t7.50\nNotebook\t1\t8.00\t8.00\nEraser\t2\t1.00\t2.00", "Numbers", "com.apple.iWork.Numbers", 57.0),
         ] {
             clips[name] = try store.ingest(ClipClassifier.textContent(text, rtf: nil),
                                            source: ClipSource(bundleID: bundle, appName: app, url: nil),
@@ -472,7 +472,7 @@ enum SnapshotRunner {
 
     // MARK: - Rendering
 
-    private static func render(_ model: PanelModel, dark: Bool = true, overlay: AnyView? = nil) -> NSBitmapImageRep {
+    static func render(_ model: PanelModel, dark: Bool = true, overlay: AnyView? = nil) -> NSBitmapImageRep {
         let root = ZStack {
             Color(white: dark ? 0.11 : 0.90)
             PanelView(model: model)

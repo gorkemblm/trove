@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Four steps: welcome, storage location, encryption (optional recovery password), shortcut and startup options.
+/// Five steps: welcome, storage location, encryption (optional recovery password), how Trove
+/// works (animated demos), shortcut and startup options.
 struct OnboardingView: View {
     @ObservedObject var app: AppModel
     @ObservedObject var settings: AppSettings
@@ -9,8 +10,10 @@ struct OnboardingView: View {
     @State private var password = ""
     @State private var confirmation = ""
     @State private var passwordError: String?
+    @State private var language = AppLanguage.saved
 
-    private let stepCount = 4
+    private let stepCount = 5
+    static let size = NSSize(width: 600, height: 580)
 
     init(app: AppModel, settings: AppSettings, step: Int = 0) {
         self.app = app
@@ -25,6 +28,7 @@ struct OnboardingView: View {
                 case 0: welcome
                 case 1: storage
                 case 2: security
+                case 3: tour
                 default: ready
                 }
             }
@@ -52,7 +56,7 @@ struct OnboardingView: View {
             .padding(.horizontal, 24)
             .frame(height: 68)
         }
-        .frame(width: 560, height: 500)
+        .frame(width: Self.size.width, height: Self.size.height)
     }
 
     @ViewBuilder
@@ -69,6 +73,9 @@ struct OnboardingView: View {
             Button(password.isEmpty ? L("Continue Without") : L("Set and Continue")) { finishSecurityStep() }
                 .keyboardShortcut(.defaultAction)
                 .disabled(RecoveryPasswordFields.problem(password, confirmation) != nil)
+        case 3:
+            Button("Continue") { step = 4 }
+                .keyboardShortcut(.defaultAction)
         default:
             Button("Start Using Trove") { app.finishOnboarding(openAtLogin: openAtLogin) }
                 .keyboardShortcut(.defaultAction)
@@ -76,6 +83,16 @@ struct OnboardingView: View {
     }
 
     // MARK: - Steps
+
+    private var tour: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("How Trove works").font(.system(size: 22, weight: .bold))
+            Text("Eight short demos. ← → move between them; ⌘K shows them again later.")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            DemoTour(compact: true)
+        }
+    }
 
     private var welcome: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -96,6 +113,21 @@ struct OnboardingView: View {
                         detail: "The key is in your Keychain. Your history never leaves this Mac. Password manager content is never saved.")
             }
             .padding(.top, 12)
+            // The language first: the rest of the setup and its demos follow it.
+            HStack(spacing: 10) {
+                Image(systemName: "globe").foregroundStyle(.secondary)
+                Text("Language")
+                Picker("", selection: Binding(get: { language }, set: { language = $0; $0.save() })) {
+                    ForEach(AppLanguage.allCases) { Text(verbatim: $0.title).tag($0) }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+                if language != AppLanguage.atLaunch {
+                    Button("Restart in This Language") { NSApp.relaunch() }
+                }
+            }
+            .padding(.top, 14)
         }
     }
 

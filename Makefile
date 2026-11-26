@@ -13,7 +13,7 @@ TIMESTAMP ?= --timestamp=none
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout window-check icon app release appcast run stop restart logs verify clean
+.PHONY: help build test layout demos window-check icon app release appcast run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -45,6 +45,15 @@ layout:
 	cp -R Resources/en.lproj Resources/tr.lproj "$$($(LAYOUT_SWIFT) --show-bin-path)/"
 	"$$($(LAYOUT_SWIFT) --show-bin-path)/$(APP_NAME)" --snapshot build/snapshots
 	"$$($(LAYOUT_SWIFT) --show-bin-path)/$(APP_NAME)" --snapshot build/snapshots-tr -AppleLanguages '(tr)'
+
+# "How Trove Works" animations, rendered offscreen from the real panel: English and Turkish
+# into the app's resources, English also for the README (Docs/demos).
+demos:
+	$(LAYOUT_SWIFT)
+	cp -R Resources/en.lproj Resources/tr.lproj "$$($(LAYOUT_SWIFT) --show-bin-path)/"
+	"$$($(LAYOUT_SWIFT) --show-bin-path)/$(APP_NAME)" --demos Resources/en.lproj/Demos -AppleLanguages '(en)'
+	"$$($(LAYOUT_SWIFT) --show-bin-path)/$(APP_NAME)" --demos Resources/tr.lproj/Demos -AppleLanguages '(tr)'
+	mkdir -p Docs/demos && cp Resources/en.lproj/Demos/*.gif Docs/demos/
 
 # Opens a real window for a moment: run it only when nobody is working on this Mac.
 window-check:
