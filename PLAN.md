@@ -32,7 +32,7 @@ Aşağıdaki dört kararda önerilen varsayılanı yazdım. Katılmıyorsan "Sen
 
 Uygulama tamamen native: Swift + SwiftUI, gerektiği yerde AppKit. Kopyalanan içerik önce yerel depoya yazılır, panel sadece bu depodan okur.
 
-![Uygulama bileşenleri · 9 parça](docs/architecture.png)
+![Uygulama bileşenleri · 9 parça](Docs/architecture.png)
 
 Ayarlar ekranı (⌘,) izleyiciyi, depolamayı, temizleyiciyi ve kısayolu yapılandırır. Çizimi sade tutmak için gösterilmedi.
 
