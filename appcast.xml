@@ -1,0 +1,18 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Trove</title>
+        <item>
+            <title>0.1.0</title>
+            <pubDate>Thu, 26 Nov 2026 22:35:41 +1100</pubDate>
+            <link>https://github.com/gorkemblm/trove</link>
+            <sparkle:version>35</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <description><![CDATA[<!doctype html><html><head><meta charset="utf-8"><style>body{font:13px -apple-system,sans-serif;margin:0}ul{padding-left:18px}li{margin:3px 0}</style></head><body><p>The first public release.</p><ul><li><b>Clipboard history</b> for text, rich text, links, images, files, colors and code, opened with ⌥ Space over any app.</li><li><b>Search</b> across everything, including the text inside screenshots and images, read on your Mac.</li><li><b>Groups and apps:</b> jump to a group with <code>/</code>, to the items of one app with <code>@</code>.</li><li><b>Actions with ⌘K</b>, an <b>editor with text transforms</b> (⌘E), <b>named snippets</b> (⌘S).</li><li><b>Several items at once:</b> pick, paste together, delete, or drag them to any app.</li><li><b>Encryption:</b> SQLCipher database, AES-GCM image files, an optional recovery password for other Macs.</li><li><b>Hidden items:</b> API keys, tokens, card numbers and IBANs are recognized and sealed with the Secure Enclave; they open with Touch ID.</li><li><b>Import</b> from Raycast, Maccy and Alfred; <b>export</b> as an encrypted file, JSON or CSV.</li><li><b>English and Turkish</b>, with an animated tour of how Trove works.</li></ul></body></html>
+]]></description>
+            <enclosure url="https://github.com/gorkemblm/trove/releases/download/v0.1.0/Trove-0.1.0.dmg" length="10431913" type="application/octet-stream" sparkle:edSignature="3+8f8iA8ILKGBDD3FFOqIEAKboR/EWYvVea8qfAT1DVj/5Nb1rpZcSFOgcbGexEc1ehtsWgmQnt2+J8rfnOIBw=="/>
+        </item>
+    </channel>
+</rss>

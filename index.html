@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trove — encrypted clipboard history for macOS</title>
+  <meta name="description" content="Trove keeps everything you copy on your Mac, encrypted, and finds it again in a second. ⌥ Space, type, ↵.">
+  <link rel="icon" href="icon.png">
+  <meta property="og:title" content="Trove — encrypted clipboard history for macOS">
+  <meta property="og:description" content="Everything you copy, found again in a second. Encrypted, on your Mac.">
+  <meta property="og:image" content="icon.png">
+  <style>
+    :root {
+      --bg: #fbfbfd; --surface: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: rgba(0,0,0,.09);
+      --accent: #2f6feb; --accent-text: #ffffff; --kbd: #f2f2f5; --shadow: 0 30px 80px rgba(0,0,0,.18);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b0b0d; --surface: #161618; --text: #f5f5f7; --muted: #a1a1a6; --line: rgba(255,255,255,.1);
+              --accent: #4c8dff; --kbd: #232326; --shadow: 0 30px 80px rgba(0,0,0,.6); }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text);
+           font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+           -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    code { font: 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--kbd); border: 1px solid var(--line);
+           border-radius: 6px; padding: 1px 6px; }
+    kbd { font: 600 .85em -apple-system, sans-serif; background: var(--kbd); border: 1px solid var(--line);
+          border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; }
+
+    header.top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; color: var(--text); }
+    .brand img { width: 28px; height: 28px; }
+    nav a { color: var(--muted); margin-left: 22px; font-size: 15px; }
+
+    .hero { text-align: center; padding: 56px 0 28px; }
+    .hero img.icon { width: 120px; height: 120px; }
+    .hero h1 { font-size: clamp(40px, 7vw, 64px); line-height: 1.05; margin: 18px 0 12px; letter-spacing: -.02em; }
+    .hero p.lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); margin: 0 auto; max-width: 640px; }
+    .cta { margin: 30px 0 10px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .button { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px;
+              font-weight: 600; font-size: 16px; }
+    .button.primary { background: var(--accent); color: var(--accent-text); }
+    .button.secondary { border: 1px solid var(--line); color: var(--text); background: var(--surface); }
+    .button:hover { text-decoration: none; filter: brightness(1.06); }
+    .meta { color: var(--muted); font-size: 14px; }
+
+    .window { margin: 40px auto 0; max-width: 900px; border-radius: 14px; overflow: hidden;
+              box-shadow: var(--shadow); border: 1px solid var(--line); background: #111; }
+    .window img { display: block; width: 100%; height: auto; aspect-ratio: 980 / 560; }
+
+    section { padding: 88px 0 0; }
+    h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.015em; margin: 0 0 10px; text-align: center; }
+    .sub { color: var(--muted); text-align: center; margin: 0 auto 40px; max-width: 620px; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+    .card h3 { margin: 0 0 6px; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .card .glyph { font-size: 22px; margin-bottom: 10px; }
+
+    .tour { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; }
+    .tabs { display: flex; flex-direction: column; gap: 4px; }
+    .tabs button { all: unset; cursor: pointer; padding: 11px 14px; border-radius: 10px; font-size: 15px; color: var(--muted); }
+    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); border: 1px solid var(--line); font-weight: 600; }
+    .tabs button:focus-visible { outline: 2px solid var(--accent); }
+    .tour .window { margin: 0; }
+    .tour p.detail { color: var(--muted); font-size: 15px; margin: 14px 2px 0; min-height: 3em; }
+
+    .privacy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .imports { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+
+    footer { margin-top: 100px; padding: 30px 0 50px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+    footer .links a { color: var(--muted); margin-right: 18px; }
+    footer p { margin: 10px 0 0; }
+
+    @media (max-width: 760px) {
+      nav { display: none; }
+      .grid, .privacy { grid-template-columns: 1fr; }
+      .tour { grid-template-columns: 1fr; }
+      .tabs { flex-direction: row; overflow-x: auto; }
+      .tabs button { white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="#"><img src="icon.png" alt="">Trove</a>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#tour">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="https://github.com/gorkemblm/trove/issues">Support</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <img class="icon" src="icon.png" alt="Trove icon">
+      <h1>Everything you copy.<br>Found in a second.</h1>
+      <p class="lead">Trove is an encrypted clipboard history for macOS. Press <kbd>⌥</kbd> <kbd>Space</kbd>, type, and <kbd>↵</kbd> pastes it into the app you were in.</p>
+      <div class="cta">
+        <a class="button primary" id="download" href="https://github.com/gorkemblm/trove/releases/download/v0.1.0/Trove-0.1.0.dmg">Download for Mac</a>
+        <a class="button secondary" href="https://github.com/gorkemblm/trove">View on GitHub</a>
+      </div>
+      <div class="meta">Version <span id="version">0.1.0</span> · macOS 14 or later · Apple silicon · Free and open source (MIT)</div>
+      <div class="meta" style="margin-top:6px">or with Homebrew: <code>brew install --cask gorkemblm/tap/trove</code></div>
+      <div class="window"><img src="demos/browse.gif" alt="Searching and pasting with Trove"></div>
+    </div>
+
+    <section id="features">
+      <h2>Fast to reach. Private by design.</h2>
+      <p class="sub">A small panel over any app, made for the keyboard, with your history encrypted on your Mac.</p>
+      <div class="grid">
+        <div class="card"><div class="glyph">⚡</div><h3>Instant search</h3><p>Text, links, images, files, colors and code. Search stays instant with tens of thousands of items.</p></div>
+        <div class="card"><div class="glyph">🖼</div><h3>Text in screenshots (OCR)</h3><p>Images are read on your Mac, so a word inside a screenshot finds it, boxed in yellow.</p></div>
+        <div class="card"><div class="glyph">⌘</div><h3>Keyboard first</h3><p>Jump to a group with <kbd>/</kbd>, to one app with <kbd>@</kbd>, to every action with <kbd>⌘</kbd><kbd>K</kbd>.</p></div>
+        <div class="card"><div class="glyph">✎</div><h3>Edit and transform</h3><p>Change case, clean up spaces, sort lines, encode URLs and Base64, format JSON, then paste.</p></div>
+        <div class="card"><div class="glyph">★</div><h3>Snippets</h3><p>Keep what you paste often under a name. Snippets never expire and are found by name.</p></div>
+        <div class="card"><div class="glyph">⇪</div><h3>Several at once</h3><p>Pick items, paste them together, or drag them into any app or folder.</p></div>
+      </div>
+    </section>
+
+    <section id="tour">
+      <h2>See how it works</h2>
+      <p class="sub">Short demos recorded from the real app.</p>
+      <div class="tour">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div>
+          <div class="window"><img id="tour-image" src="demos/browse.gif" alt=""></div>
+          <p class="detail" id="tour-detail"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy">
+      <h2>Your history stays yours</h2>
+      <p class="sub">Trove has no network access. Only its separate update service can connect, to check for new versions, and it never sees your history.</p>
+      <div class="privacy">
+        <div class="card"><h3>Encrypted on disk</h3><p>The database is encrypted with SQLCipher (AES-256), images with AES-GCM. The key stays in your Keychain.</p></div>
+        <div class="card"><h3>Secrets kept apart</h3><p>API keys, tokens, card numbers and IBANs go to Hidden, sealed by the Secure Enclave and opened with Touch ID.</p></div>
+        <div class="card"><h3>Your folder, your choice</h3><p>Keep the history anywhere, even in a synced folder. It only ever holds encrypted files.</p></div>
+      </div>
+      <p class="sub" style="margin-top:40px;margin-bottom:0">Moving from another app? Trove imports your history.</p>
+      <div class="imports">
+        <img src="https://img.shields.io/badge/imports%20from-Raycast-FF6363?logo=raycast&logoColor=white" alt="Imports from Raycast">
+        <img src="https://img.shields.io/badge/imports%20from-Alfred-5C1F87?logo=alfred&logoColor=white" alt="Imports from Alfred">
+        <img src="https://img.shields.io/badge/imports%20from-Maccy-555555?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAACshmLzAAAGv0lEQVRYCeVXW4wURRQ91d3z2NkddpfdVUDxEUV8o0hMCAQxEU0UUT8kfKjExBij0S%2Fjv7%2F6oV8mfmgkRBETMZrw4QM1REDASIIICiTAymNhd4fd2Xl1T3e151Z3z3QDEkPil5XU1OPWvXXq3Fu3eoD%2Fe1FXSIBFvaSKCZ2qMv7X5R8BNN85v9Jx7Mfs0F4AFc6GUg5CKD%2F00Wp71kxz2ql7DZtz6C2UgnJPv1908tpxHHCOK7kwVOfZPaJVuDX3SvmHS6G6CEDl%2FUp%2F2dUbHMt%2BIqugoHUA1%2FcwUZ%2BEvjuH3NKruFmI9s%2FjsPZ7GO4dRsHJw7JIDoFBrEsrjQq%2FUr1qvXp%2BcCqaiX6FxnSxSq3GRsfS3NzjfJtVWo%2F7tODrBqZbEwgWWdi1zMb6yV1YX%2FnZ9INFtpH5usm11FGxvrSsSvlrglprI41lDp0GoI69uXNVwQkfh3K5jJt32jaNunCDOqrONKorhvHB%2BGH0WDZKlmP6Mle1p8jQjAEbAaed%2BACAC1v5q2vvHn6Ik51Ch3WKZdv6aQh6KQl9MV4NH832NPJ3lfHh9HE8UJ6DdQP3wA0VvqkdwCece%2BnOWWj%2BVkVP3oKlcjSS%2BEEMsq8Uf90nOfguFppIFqkURQALYRGAVEGetOwHuoWGN4PSHVfjcGsKa2bdjs1nFD4%2BDSzvWYgTbiSTNbJWTtxlodv3g9ZtsherKWkGlGW1ByMlypIlbEMGmqYLPMfF0QEfS%2BpXYctYgZRGRj49k8OKwbnYX%2FRxPddotIyOskQ5WtNl1J2dsp5lwIJPQPHpU634P5Dgygf4y6tjSWkEO1KxvJv9JX3DRqYL2jBAqrkPbcVBmPQtJXt0SyYIleVzHAMwUdw1oDmv8xqTvouyXURFLkhcCtQaUCUjEwCaNyayk1Af2xEboZdwa7QzaKikoutDGWmXoDFtqMkkjRaAik96dT7eOmqenUePB3kjQ9FiHPPaCrnMXUbfLJN9mZ%2FU5QAkpxaFBKe0iplWMbEZs8SYyCjq5x6NgNAJ2KJSyAQoGzGk2YoeG1PiAxnXJHNRPu%2BOeNWi6CV1Bkzcsm9J9VoYcgrMakJtVFYzGe6ZpiHbNTKr1eCeTDzGlbIuqeJa6ad8x9EFLkgyHyVJ9EpLFzB4ELoNzHaKqAYtjMRe%2BPIscKxJBnj1RAavQTBshQFDVYcCGpKSBZAOQgqJ0GRALhIGTJ%2BnsdrM7wEcr4mbCn34pX4OyweMNdRI%2F1L2d3NOZDYZsFUgvibw5NS0y5vUZSPSld8sgNBjlMjGothtFYHYBJEP27hlvIFf%2BRg9NbdFVriUK9fN87CzdtbI8jyhbfsEEB%2FCuIK2qB%2FZzDKQcUEoSgYp14ploT9m0OKpSgWFmd8PYtHia7CpcgAvzluMNlPxZ1MHcWtxALV9B1HOKwKTTeQTIVU6LpXDdUsGABFGDIg82TxWtCyNEtP71J8H8Myy%2B%2FHy%2BD6M5A7C5RP9Y3UM743ci%2BCPr1EqFuguAiDgSxbDbleSdYEASChLu4F9iYN8TmOA9GLbt3hj7l0dK6bPOZHlHR3Rn9i5oOXXQ8KF0c8wwPRJBuLwvoAB8YTNfFCmG9rHD%2BGaL6awaNUa6EBj4vMtKEycQV%2Bpx8QKH5WLGOy69DIuCOFLSolOFvs%2BiQGZ5POPPEEM9trQ546jvnc72q0WnLMn0NfXg5wTkP5InZ9k7NCIaWUu6odhW5JNpyTLZSJ0%2FcZM96oIELk60nZrdCNItc1raYUoDs3GnDXrGHISeN115grL2NyGWMZ%2BO2hWubBTMgAq9erJrkKcE5JMZmLCZWx6%2FDRroV3ghQva6L1hASb3bUfo16PNkvUGTPoAUb%2FpNY51dmcnA2Dv6KnvO6cwVyl9ggiQPEo8BfpXrUVx3nVoVsYwtGQFg1Tufgza6Mb9BFA8d3h8%2FBvu2wnExNMCSl6PG0ffeu6j%2BYO9y2TiUkXrkJ9mPip8EWc98gICt4natg0YyofocWzGSXym9GsaGxqbbuya%2B%2FqGRznk6xGBkE3Txdt1Yuzow3fMWdDf48w3d9m8hPKqJVXSLA%2FQbsBnrteToyhVR7m54g3gFYTcf1bJA2Hcsn9qur771c07Xjt0%2Bvxf0YJo2zQDMiPw%2BVmGm99ee9%2FKB2%2Bds3SoVLw2n7PKtmXeVxoNlebp%2FIA32g%2BMfs6xQ4cnl9RMXxh6A%2F6J8IJw5nzNPfnTkbM7Xtu0Zyul4n%2F5WrmkCzhvioDgc4ZhVvl%2Bk7584l4INj3uGOQ6KTKWKteixjrBKrTLOLM2bYSyTDHnycxc2SDZMGmvzMp%2FpfU32pMvZzEV7S4AAAAASUVORK5CYII%3D" alt="Imports from Maccy">
+      </div>
+    </section>
+
+    <footer>
+      <div class="links">
+        <a href="https://github.com/gorkemblm/trove/issues">Report an issue</a>
+        <a href="https://github.com/gorkemblm/trove/security">Security</a>
+        <a href="https://github.com/gorkemblm/trove/releases">Release notes</a>
+        <a href="https://github.com/gorkemblm/trove">Source code</a>
+        <a href="https://github.com/gorkemblm/trove/blob/main/LICENSE">MIT License</a>
+      </div>
+      <p>Trove is not affiliated with Raycast, Alfred or Maccy; their names describe what can be imported.</p>
+    </footer>
+  </div>
+
+  <script>
+    const demos = [
+      ["browse", "Find and paste", "⌥ Space opens Trove over any app. Type to search, ↑ ↓ to choose, ↵ to paste into the app you were in."],
+      ["groups", "Jump to a group with /", "Type / and the start of a group’s name: Images, Links, Code… It stays as a chip; ⌫ takes it away."],
+      ["apps", "Only one app with @", "Type @ and an app’s name to see only what you copied there, and combine it with a group and a search."],
+      ["actions", "Every action with ⌘K", "Everything you can do with the selected item, with its shortcut. Type to filter."],
+      ["editor", "Edit and transform with ⌘E", "Change the text, or use the menus: case, clean-up, lines, URL, Base64, JSON. ⌘↵ pastes the result."],
+      ["textInImages", "Search text in screenshots", "Search finds a screenshot by a word in it, the word is boxed, and ⌘⇧C copies the matching line."],
+      ["snippets", "Keep snippets with ⌘S", "Keep an item as a named snippet: no limit removes it, and search finds it by name."],
+      ["selectAndDrag", "Pick several, drag anywhere", "⌘-click or ⇧-click picks items. ↵ pastes them all; drag them to any app or folder."],
+    ];
+    const tabs = document.getElementById("tabs");
+    const image = document.getElementById("tour-image");
+    const detail = document.getElementById("tour-detail");
+    function choose(index) {
+      const [name, title, text] = demos[index];
+      image.src = "demos/" + name + ".gif";
+      image.alt = title;
+      detail.textContent = text;
+      [...tabs.children].forEach((tab, i) => tab.setAttribute("aria-selected", i === index ? "true" : "false"));
+    }
+    demos.forEach(([, title], index) => {
+      const tab = document.createElement("button");
+      tab.setAttribute("role", "tab");
+      tab.textContent = title;
+      tab.addEventListener("click", () => choose(index));
+      tabs.appendChild(tab);
+    });
+    choose(0);
+  </script>
+</body>
+</html>
