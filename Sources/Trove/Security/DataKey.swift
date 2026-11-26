@@ -39,6 +39,9 @@ struct DataKey: Sendable {
     }
 
     var imageKey: SymmetricKey { derive("images.v1") }
+
+    /// HMAC key that links a manually hidden item to later copies of the same content.
+    var hiddenMatchKey: SymmetricKey { derive("hidden-match.v1") }
 }
 
 /// Encrypted file format for images: "CLPE", a version byte, then the AES-GCM sealed box

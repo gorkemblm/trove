@@ -268,7 +268,9 @@ final class ImportFlow: ObservableObject {
         for item in items {
             guard let content = AppModel.importContent(item) else { continue }
             sorted.dates.append(item.lastCopiedAt)
-            if item.snippetName == nil, content.kind.isTextual, let text = content.text, let finding = SensitiveDetector.detect(text) {
+            // Snippets too: a token kept as a snippet elsewhere is not stored here as plain text.
+            // It goes to Hidden with the snippet's name.
+            if content.kind.isTextual, let text = content.text, let finding = SensitiveDetector.detect(text) {
                 sorted.secrets.append((text, finding, item))
                 continue
             }
@@ -352,9 +354,10 @@ final class ImportFlow: ObservableObject {
                             continue
                         }
                         let sealed = try SealedSecret.seal(Data(secret.text.utf8), to: hiddenKey.publicKey)
-                        try store.ingestSecret(sealed: sealed, finding: secret.finding, characters: secret.text.count,
-                                               source: ClipSource(bundleID: secret.item.sourceBundleID, appName: secret.item.sourceApp, url: nil),
-                                               at: secret.item.lastCopiedAt, expiresAt: nil)
+                        let saved = try store.ingestSecret(sealed: sealed, finding: secret.finding, characters: secret.text.count,
+                                                           source: ClipSource(bundleID: secret.item.sourceBundleID, appName: secret.item.sourceApp, url: nil),
+                                                           at: secret.item.lastCopiedAt, expiresAt: nil)
+                        if let name = secret.item.snippetName, let id = saved.id { try store.renameSecret(id: id, name: name) }
                         hidden += 1
                         self?.setProgress(plan, Double(plan.records.count + index + 1) / total)
                     }

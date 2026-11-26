@@ -354,7 +354,9 @@
 "Nothing to delete" = "Silinecek bir şey yok";
 "now" = "şimdi";
 "Number" = "Numara";
+"OK" = "Tamam";
 "Older" = "Daha Eski";
+"Older hidden items cannot be opened on this Mac" = "Eski gizli öğeler bu Mac'te açılamıyor";
 "Only Copy" = "Yalnızca Kopyala";
 "Only items from one app" = "Yalnızca bir uygulamanın öğeleri";
 "Only one app with @" = "@ ile yalnızca bir uygulama";
@@ -579,6 +581,7 @@
 "The key file was made by a newer version of Trove." = "Anahtar dosyası Trove'un daha yeni bir sürümüyle oluşturulmuş.";
 "The key is in your Keychain. No network access. Password manager content is never saved." = "Anahtar Anahtar Zinciri'nde durur. Ağ erişimi yoktur. Şifre yöneticisi içerikleri hiçbir zaman kaydedilmez.";
 "The key is in your Keychain. Your history never leaves this Mac. Password manager content is never saved." = "Anahtar, Anahtar Zinciri'nde durur. Geçmişin bu Mac'ten hiç çıkmaz. Parola yöneticilerinin içeriği hiçbir zaman kaydedilmez.";
+"The key that protected them is no longer in this Mac’s Keychain (a Keychain reset, or a history copied from another Mac). They stay in Hidden until you delete them. New hidden items use a new key and open as usual." = "Onları koruyan anahtar artık bu Mac'in Anahtar Zinciri'nde yok (Anahtar Zinciri sıfırlandı ya da geçmiş başka bir Mac'ten kopyalandı). Siz silene kadar Gizli'de kalırlar. Yeni gizli öğeler yeni bir anahtar kullanır ve her zamanki gibi açılır.";
 "The panel also locks when the screen locks, the Mac sleeps or another user takes over. While locked, no history is loaded. Touch ID or your Mac password unlocks it." = "Panel; ekran kilitlendiğinde, Mac uykuya geçtiğinde ya da başka bir kullanıcı oturum açtığında da kilitlenir. Kilitliyken hiçbir geçmiş yüklenmez. Kilidi Touch ID ya da Mac şifren açar.";
 "The password is not correct." = "Parola doğru değil.";
 "The password this export was made with" = "Bu dışa aktarımın parolası";

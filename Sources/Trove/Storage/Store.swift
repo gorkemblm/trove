@@ -73,12 +73,23 @@ final class Store {
     private(set) var unencryptedBackup: URL?
     private let dbQueue: DatabaseQueue
     private let imageKey: SymmetricKey
+    private let hiddenMatchKey: SymmetricKey
 
     private init(directory: URL, imagesDirectory: URL, dbQueue: DatabaseQueue, key: DataKey) {
         self.directory = directory
         self.imagesDirectory = imagesDirectory
         self.dbQueue = dbQueue
         self.imageKey = key.imageKey
+        self.hiddenMatchKey = key.hiddenMatchKey
+    }
+
+    /// The `contentHash` of an item hidden by hand: an HMAC of its content hash with a key of
+    /// this history. A later copy of the same content finds it and stays hidden. Without the
+    /// key the value cannot be checked against guesses (a short password).
+    nonisolated static let hiddenHashPrefix = "hidden:"
+    private func hiddenHash(of contentHash: String) -> String {
+        let mac = HMAC<SHA256>.authenticationCode(for: Data(contentHash.utf8), using: hiddenMatchKey)
+        return Self.hiddenHashPrefix + Data(mac).map { String(format: "%02x", $0) }.joined()
     }
 
     static func open(directory: URL, key: DataKey, originals: PlaintextOriginals = .moveToTrash) throws -> Store {
@@ -88,22 +99,33 @@ final class Store {
         try fm.createDirectory(at: images, withIntermediateDirectories: true)
 
         let stamp = Date().formatted(.iso8601.year().month().day().dateSeparator(.dash).time(includingFractionalSeconds: false).timeSeparator(.omitted))
-        let backup = directory.appendingPathComponent("Unencrypted backup \(stamp)", isDirectory: true)
+        let backup = directory.appendingPathComponent(unencryptedBackupPrefix + stamp, isDirectory: true)
 
         let databaseURL = directory.appendingPathComponent(databaseFileName)
         try encryptPlaintextDatabaseIfNeeded(at: databaseURL, key: key, backupFolder: backup)
         let queue = try DatabaseQueue(path: databaseURL.path, configuration: configuration(key: key))
         try migrator.migrate(queue)
         let store = Store(directory: directory, imagesDirectory: images, dbQueue: queue, key: key)
-        try store.encryptPlaintextImages(backupFolder: backup)
-
-        if fm.fileExists(atPath: backup.path) {
-            if originals == .moveToTrash {
-                try? fm.trashItem(at: backup, resultingItemURL: nil)
+        // The backups are handled even when the image step fails part-way: the database is
+        // already encrypted then, and its unencrypted original must not stay behind unnoticed.
+        // Backups that an earlier, interrupted open left in the folder are handled too.
+        defer {
+            for folder in unencryptedBackups(in: directory) {
+                if originals == .moveToTrash { try? fm.trashItem(at: folder, resultingItemURL: nil) }
+                if fm.fileExists(atPath: folder.path) { store.unencryptedBackup = folder }
             }
-            if fm.fileExists(atPath: backup.path) { store.unencryptedBackup = backup }
         }
+        try store.encryptPlaintextImages(backupFolder: backup)
         return store
+    }
+
+    nonisolated static let unencryptedBackupPrefix = "Unencrypted backup "
+
+    /// The "Unencrypted backup …" folders in a history folder.
+    nonisolated static func unencryptedBackups(in directory: URL) -> [URL] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []
+        return names.filter { $0.hasPrefix(unencryptedBackupPrefix) }.sorted()
+            .map { directory.appendingPathComponent($0, isDirectory: true) }
     }
 
     /// In-memory store for tests and snapshots. Image files are still encrypted.
@@ -503,6 +525,14 @@ final class Store {
                 try shot.update(db)
                 return shot
             }
+            // The same content as an item hidden by hand: that item counts the copy and moves to
+            // the top, still hidden. No plain copy is made.
+            if var hidden = try Clip.filter(Column("contentHash") == hiddenHash(of: content.hash)).fetchOne(db) {
+                hidden.timesCopied += 1
+                hidden.lastCopiedAt = date
+                try hidden.update(db)
+                return hidden
+            }
             if var existing = try Clip.filter(Column("contentHash") == content.hash).fetchOne(db) {
                 existing.timesCopied += 1
                 existing.lastCopiedAt = date
@@ -556,7 +586,6 @@ final class Store {
 
     /// Saves a hidden item. Copies of the same secret are not merged: merging would need a
     /// hash of the secret, and a hash of a short secret (a card number) can be reversed.
-    @discardableResult
     /// A Hidden item of this kind, masked form and time is already there (an import done twice).
     func hasSecret(finding: SensitiveDetector.Finding, characters: Int, at date: Date) throws -> Bool {
         try dbQueue.read { db in
@@ -566,6 +595,7 @@ final class Store {
         }
     }
 
+    @discardableResult
     func ingestSecret(sealed: Data, finding: SensitiveDetector.Finding, characters: Int, source: ClipSource,
                       at date: Date, expiresAt: Date?) throws -> Clip {
         var clip = Clip(
@@ -580,6 +610,11 @@ final class Store {
         return clip
     }
 
+    /// True when the history has sealed hidden items.
+    func hasSealedItems() throws -> Bool {
+        try dbQueue.read { db in try Clip.filter(Column("kind") == ClipKind.secret.rawValue && Column("sealed") != nil).fetchCount(db) > 0 }
+    }
+
     /// The reason saved for items the user hid on purpose.
     nonisolated static let manualReason = "Hidden manually"
     /// Manually hidden items show no character of their content.
@@ -590,13 +625,15 @@ final class Store {
     func hide(id: Int64, sealed: Data, characters: Int, name: String?) throws {
         let name = name?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
         try dbQueue.write { db in
+            let original = try String.fetchOne(db, sql: "SELECT contentHash FROM clip WHERE id = ?", arguments: [id])
+            let hash = original.map(hiddenHash(of:)) ?? "secret-" + UUID().uuidString
             try db.execute(sql: """
                 UPDATE clip SET kind = 'secret', text = ?, rtf = NULL, searchText = ?, secretReason = ?, sealed = ?,
                     format = ?, pinned = 0, contentHash = ?, textCharacters = ?, textWords = NULL, textLines = NULL,
                     sourceURL = NULL, expiresAt = NULL
                 WHERE id = ?
                 """, arguments: [Self.fullMask, Self.secretSearchText(reason: Self.manualReason, name: name, masked: nil),
-                                  Self.manualReason, sealed, name, "secret-" + UUID().uuidString, characters, id])
+                                  Self.manualReason, sealed, name, hash, characters, id])
         }
     }
 
@@ -621,6 +658,10 @@ final class Store {
     /// already there, the two merge.
     func unhide(id: Int64, content: CapturedContent) throws {
         guard let secret = try clip(id: id), secret.kind == .secret else { return }
+        // First unlink it from its content, so the import below does not merge into it.
+        try dbQueue.write { db in
+            try db.execute(sql: "UPDATE clip SET contentHash = ? WHERE id = ?", arguments: ["secret-" + UUID().uuidString, id])
+        }
         _ = try importRecords([ImportRecord(
             content: content,
             source: ClipSource(bundleID: secret.sourceBundleID, appName: secret.sourceAppName, url: nil),
@@ -678,6 +719,14 @@ final class Store {
                         merged += 1
                         continue
                     }
+                } else if var hidden = try Clip.filter(Column("contentHash") == hiddenHash(of: record.content.hash)).fetchOne(db) {
+                    // Hidden here by hand: it stays hidden, only the dates and count merge.
+                    hidden.firstCopiedAt = min(hidden.firstCopiedAt, record.firstCopiedAt)
+                    hidden.lastCopiedAt = max(hidden.lastCopiedAt, record.lastCopiedAt)
+                    hidden.timesCopied = max(hidden.timesCopied, record.timesCopied)
+                    try hidden.update(db)
+                    merged += 1
+                    continue
                 } else if var existing = try Clip.filter(Column("contentHash") == record.content.hash).fetchOne(db) {
                     existing.firstCopiedAt = min(existing.firstCopiedAt, record.firstCopiedAt)
                     existing.lastCopiedAt = max(existing.lastCopiedAt, record.lastCopiedAt)

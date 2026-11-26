@@ -61,8 +61,19 @@ final class PanelController {
     private var outsideClickMonitor: Any?
     private var isHiding = false
     private let log = Logger(subsystem: AppInfo.bundleID, category: "panel")
-    /// True while a system prompt (Touch ID) is in front. The panel then stays open.
-    var keepOpen = false
+    /// Why the panel must stay open although it lost the focus. Each flow adds and removes only
+    /// its own reason, so one flow ending (Touch ID) does not close the panel under another
+    /// (Settings, a drag, the large preview). Counted, for two prompts at once.
+    enum KeepOpenReason: Hashable { case settings, touchID, drag, preview }
+    private var keepOpenHolds: [KeepOpenReason: Int] = [:]
+    var keepOpen: Bool { !keepOpenHolds.isEmpty }
+
+    func holdOpen(_ reason: KeepOpenReason) { keepOpenHolds[reason, default: 0] += 1 }
+
+    func releaseOpen(_ reason: KeepOpenReason) {
+        guard let count = keepOpenHolds[reason] else { return }
+        keepOpenHolds[reason] = count > 1 ? count - 1 : nil
+    }
     /// True while Settings, opened from the panel, is in front of it.
     private(set) var behindSettings = false
 
@@ -123,7 +134,7 @@ final class PanelController {
         // closing a panel the user cannot see.
         if panel.isVisible, behindSettings {
             behindSettings = false
-            keepOpen = false
+            keepOpenHolds[.settings] = nil
             panel.level = .floating
             panel.makeKeyAndOrderFront(nil)
             return
@@ -150,7 +161,7 @@ final class PanelController {
     func show() {
         // Always in front of every window, whatever an earlier flow left behind.
         behindSettings = false
-        keepOpen = false
+        keepOpenHolds = [:]
         panel.level = .floating
         updateMaterial() // With System, macOS may have switched since the last show.
         model.willShow()
@@ -174,7 +185,7 @@ final class PanelController {
         defer { isHiding = false }
         if behindSettings {
             behindSettings = false
-            keepOpen = false
+            keepOpenHolds[.settings] = nil
             panel.level = .floating
         }
         if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
@@ -190,7 +201,7 @@ final class PanelController {
     func moveBehindSettings() {
         guard panel.isVisible else { return }
         behindSettings = true
-        keepOpen = true
+        keepOpenHolds[.settings] = 1
         panel.level = .normal
     }
 
@@ -199,7 +210,7 @@ final class PanelController {
     func returnFromSettings() -> Bool {
         guard behindSettings else { return false }
         behindSettings = false
-        keepOpen = false
+        keepOpenHolds[.settings] = nil
         panel.level = .floating
         guard panel.isVisible else { return false }
         panel.makeKeyAndOrderFront(nil)

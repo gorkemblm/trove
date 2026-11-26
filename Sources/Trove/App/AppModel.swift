@@ -65,7 +65,7 @@ final class AppModel: ObservableObject {
         panel?.apply(settings.panelAppearance)
         toast.apply(settings.panelAppearance)
         previewWindow.onClose = { [weak self] in
-            self?.panel?.keepOpen = false
+            self?.panel?.releaseOpen(.preview)
             self?.panel?.refocus()
         }
         hotKey = GlobalHotKey { [weak self] in self?.togglePanel() }
@@ -382,15 +382,30 @@ final class AppModel: ObservableObject {
     private func loadHiddenKey() -> HiddenKey? {
         if let hiddenKey { return hiddenKey }
         do {
+            let existed = try vault.keyStore.load(account: SecureEnclaveHiddenKey.account) != nil
             let key = try SecureEnclaveHiddenKey.loadOrCreate(keyStore: vault.keyStore)
             hiddenKey = key
             hiddenKeyError = nil
+            // A new key while the history already has hidden items: those were sealed to a key
+            // this Mac no longer has (a Keychain reset, or a history from another Mac). They stay,
+            // but they cannot be opened; the user is told once instead of finding out later.
+            if !existed, (try? store?.hasSealedItems()) == true {
+                DispatchQueue.main.async { [weak self] in self?.showLostHiddenKeyNotice() }
+            }
             return key
         } catch {
             hiddenKeyError = error.localizedDescription
             log.error("Hidden key unavailable: \(error.localizedDescription, privacy: .public)")
             return nil
         }
+    }
+
+    private func showLostHiddenKeyNotice() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Older hidden items cannot be opened on this Mac")
+        alert.informativeText = String(localized: "The key that protected them is no longer in this Mac’s Keychain (a Keychain reset, or a history copied from another Mac). They stay in Hidden until you delete them. New hidden items use a new key and open as usual.")
+        alert.addButton(withTitle: String(localized: "OK"))
+        alert.runModal()
     }
 
     /// A detected secret goes to Hidden, sealed to the hidden key, or is not saved.
@@ -436,7 +451,7 @@ final class AppModel: ObservableObject {
     /// so the panel stays open for a short grace period and takes the focus back twice.
     func authenticate(reason: String, _ completion: @escaping @MainActor (LAContext?) -> Void) {
         let context = LAContext()
-        panel?.keepOpen = true
+        panel?.holdOpen(.touchID)
         log.info("Touch ID requested: \(reason, privacy: .public)")
         Task { @MainActor in
             var granted = false
@@ -455,7 +470,7 @@ final class AppModel: ObservableObject {
             completion(granted ? context : nil)
             try? await Task.sleep(for: .milliseconds(600))
             panel?.refocus()
-            panel?.keepOpen = false
+            panel?.releaseOpen(.touchID)
         }
     }
 
@@ -678,12 +693,12 @@ final class AppModel: ObservableObject {
 
     /// The panel stays open while a drag is under way.
     func beginDrag() {
-        panel?.keepOpen = true
+        panel?.holdOpen(.drag)
     }
 
     /// A drop counts as a use, like a paste, and closes the panel. A cancelled drag leaves it open.
     func finishDrag(_ clips: [Clip], dropped: Bool) {
-        panel?.keepOpen = false
+        panel?.releaseOpen(.drag)
         guard dropped else {
             panel?.refocus()
             return
@@ -730,7 +745,7 @@ final class AppModel: ObservableObject {
     /// The eye button. The panel stays open while the larger preview is in front.
     func openLargePreview(_ clip: Clip) {
         previewWindow.close()
-        panel?.keepOpen = true
+        panel?.holdOpen(.preview)
         let image = clip.imageFile != nil ? panelModel.image(for: clip) : nil
         previewWindow.show(clip: clip, image: image, terms: panelModel.searchTerms, appearance: settings.panelAppearance,
                            near: panel?.frame, actionTitle: panelModel.returnTitle) { [weak self] in
@@ -741,7 +756,7 @@ final class AppModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self, !self.previewWindow.isOpen else { return }
             log.error("Large preview did not open")
-            panel?.keepOpen = false
+            panel?.releaseOpen(.preview)
             panel?.refocus()
         }
     }

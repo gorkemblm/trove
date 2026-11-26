@@ -355,6 +355,10 @@ struct MigrationTests {
         // New items still work after the upgrade.
         try store.ingest(ClipClassifier.textContent("after upgrade", rtf: nil), source: ClipSource(), at: Date())
         #expect(try store.fetch(category: .text, query: "upgrade", limit: 10).count == 1)
+        // A later open still reports a backup that was left behind (an interrupted first open).
+        try store.close()
+        let reopened = try Store.open(directory: dir, key: key, originals: .keepInFolder)
+        #expect(reopened.unencryptedBackup == backup)
     }
 
     /// v4: text saved before content types moves to Code, Emails and Phones, and keeps merging.
@@ -814,6 +818,9 @@ struct LocalizationTests {
         let opener = #"(?:\b(?:Text|Button|Toggle|Label|Picker|TextField|SecureField|Section|SettingNote|switchRow)\(|\.help\(|\.confirmationDialog\(|\b(?:label|title|message|detail):|String\(localized:|\bL\()\s*"#
         let single = try NSRegularExpression(pattern: opener + #""((?:[^"\\\n]|\\.)*)""#)
         let multi = try NSRegularExpression(pattern: opener + #"\"\"\"\n([\s\S]*?)\n([ \t]*)\"\"\""#)
+        // Text(flag ? "One" : "Other"): both branches are shown, so both need a translation.
+        let literal = #""((?:[^"\\\n]|\\.)*)""#
+        let ternary = try NSRegularExpression(pattern: opener + #"[^"\n()?]*\?\s*"# + literal + #"\s*:\s*"# + literal)
         var keys = Set<String>()
         let sources = root.appendingPathComponent("Sources/Trove")
         let files = FileManager.default.enumerator(at: sources, includingPropertiesForKeys: nil)!
@@ -822,6 +829,9 @@ struct LocalizationTests {
             let range = NSRange(text.startIndex..., in: text)
             for match in single.matches(in: text, range: range) {
                 keys.insert(key(fromLiteral: String(text[Range(match.range(at: 1), in: text)!])))
+            }
+            for match in ternary.matches(in: text, range: range) {
+                for group in 1...2 { keys.insert(key(fromLiteral: String(text[Range(match.range(at: group), in: text)!]))) }
             }
             for match in multi.matches(in: text, range: range) {
                 let indent = String(text[Range(match.range(at: 2), in: text)!])
@@ -1172,6 +1182,26 @@ struct HiddenItemTests {
 
         let database = try Data(contentsOf: directory.appendingPathComponent(Store.databaseFileName))
         #expect(database.range(of: Data(password.utf8)) == nil)
+    }
+
+    @Test func copyingAHiddenTextAgainKeepsItHidden() throws {
+        let store = try Store.inMemory(imagesDirectory: directory.appendingPathComponent("Images"))
+        let password = "hunter2"
+        let saved = try store.ingest(ClipClassifier.textContent(password, rtf: nil), source: ClipSource(), at: Date(timeIntervalSince1970: 1_790_000_000))
+        let id = try #require(saved.id)
+        try store.hide(id: id, sealed: Data([1]), characters: password.count, name: nil)
+        let later = Date(timeIntervalSince1970: 1_790_100_000)
+        let again = try store.ingest(ClipClassifier.textContent(password, rtf: nil), source: ClipSource(), at: later)
+        #expect(again.id == id && again.kind == .secret && again.timesCopied == 2 && again.lastCopiedAt == later)
+        #expect(try store.counts()[.all] == 0)
+        // An import of the same text merges into the hidden item too.
+        let record = Store.ImportRecord(content: ClipClassifier.textContent(password, rtf: nil), source: ClipSource(),
+                                        firstCopiedAt: later, lastCopiedAt: later, timesCopied: 5, pinned: false)
+        #expect(try store.importRecords([record]).merged == 1)
+        #expect(try store.counts()[.all] == 0 && store.counts()[.hidden] == 1)
+        // Moved back, it is a normal item again, and a new copy merges with it.
+        try store.unhide(id: id, content: ClipClassifier.textContent(password, rtf: nil))
+        #expect(try store.counts()[.all] == 1 && store.counts()[.hidden] == 0)
     }
 
     @Test func movingBackRestoresTheItem() throws {

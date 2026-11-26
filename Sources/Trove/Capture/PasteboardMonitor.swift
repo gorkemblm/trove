@@ -23,6 +23,10 @@ final class PasteboardMonitor {
 
     private var timer: Timer?
     private var lastChangeCount = NSPasteboard.general.changeCount
+    /// Every app that was in front since the last tick. A copy in an ignored app, followed by a
+    /// fast ⌘Tab, is seen only at the next tick, when another app is in front: it is skipped too.
+    private var appsSinceLastTick: [String?] = []
+    private var activationObserver: NSObjectProtocol?
     private let log = Logger(subsystem: AppInfo.bundleID, category: "monitor")
 
     func start() {
@@ -34,16 +38,28 @@ final class PasteboardMonitor {
         timer.tolerance = 0.2
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+        appsSinceLastTick = [NSWorkspace.shared.frontmostApplication?.bundleIdentifier]
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            let bundleID = app?.bundleIdentifier
+            MainActor.assumeIsolated { self?.appsSinceLastTick.append(bundleID) }
+        }
     }
 
     func stop() {
         timer?.invalidate()
         timer = nil
+        if let activationObserver { NSWorkspace.shared.notificationCenter.removeObserver(activationObserver) }
+        activationObserver = nil
     }
 
     private func poll() {
         let pasteboard = NSPasteboard.general
         let changeCount = pasteboard.changeCount
+        let recentApps = appsSinceLastTick
+        appsSinceLastTick = [NSWorkspace.shared.frontmostApplication?.bundleIdentifier]
         guard changeCount != lastChangeCount else { return }
         lastChangeCount = changeCount
 
@@ -54,7 +70,7 @@ final class PasteboardMonitor {
             return
         }
         let app = NSWorkspace.shared.frontmostApplication
-        if isExcluded?(app?.bundleIdentifier) == true {
+        if isExcluded?(app?.bundleIdentifier) == true || recentApps.contains(where: { isExcluded?($0) == true }) {
             log.info("Skipped content from an ignored app")
             return
         }

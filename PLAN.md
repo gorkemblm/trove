@@ -297,11 +297,11 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 
 **Sürüm öncesi çapraz kontrol (26 Kasım 2026):** İki inceleme ajanı (arayüz + güvenlik/veri) 25 bulgu verdi. Düzeltilenler: kısayol reddedilince kaybolmuyor, ⌘K menüsü kayıyor, Ayarlar arkasındaki panel ⌥Space ile öne geliyor, menü açıkken ⌥P ve ⇧↵, boş liste çevirileri, yeni snippet ⌘↵ ile doluyor, ⌘⌫ yalnızca boş aramada siler, kaydedilmemiş düzenleme korunuyor, öneriler açıkken kısayollar, tek seçimde ↵, onboarding bitmeden panel açılmıyor, tur penceresi görünümü; gizli öğeler süre/sınır/Temizle ile silinmiyor, geçmiş taşıma ya hep ya hiç, büyük silmeler 500'lük parçalarla, bozuk tur sayısı reddediliyor, CSV formül önlemi, aynı dosyanın ikinci içe aktarımı gizli öğeleri çoğaltmıyor, derleme numarası commit sayısından (Sparkle yeni sürümü görür).
 
-Bilerek sonraya kalanlar (düşük risk):
-- Eski şifresiz veritabanını şifrelerken resim adımı yarıda kalırsa "Unencrypted backup" klasörü çöpe gitmeyebilir. Yalnızca eski şifresiz kurulumu olanları etkiler; yeni kullanıcıda böyle bir veritabanı yok.
-- Elle gizlenen ve hiçbir desene uymayan metin tekrar kopyalanırsa normal öğe olarak kaydedilir. Çözüm: gizli öğeler için anahtarlı (HMAC) özet sütunu.
-- Anahtarlıktaki gizli öğe anahtarı silinirse yeni anahtar oluşturulur ve eski gizli öğeler okunamaz; kullanıcı uyarılmalı.
-- Yok sayılan uygulamada kopyalayıp 0,5 sn içinde başka uygulamaya geçilirse kopya kaydedilebilir. Çözüm: etkin uygulamayı değişim anında izlemek.
-- İçe aktarılan snippet'ler hassas veri algılayıcısından geçmiyor.
-- `authenticate` sonundaki `keepOpen = false` başka akışların ayarını da kaldırabilir (sayaç ile çözülür).
-- Yerelleştirme testi üçlü (?:) ifadelerin içindeki metinleri göremiyor.
+Sonraya kalan düşük riskli maddeler de tamamlandı (26 Kasım 2026):
+- Şifresiz yedek klasörü, resim adımı yarıda kalsa da çöpe gider ya da bildirilir; önceki açılıştan kalan yedekler de yakalanır.
+- Elle gizlenen metin tekrar kopyalanınca (ya da içe aktarılınca) gizli öğede kalır: içerik özeti geçmişin anahtarıyla HMAC'lenir. Bu, bundan sonra gizlenen öğeler için geçerli.
+- Gizli öğe anahtarı Anahtar Zinciri'nde yoksa ve geçmişte gizli öğe varsa kullanıcıya bir kez söylenir; hiçbir şey silinmez.
+- Yok sayılan uygulamada kopyalayıp hemen başka uygulamaya geçmek: son tikten bu yana önde olan her uygulama kontrol edilir.
+- İçe aktarılan snippet'ler de algılayıcıdan geçer; hassas olan, snippet adıyla Gizli'ye gider.
+- Paneli açık tutan akışlar (Ayarlar, Touch ID, sürükleme, büyük önizleme) kendi nedenlerini ayrı sayar; biri bitince diğerini kapatmaz.
+- Yerelleştirme testi `?:` içindeki metinleri de görür.
