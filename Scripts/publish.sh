@@ -93,8 +93,10 @@ live() {
 
     echo "Push website and appcast"
     git -C "$PAGES" push -q origin gh-pages
+    # Pages needs a public repository on a free plan: then this waits for the next run.
     gh api "repos/$REPO/pages" >/dev/null 2>&1 \
-        || gh api -X POST "repos/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null
+        || gh api -X POST "repos/$REPO/pages" -f "source[branch]=gh-pages" -f "source[path]=/" >/dev/null 2>&1 \
+        || echo "  Pages is not on yet (a private repository on a free plan?): run publish.sh live again once it is public"
 
     # Security reports reach the maintainers privately (SECURITY.md).
     gh api -X PUT "repos/$REPO/private-vulnerability-reporting" >/dev/null 2>&1 || true
