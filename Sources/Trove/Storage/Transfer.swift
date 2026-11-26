@@ -170,6 +170,25 @@ enum Transfer {
     }
 
     static func read(_ url: URL, password: String?) throws -> [Item] {
+        try load(url, password: password).items
+    }
+
+    /// The items, and how many images the file mentions but does not contain (Raycast).
+    static func load(_ url: URL, password: String?) throws -> (items: [Item], skippedImages: Int) {
+        if try detect(url) == .raycast {
+            guard let password, !password.isEmpty else { throw TransferError.needsPassword }
+            do {
+                return try RaycastImport.items(fromJSON: RaycastImport.decrypt(Data(contentsOf: url), password: password))
+            } catch RaycastImport.Failure.wrongPassword {
+                throw TransferError.wrongPassword
+            } catch RaycastImport.Failure.noClipboardHistory {
+                throw TransferError.noClipboardHistory
+            }
+        }
+        return (try readOther(url, password: password), 0)
+    }
+
+    private static func readOther(_ url: URL, password: String?) throws -> [Item] {
         switch try detect(url) {
         case .clipboardJSON:
             let document = try decoder().decode(Document.self, from: Data(contentsOf: url))
@@ -196,15 +215,7 @@ enum Transfer {
         case .alfred:
             return try readAlfred(url)
         case .raycast:
-            guard let password, !password.isEmpty else { throw TransferError.needsPassword }
-            do {
-                let json = try RaycastImport.decrypt(Data(contentsOf: url), password: password)
-                return try RaycastImport.items(fromJSON: json).items
-            } catch RaycastImport.Failure.wrongPassword {
-                throw TransferError.wrongPassword
-            } catch RaycastImport.Failure.noClipboardHistory {
-                throw TransferError.noClipboardHistory
-            }
+            return [] // Read by `load`.
         }
     }
 

@@ -617,7 +617,7 @@ final class Store {
     // MARK: - Import and export
 
     /// An item read from an import file, ready to save.
-    struct ImportRecord {
+    struct ImportRecord: Sendable {
         var content: CapturedContent
         var source: ClipSource
         var firstCopiedAt: Date
@@ -625,6 +625,23 @@ final class Store {
         var timesCopied: Int
         var pinned: Bool
         var snippetName: String? = nil
+    }
+
+    /// How many of these content keys are already in the history (an import merges them).
+    func existingCount(ofHashes hashes: [String]) throws -> Int {
+        try dbQueue.read { db in
+            var count = 0
+            for start in stride(from: 0, to: hashes.count, by: 500) {
+                let chunk = Array(hashes[start..<min(start + 500, hashes.count)])
+                count += try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM clip WHERE contentHash IN (" + chunk.map { _ in "?" }.joined(separator: ",") + ")",
+                                          arguments: StatementArguments(chunk)) ?? 0
+            }
+            return count
+        }
+    }
+
+    func totalCount() throws -> Int {
+        try dbQueue.read { db in try Clip.fetchCount(db) }
     }
 
     /// Saves imported items in one transaction. An item already in the history is merged, not

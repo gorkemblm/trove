@@ -1,17 +1,26 @@
 /* Trove — Türkçe. Keys are the English text. `make test` fails when a text has no translation. */
 
 "%@ (Text)" = "%@ (Metin)";
+"%@ already in Trove: merged, not duplicated." = "%@ tanesi zaten Trove'da: çoğaltılmaz, birleştirilir.";
 "%@ and %@ more" = "%@ ve %@ tane daha";
 "%@ characters · %@ lines" = "%@ karakter · %@ satır";
 "%@ could not open this folder" = "%@ bu klasörü açamadı";
 "%@ domains" = "%@ alan adı";
 "%@ files" = "%@ dosya";
+"%@ images stay in %@: they are not in its export." = "%@ görsel %@ içinde kalır: dışa aktarmada yer almıyor.";
+"%@ in Hidden" = "%@ Gizli'de";
 "%@ items look like secrets and are not imported (Settings › Privacy)." = "%@ öğe sır gibi görünüyor ve içe aktarılmıyor (Ayarlar › Gizlilik).";
 "%@ items look like secrets and go to Hidden." = "%@ öğe sır gibi görünüyor ve Gizli'ye gidiyor.";
 "%@ items selected" = "%@ öğe seçildi";
+"%@ items to import" = "İçe aktarılacak %@ öğe";
 "%@ lines · %@ characters" = "%@ satır · %@ karakter";
+"%@ look like secrets: they go to Hidden." = "%@ tanesi hassas içerik gibi görünüyor: Gizli'ye gider.";
+"%@ merged" = "%@ birleştirildi";
+"%@ new items" = "%@ yeni öğe";
 "%@ new items, %@ already in your history." = "%@ yeni öğe; %@ öğe zaten geçmişindeydi.";
+"%@ of %@" = "%@ / %@";
 "%@ of them are pinned. This cannot be undone." = "%@ tanesi sabitlenmiş. Bu işlem geri alınamaz.";
+"%@ of these are older than your Keep History limit and would be removed the next time Trove cleans up." = "Bunların %@ tanesi Geçmişi Sakla süresinden eski; Trove bir sonraki temizlikte bunları siler.";
 "%@ selected" = "%@ seçildi";
 "%@ went to Hidden." = "%@ öğe Gizli'ye gitti.";
 "%@ · %@ items · images %@" = "%@ · %@ öğe · görseller %@";
@@ -21,6 +30,7 @@
 "1 file" = "1 dosya";
 "1 GB" = "1 GB";
 "1 hour unused" = "1 saat kullanılmayınca";
+"1 item to import" = "İçe aktarılacak 1 öğe";
 "1 minute unused" = "1 dakika kullanılmayınca";
 "1,000" = "1.000";
 "15 minutes unused" = "15 dakika kullanılmayınca";
@@ -35,6 +45,7 @@
 "60 days" = "60 gün";
 "7 days" = "7 gün";
 "90 days" = "90 gün";
+"A file exported from Trove on this or another Mac (.clipboardexport or .json)." = "Bu ya da başka bir Mac'teki Trove'dan dışa aktarılmış bir dosya (.clipboardexport ya da .json).";
 "A group you turn off leaves the sidebar only: its items still show in All and in search." = "Kapattığın grup yalnızca kenar çubuğundan kalkar; öğeleri Tümü'nde ve aramada görünmeye devam eder.";
 "A long passphrase is best: the key file may be copied by sync services." = "En iyisi uzun bir parola cümlesi: anahtar dosyası senkronizasyon servislerine kopyalanabilir.";
 "A recovery password is set. Change it later in Settings › Security." = "Kurtarma şifresi belirlendi. Daha sonra Ayarlar › Güvenlik'ten değiştirebilirsin.";
@@ -49,6 +60,7 @@
 "Add screenshots to history" = "Ekran görüntülerini geçmişe ekle";
 "Add screenshots to Trove?" = "Ekran görüntüleri Trove'a eklensin mi?";
 "Addresses" = "Adresler";
+"Alfred keeps its clipboard in clipboard.alfdb. The file window opens in its folder." = "Alfred pano geçmişini clipboard.alfdb dosyasında tutar. Dosya penceresi o klasörde açılır.";
 "All" = "Tümü";
 "All actions" = "Tüm eylemler";
 "All, Text, Links, Images, Files" = "Tümü, Metin, Bağlantılar, Görseller, Dosyalar";
@@ -66,6 +78,7 @@
 "Base64 Decode" = "Base64 Kodunu Çöz";
 "Base64 Encode" = "Base64 Kodla";
 "Both icons are off by default: Trove runs in the background. Press ⌘, in the panel to open these settings." = "İki simge de varsayılan olarak kapalıdır: Trove arka planda çalışır. Bu ayarları açmak için panelde ⌘, tuşlarına bas.";
+"Bring your clipboard history from another app. Nothing is saved until you confirm." = "Pano geçmişini başka bir uygulamadan getir. Sen onaylamadan hiçbir şey kaydedilmez.";
 "Call" = "Ara";
 "Cancel" = "Vazgeç";
 "Cancel Editing" = "Düzenlemeyi Bırak";
@@ -76,6 +89,7 @@
 "Change these later in Settings: press ⌘, while the panel is open." = "Bunları daha sonra Ayarlar'dan değiştirebilirsin: panel açıkken ⌘, tuşlarına bas.";
 "Change…" = "Değiştir…";
 "Characters" = "Karakter";
+"Checking %@ items…" = "%@ öğe inceleniyor…";
 "Choose" = "Seç";
 "Choose a location. Trove creates a “%@” folder there. It holds an encrypted database, encrypted images and a key file." = "Bir konum seç. Trove orada “%@” adlı bir klasör oluşturur. Klasörde şifreli bir veritabanı, şifreli görseller ve bir anahtar dosyası bulunur.";
 "Choose a Trove export, a Raycast export (.rayconfig), Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb." = "Bir Trove dışa aktarımı, bir Raycast dışa aktarımı (.rayconfig), Maccy'nin Storage.sqlite dosyasını ya da Alfred'in clipboard.alfdb dosyasını seç.";
@@ -215,12 +229,18 @@
 "Image Saved" = "Görsel Kaydedildi";
 "Images" = "Görseller";
 "Import" = "İçe Aktar";
+"Import %@ Items" = "%@ Öğeyi İçe Aktar";
 "Import %@ items from %@?" = "%1$@ öğe içe aktarılsın mı? (%2$@)";
 "Import & Export" = "İçe ve Dışa Aktarma";
+"Import 1 Item" = "1 Öğeyi İçe Aktar";
 "Import finished" = "İçe aktarma tamamlandı";
 "Import from a Trove export, Raycast, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported." = "Bir Trove dışa aktarımından, Raycast'ten, Maccy'den ya da Alfred'den içe aktar. Şifreli bir dosyaya (başka bir Mac'e taşımak için en iyisi), JSON'a ya da CSV'ye dışa aktar. Gizli öğeler hiçbir zaman dışa aktarılmaz.";
 "Import from Raycast, Maccy, Alfred or a Trove export…" = "Raycast, Maccy, Alfred ya da bir Trove dışa aktarımından içe aktar…";
+"Import History" = "Geçmişi İçe Aktar";
+"Import More…" = "Başka Bir Kaynaktan…";
+"Importing…" = "İçe aktarılıyor…";
 "Import…" = "İçe Aktar…";
+"In Raycast: Settings › Advanced › Export, with Clipboard History. Then choose the .rayconfig file." = "Raycast'te: Settings › Advanced › Export, Clipboard History seçili. Sonra .rayconfig dosyasını seç.";
 "In the Keychain on this Mac" = "Bu Mac'in Anahtar Zinciri'nde";
 "In Use" = "Kullanılan";
 "Include images" = "Görselleri dahil et";
@@ -229,6 +249,7 @@
 "It is sealed with this Mac’s Secure Enclave and leaves your history. Search finds it by name only." = "Bu Mac'in Secure Enclave'iyle mühürlenir ve geçmişinden çıkar. Arama onu yalnızca ismiyle bulur.";
 "It was sealed on another Mac, or this Mac’s hidden key was removed." = "Başka bir Mac'te mühürlenmiş ya da bu Mac'in gizli anahtarı silinmiş.";
 "Items" = "Öğeler";
+"Items that look like secrets are left out (Settings › Privacy)." = "Hassas içerik gibi görünen öğeler alınmaz (Ayarlar › Gizlilik).";
 "Items you already have are merged, not duplicated." = "Zaten sahip olduğun öğeler kopyalanmaz, birleştirilir.";
 "JSON (not encrypted)" = "JSON (şifresiz)";
 "JSON Lines" = "JSON Satırları";
@@ -236,6 +257,7 @@
 "Keep History" = "Geçmişi Sakla";
 "Keep in Hidden" = "Gizli'de sakla";
 "Keep in Hidden for 1 minute" = "Gizli'de 1 dakika sakla";
+"Keep Them: Lift These Limits" = "Hepsini Sakla: Bu Sınırları Kaldır";
 "Kept for %@ images" = "%@ görsel için saklanıyor";
 "Key" = "Anahtar";
 "Keychain error %@: %@" = "Anahtar Zinciri hatası %@: %@";
@@ -255,6 +277,7 @@
 "Lock after" = "Kilitlenme";
 "Locked" = "Kilitli";
 "lowercase" = "küçük harf";
+"Maccy keeps its history in Storage.sqlite. The file window opens in its folder." = "Maccy geçmişini Storage.sqlite dosyasında tutar. Dosya penceresi o klasörde açılır.";
 "macOS now saves screenshots in “%@”." = "macOS ekran görüntülerini artık “%@” konumuna kaydediyor.";
 "macOS saves screenshots as files in “%@”, so they never reach the clipboard. Trove can add each new screenshot to Images. Next, click Watch Folder to allow it." = "macOS ekran görüntülerini “%@” konumuna dosya olarak kaydeder; bu yüzden panoya hiç gelmezler. Trove her yeni ekran görüntüsünü Görseller'e ekleyebilir. İzin vermek için bir sonraki pencerede Klasörü İzle'ye tıkla.";
 "macOS saves screenshots as files, so they never reach the clipboard. Turn this on and Trove suggests the folder macOS uses; one click allows it. Screenshots taken with ⌃ (for example ⌃⇧⌘4) go to the clipboard and are added in any case." = "macOS ekran görüntülerini dosya olarak kaydeder; bu yüzden panoya hiç gelmezler. Bunu açarsan Trove macOS'un kullandığı klasörü önerir; tek tıkla izin verirsin. ⌃ ile alınan ekran görüntüleri (örneğin ⌃⇧⌘4) panoya gider ve her durumda eklenir.";
@@ -316,6 +339,7 @@
 "Open Trove at login" = "Oturum açılınca Trove'u başlat";
 "open your clipboard history" = "pano geçmişini açmak";
 "OpenAI API key" = "OpenAI API anahtarı";
+"Opening the file…" = "Dosya açılıyor…";
 "Opens this history on another Mac or after a reinstall. Without it, the history opens only on this Mac." = "Bu geçmişi başka bir Mac'te ya da yeniden kurulumdan sonra açar. Şifre olmadan geçmiş yalnızca bu Mac'te açılır.";
 "Opens with %@" = "%@ ile açılır";
 "Panel" = "Panel";
@@ -360,6 +384,7 @@
 "Private key" = "Özel anahtar";
 "Property List" = "Özellik Listesi";
 "Quit Trove" = "Trove'dan Çık";
+"Raycast keeps images outside its export, so they are not imported." = "Raycast görselleri dışa aktarmanın dışında tutar; bu yüzden görseller aktarılmaz.";
 "Read on this Mac. Images already in your history are read in the background." = "Bu Mac'te okunur. Geçmişindeki görseller arka planda okunur.";
 "Reading images: %@ of %@" = "Görseller okunuyor: %@ / %@";
 "Recognize text in images" = "Görsellerdeki metni tanı";
@@ -493,12 +518,15 @@
 "The history then opens only on this Mac. Copies of the key file made before (for example by a sync service) still open with the old password." = "Bundan sonra geçmiş yalnızca bu Mac'te açılır. Anahtar dosyasının daha önce alınmış kopyaları (örneğin bir senkronizasyon servisindekiler) eski şifreyle açılmaya devam eder.";
 "The image could not be saved" = "Görsel kaydedilemedi";
 "The image file is missing from the storage folder." = "Görsel dosyası depolama klasöründe yok.";
+"The import stopped: %@ %@ items were saved; importing again merges them." = "İçe aktarma durdu: %@ %@ öğe kaydedildi; yeniden içe aktarınca bunlar birleştirilir.";
 "The item could not be hidden" = "Öğe gizlenemedi";
 "The item could not be moved back" = "Öğe geri taşınamadı";
 "The key file was made by a newer version of Trove." = "Anahtar dosyası Trove'un daha yeni bir sürümüyle oluşturulmuş.";
 "The key is in your Keychain. No network access. Password manager content is never saved." = "Anahtar Anahtar Zinciri'nde durur. Ağ erişimi yoktur. Şifre yöneticisi içerikleri hiçbir zaman kaydedilmez.";
 "The panel also locks when the screen locks, the Mac sleeps or another user takes over. While locked, no history is loaded. Touch ID or your Mac password unlocks it." = "Panel; ekran kilitlendiğinde, Mac uykuya geçtiğinde ya da başka bir kullanıcı oturum açtığında da kilitlenir. Kilitliyken hiçbir geçmiş yüklenmez. Kilidi Touch ID ya da Mac şifren açar.";
-"The password is not correct." = "Şifre doğru değil.";
+"The password is not correct." = "Parola doğru değil.";
+"The password this export was made with" = "Bu dışa aktarımın parolası";
+"The password you set when exporting from Raycast" = "Raycast'ten dışa aktarırken girdiğin parola";
 "The passwords do not match." = "Şifreler eşleşmiyor.";
 "The recovery password is not correct." = "Kurtarma şifresi doğru değil.";
 "The saved storage folder is not reachable. Trove uses the default folder." = "Kayıtlı depolama klasörüne ulaşılamıyor. Trove varsayılan klasörü kullanıyor.";
@@ -511,6 +539,7 @@
 "This export is encrypted. Enter its password." = "Bu dışa aktarım şifreli. Parolasını gir.";
 "This export was made by a newer version of Trove." = "Bu dışa aktarım Trove'un daha yeni bir sürümüyle oluşturulmuş.";
 "This file is not a Trove export, a Maccy database or an Alfred clipboard database." = "Bu dosya bir Trove dışa aktarımı, Maccy veritabanı ya da Alfred pano veritabanı değil.";
+"This file is not from %@. Choose another file, or another source above." = "Bu dosya %@ kaynağına ait değil. Başka bir dosya ya da yukarıdan başka bir kaynak seç.";
 "This folder already has clipboard history" = "Bu klasörde zaten pano geçmişi var";
 "This folder is synced by %@" = "Bu klasör %@ ile senkronize ediliyor";
 "This folder is synced by %@. It receives only encrypted files." = "Bu klasör %@ ile senkronize ediliyor. Yalnızca şifreli dosyalar gider.";
@@ -533,6 +562,7 @@
 "Trove creates a “%@” folder in the location you choose." = "Trove seçtiğin konumda “%@” adlı bir klasör oluşturur.";
 "Trove does not store this password. If you forget it, the history still opens on this Mac." = "Trove bu şifreyi saklamaz. Unutursan geçmiş bu Mac'te açılmaya devam eder.";
 "Trove encrypts the history, so %@ receives only unreadable files. To open the history on another Mac, set a recovery password in Settings › Security.\n\nUse this folder anyway?" = "Trove geçmişi şifreler; %@ yalnızca okunamayan dosyalar alır. Geçmişi başka bir Mac'te açmak için Ayarlar › Güvenlik'ten bir kurtarma şifresi belirle.\n\nBu klasör yine de kullanılsın mı?";
+"Trove Export" = "Trove Dışa Aktarımı";
 "Trove has no network access." = "Trove'un ağ erişimi yoktur.";
 "Trove History" = "Pano Geçmişi";
 "Trove History %@" = "Pano Geçmişi %@";
@@ -575,7 +605,9 @@
 "With ↵, Trove can paste the chosen item into the app you were using, instead of only copying it. macOS asks you to allow this once, in Privacy & Security › Accessibility. Trove uses it only to send ⌘V." = "Trove, ↵ ile seçtiğin öğeyi yalnızca kopyalamak yerine kullandığın uygulamaya doğrudan yapıştırabilir. macOS buna bir kez, Gizlilik ve Güvenlik › Erişilebilirlik bölümünde izin vermeni ister. Trove bu izni yalnızca ⌘V göndermek için kullanır.";
 "Words" = "Kelime";
 "Yesterday" = "Dün";
+"You can keep working while it runs." = "Bu sürerken çalışmaya devam edebilirsin.";
 "Your history is encrypted" = "Geçmişin şifreli";
+"Your Maximum Items limit would remove the %@ oldest items." = "En Fazla Öğe sınırın en eski %@ öğeyi siler.";
 "You’re all set" = "Her şey hazır";
 "“%@” does not apply to this text." = "“%@” bu metne uygulanamıyor.";
 "← → groups and items" = "← → gruplar ve öğeler";

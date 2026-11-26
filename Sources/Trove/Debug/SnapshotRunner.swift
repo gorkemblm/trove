@@ -167,6 +167,29 @@ enum SnapshotRunner {
                 }
             }
 
+            // The import window, step by step (a sample plan like a Raycast export).
+            let flow = ImportFlow(app: app)
+            let record = Store.ImportRecord(content: ClipClassifier.textContent("sample", rtf: nil), source: ClipSource(),
+                                            firstCopiedAt: Date(), lastCopiedAt: Date(), timesCopied: 1, pinned: false)
+            let plan = ImportPlan(source: .raycast, records: Array(repeating: record, count: 3799), secrets: [],
+                                  kinds: [.text: 3351, .link: 418, .file: 30], earliest: Date(timeIntervalSinceNow: -720 * 86_400),
+                                  latest: Date(), alreadyHave: 120, skippedImages: 13, secretsToHidden: true,
+                                  removedByRetention: 2410, removedByItemLimit: 0)
+            let steps: [(String, ImportFlow.Step, String?)] = [
+                ("choose", .choose, nil),
+                ("password", .password(.raycast, URL(fileURLWithPath: "/Users/me/Downloads/Raycast 2026-11-26 6.13.44 pm.rayconfig")),
+                 L("The password is not correct.")),
+                ("reading", .reading(.raycast, String(localized: "Checking \(3812.formatted()) items…")), nil),
+                ("summary", .summary(plan), nil),
+                ("importing", .importing(plan, 0.64), nil),
+                ("done", .done(.raycast, ImportResult(added: 3679, merged: 120, hidden: 0)), nil),
+            ]
+            for (name, step, problem) in steps {
+                flow.preview(step, problem: problem)
+                try write(renderView(ImportView(flow: flow, close: {}), size: ImportView.size),
+                          to: outputDirectory.appendingPathComponent("import-\(name).png"))
+            }
+
             // Onboarding steps, for visual review of the fixed-size window.
             for step in 0..<4 {
                 let view = OnboardingView(app: app, settings: app.settings, step: step)

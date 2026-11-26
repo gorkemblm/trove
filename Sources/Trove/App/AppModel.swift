@@ -1373,95 +1373,27 @@ final class AppModel: ObservableObject {
 
     /// Reads a Trove export, or Raycast, Maccy or Alfred history, shows what it holds and asks before
     /// saving. Duplicates merge; secrets follow the sensitive content rule.
+    private var importWindow: ImportWindowController?
+
+    /// Settings › Storage › Import… and onboarding: the import window (sources, summary, progress).
     func importHistory() {
-        guard let store else { return }
-        let openPanel = NSOpenPanel()
-        openPanel.canChooseFiles = true
-        openPanel.canChooseDirectories = false
-        openPanel.allowsMultipleSelection = false
-        openPanel.prompt = L("Import")
-        openPanel.message = L("Choose a Trove export, a Raycast export (.rayconfig), Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb.")
-        NSApp.activate()
-        guard openPanel.runModal() == .OK, let url = openPanel.url else { return }
+        guard store != nil else { return }
+        if importWindow == nil { importWindow = ImportWindowController(app: self) }
+        importWindow?.show()
+    }
 
-        let items: [Transfer.Item]
-        let source: Transfer.Source
-        do {
-            source = try Transfer.detect(url)
-            if source.needsPassword {
-                guard let read = askExportPassword(url, source: source) else { return }
-                items = read
-            } else {
-                items = try Transfer.read(url, password: nil)
-            }
-        } catch {
-            showError(L("The file could not be imported"), error)
-            return
-        }
+    /// The import window saved items: the panel and the usage numbers show them.
+    func importDidFinish() {
+        refreshUsage()
+        panelModel.storeDidChange()
+    }
 
-        // Sort the items: normal ones, secrets for Hidden, secrets skipped by the rule.
-        var records: [Store.ImportRecord] = []
-        var secrets: [(text: String, finding: SensitiveDetector.Finding, item: Transfer.Item)] = []
-        for item in items {
-            guard let content = importContent(item) else { continue }
-            // Snippets were kept on purpose: they are not moved to Hidden.
-            if item.snippetName == nil, content.kind.isTextual, let text = content.text, let finding = SensitiveDetector.detect(text) {
-                secrets.append((text, finding, item))
-                continue
-            }
-            records.append(Store.ImportRecord(
-                content: content,
-                source: ClipSource(bundleID: item.sourceBundleID, appName: item.sourceApp, url: item.sourceURL),
-                firstCopiedAt: item.firstCopiedAt, lastCopiedAt: item.lastCopiedAt,
-                timesCopied: item.timesCopied, pinned: item.pinned, snippetName: item.snippetName
-            ))
-        }
-        let hiddenKey = settings.sensitiveRule == .discard ? nil : loadHiddenKey()
-
-        let alert = NSAlert()
-        let total = (records.count + secrets.count).formatted()
-        alert.messageText = String(localized: "Import \(total) items from \(source.title)?")
-        var details = L("Items you already have are merged, not duplicated.")
-        if !secrets.isEmpty {
-            let number = secrets.count.formatted()
-            details += "\n\n" + (hiddenKey == nil
-                ? String(localized: "\(number) items look like secrets and are not imported (Settings › Privacy).")
-                : String(localized: "\(number) items look like secrets and go to Hidden."))
-        }
-        alert.informativeText = details
-        alert.addButton(withTitle: L("Import"))
-        alert.addButton(withTitle: L("Cancel"))
-        NSApp.activate()
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-
-        do {
-            let result = try store.importRecords(records)
-            var hidden = 0
-            if let hiddenKey {
-                for secret in secrets {
-                    let sealed = try SealedSecret.seal(Data(secret.text.utf8), to: hiddenKey.publicKey)
-                    try store.ingestSecret(sealed: sealed, finding: secret.finding, characters: secret.text.count,
-                                           source: ClipSource(bundleID: secret.item.sourceBundleID, appName: secret.item.sourceApp, url: nil),
-                                           at: secret.item.lastCopiedAt, expiresAt: nil)
-                    hidden += 1
-                }
-            }
-            log.info("Imported \(result.added) new, \(result.merged) merged, \(hidden) hidden from \(source.rawValue, privacy: .public)")
-            refreshUsage()
-            panelModel.storeDidChange()
-            let done = NSAlert()
-            done.messageText = L("Import finished")
-            let added = result.added.formatted(), merged = result.merged.formatted()
-            done.informativeText = String(localized: "\(added) new items, \(merged) already in your history.")
-                + (hidden > 0 ? " " + String(localized: "\(hidden.formatted()) went to Hidden.") : "")
-            done.runModal()
-        } catch {
-            showError(L("The file could not be imported"), error)
-        }
+    func loadHiddenKeyForImport() -> HiddenKey? {
+        loadHiddenKey()
     }
 
     /// Our classifier decides the kind again, so imported text lands in the right group.
-    private func importContent(_ item: Transfer.Item) -> CapturedContent? {
+    nonisolated static func importContent(_ item: Transfer.Item) -> CapturedContent? {
         if let files = item.files, !files.isEmpty {
             let paths = files.joined(separator: "\n")
             return CapturedContent(kind: .file, text: paths, byteSize: paths.utf8.count, hash: ClipClassifier.hash("file", paths))
@@ -1471,35 +1403,6 @@ final class AppModel: ObservableObject {
         }
         guard let text = item.text, !text.isEmpty else { return nil }
         return ClipClassifier.textContent(text, rtf: item.rtf)
-    }
-
-    /// Asks for the password of an encrypted export until it opens or the user cancels.
-    private func askExportPassword(_ url: URL, source: Transfer.Source) -> [Transfer.Item]? {
-        var problem: String?
-        while true {
-            let alert = NSAlert()
-            alert.messageText = source == .raycast ? L("Open Raycast Export") : L("Open Encrypted Export")
-            let ask = source == .raycast
-                ? L("Enter the password you set when exporting from Raycast. Raycast keeps images outside its export, so they are not imported.")
-                : L("Enter the password this export was made with.")
-            alert.informativeText = (problem.map { $0 + "\n\n" } ?? "") + ask
-            let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-            field.placeholderString = L("Password")
-            alert.accessoryView = field
-            alert.addButton(withTitle: L("Open"))
-            alert.addButton(withTitle: L("Cancel"))
-            alert.window.initialFirstResponder = field
-            NSApp.activate()
-            guard alert.runModal() == .alertFirstButtonReturn else { return nil }
-            do {
-                return try Transfer.read(url, password: field.stringValue)
-            } catch Transfer.TransferError.wrongPassword {
-                problem = L("The password is not correct.")
-            } catch {
-                showError(L("The file could not be imported"), error)
-                return nil
-            }
-        }
     }
 
     // MARK: - Ignored apps

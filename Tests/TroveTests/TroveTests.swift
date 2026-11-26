@@ -2014,6 +2014,64 @@ struct RaycastImportTests {
     }
 }
 
+@MainActor
+@Suite(.serialized)
+struct ImportFlowTests {
+    private let app = AppModel()
+
+    /// Waits for the flow's background work (a few hundred milliseconds at most).
+    private func wait(_ flow: ImportFlow, until done: (ImportFlow.Step) -> Bool) async throws {
+        for _ in 0..<200 {
+            if done(flow.step) { return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        Issue.record("The import flow did not reach the expected step")
+    }
+
+    @Test func importsATroveExportStepByStep() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+        app.installStoreForSnapshots(store, hiddenKey: SoftwareHiddenKey())
+        let retention = app.settings.retentionDays
+        defer { app.settings.retentionDays = retention }
+        app.settings.retentionDays = 30
+        try store.ingest(ClipClassifier.textContent("already here", rtf: nil), source: ClipSource(), at: Date())
+
+        let old = Date(timeIntervalSinceNow: -400 * 86_400)
+        let items = [
+            Transfer.Item(kind: "text", text: "already here", pinned: false, timesCopied: 1, firstCopiedAt: Date(), lastCopiedAt: Date()),
+            Transfer.Item(kind: "text", text: "https://example.com", pinned: false, timesCopied: 2, firstCopiedAt: old, lastCopiedAt: old),
+            Transfer.Item(kind: "text", text: "a new note", pinned: false, timesCopied: 1, firstCopiedAt: Date(), lastCopiedAt: Date()),
+        ]
+        let url = dir.appendingPathComponent("history.json")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Transfer.json(items).write(to: url)
+
+        let flow = ImportFlow(app: app)
+        flow.open(url, as: .maccy) // The wrong source: nothing is read.
+        #expect(flow.problem != nil)
+        guard case .choose = flow.step else { Issue.record("Expected to stay at the first step"); return }
+
+        flow.open(url, as: .trove)
+        try await wait(flow) { if case .summary = $0 { true } else { false } }
+        guard case .summary(let plan) = flow.step else { return }
+        #expect(plan.total == 3 && plan.alreadyHave == 1)
+        #expect(plan.kinds[.link] == 1 && plan.kinds[.text] == 2)
+        #expect(plan.removedByRetention == 1) // The old link is past the 30-day limit.
+
+        flow.keepEverything()
+        #expect(app.settings.retentionDays == 0)
+        guard case .summary(let kept) = flow.step else { return }
+        #expect(kept.removedByRetention == 0)
+
+        flow.startImport()
+        try await wait(flow) { if case .done = $0 { true } else { false } }
+        guard case .done(_, let result) = flow.step else { return }
+        #expect(result.added == 2 && result.merged == 1)
+        #expect(try store.counts()[.all] == 3)
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))
