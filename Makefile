@@ -27,7 +27,7 @@ help:
 	@echo "make app      Compile, assemble and sign $(APP)"
 	@echo "make release  Signed with a timestamp, notarized, stapled: build/releases/$(APP_NAME)-<version>.dmg"
 	@echo "make appcast  Sparkle update list for build/releases, with release notes from CHANGELOG.md"
-	@echo "make site     Website and appcast for GitHub Pages, in build/site"
+	@echo "make site     The public releases repository (website, appcast, README), in build/site"
 	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge, website)"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
@@ -133,12 +133,18 @@ appcast:
 	@grep -o 'url="[^"]*"' build/releases/appcast.xml
 	@echo "Appcast: build/releases/appcast.xml"
 
-# The website and update list for GitHub Pages (the releases repository), in build/site.
+# Everything the public releases repository holds, in build/site: the website and update
+# list (GitHub Pages), its README (from README.md), license, security policy, changelog and
+# issue forms.
 site:
 	rm -rf build/site && mkdir -p build/site/demos
 	cp Site/index.html build/site/index.html
+	cp -R Site/.github build/site/.github
 	cp Docs/icon.png build/site/icon.png
 	cp Docs/demos/*.gif build/site/demos/
+	cp LICENSE SECURITY.md CHANGELOG.md build/site/
+	python3 Scripts/public_readme.py build/site/README.md
+	touch build/site/.nojekyll
 	@if [ -f build/releases/appcast.xml ]; then cp build/releases/appcast.xml build/site/appcast.xml; else echo "No appcast yet: run make appcast"; fi
 	@echo "Site: build/site"
 

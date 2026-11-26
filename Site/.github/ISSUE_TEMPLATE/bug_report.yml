@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in Trove does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time. Please do not paste anything private from your clipboard history here.
+  - type: input
+    id: version
+    attributes:
+      label: Trove version
+      description: Settings › General › Version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      description:  › About This Mac
+      placeholder: "macOS 15.1"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to show it
+      placeholder: |
+        1. Press ⌥ Space
+        2. …
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots (with nothing private in them), the language you use Trove in, other clipboard tools you run.
