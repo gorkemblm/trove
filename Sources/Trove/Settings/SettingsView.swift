@@ -285,7 +285,7 @@ private struct StorageSettings: View {
         }
 
         var message: String {
-            guard count == 0 else { return L("Pinned items are kept. This cannot be undone.") }
+            guard count == 0 else { return L("Pinned items, snippets and hidden items are kept. This cannot be undone.") }
             switch period {
             case .hour: return L("No unpinned items were copied in the last hour.")
             case .day: return L("No unpinned items were copied in the last 24 hours.")
@@ -388,7 +388,7 @@ private struct StorageSettings: View {
                         Text("20 MB").tag(20)
                         Text("50 MB").tag(50)
                     }
-                    SettingNote("Pinned items are never deleted. When a limit is reached, the oldest items go first. A change that deletes items asks first.")
+                    SettingNote("Pinned items, snippets and hidden items are never deleted by limits. When a limit is reached, the oldest items go first. A change that deletes items asks first.")
                 }
             }
             SettingsDivider()
@@ -403,7 +403,7 @@ private struct StorageSettings: View {
                         Button("Last 24 Hours…") { requestClear(.day) }
                         Button("Everything…") { requestClear(.all) }
                     }
-                    SettingNote("Each one asks first and shows how many items it deletes. Pinned items are kept.")
+                    SettingNote("Each one asks first and shows how many items it deletes. Pinned items, snippets and hidden items are kept.")
                 }
             }
             SettingsDivider()

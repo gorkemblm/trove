@@ -29,6 +29,10 @@ final class TourWindowController {
         window.apply(appearance, animated: false)
     }
 
+    func apply(_ appearance: PanelAppearance) {
+        window.apply(appearance, animated: true)
+    }
+
     func show() {
         if !window.isVisible { window.center() }
         NSApp.activate()

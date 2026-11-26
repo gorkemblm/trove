@@ -69,6 +69,7 @@ app: build
 	mkdir -p "$(APP)/Contents/MacOS" "$(APP)/Contents/Resources"; \
 	cp "$$BIN/$(APP_NAME)" "$(APP)/Contents/MacOS/$(APP_NAME)"; \
 	cp Resources/Info.plist "$(APP)/Contents/Info.plist"; \
+	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $$(git rev-list --count HEAD)" "$(APP)/Contents/Info.plist"; \
 	cp Resources/AppIcon.icns "$(APP)/Contents/Resources/AppIcon.icns"; \
 	cp -R Resources/en.lproj Resources/tr.lproj Resources/Licenses "$(APP)/Contents/Resources/"; \
 	for b in "$$BIN"/*.bundle; do [ -e "$$b" ] && cp -R "$$b" "$(APP)/Contents/Resources/"; done; \

@@ -34,6 +34,10 @@ final class ImportWindowController: NSObject, NSWindowDelegate {
         host.rootView = ImportView(flow: flow) { [weak self] in self?.window.performClose(nil) }
     }
 
+    func apply(_ appearance: PanelAppearance) {
+        window.apply(appearance, animated: true)
+    }
+
     func show() {
         if !window.isVisible {
             flow.restart()

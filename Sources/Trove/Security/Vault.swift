@@ -147,7 +147,12 @@ struct Vault: Sendable {
 
     // MARK: - Primitives
 
+    /// Rounds accepted from a key file or an export: a damaged or hostile value must neither
+    /// crash (UInt32 conversion) nor hang the app for minutes.
+    static let acceptedIterations = 1_000...10_000_000
+
     static func deriveKey(password: String, salt: Data, iterations: Int) throws -> SymmetricKey {
+        guard acceptedIterations.contains(iterations) else { throw VaultError.unsupportedKeyFile }
         let passwordBytes = Array(password.precomposedStringWithCanonicalMapping.utf8)
         var derived = [UInt8](repeating: 0, count: 32)
         let status = salt.withUnsafeBytes { saltBuffer in

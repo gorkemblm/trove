@@ -346,6 +346,11 @@ final class ImportFlow: ObservableObject {
                 }
                 if let hiddenKey {
                     for (index, secret) in plan.secrets.enumerated() {
+                        // The same file imported again: its hidden items are not added twice.
+                        if try store.hasSecret(finding: secret.finding, characters: secret.text.count, at: secret.item.lastCopiedAt) {
+                            merged += 1
+                            continue
+                        }
                         let sealed = try SealedSecret.seal(Data(secret.text.utf8), to: hiddenKey.publicKey)
                         try store.ingestSecret(sealed: sealed, finding: secret.finding, characters: secret.text.count,
                                                source: ClipSource(bundleID: secret.item.sourceBundleID, appName: secret.item.sourceApp, url: nil),

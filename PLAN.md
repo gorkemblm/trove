@@ -294,3 +294,14 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 **Lisanslar ve notarization:** Ayarlar › Genel › Teşekkürler GRDB ve SQLCipher lisanslarını gösterir. `make release` hazır; ekibin App Store Connect API anahtarını (anahtarlıktaki `hashdrop-notary` profili) kullanır. 26 Kasım 2026: ilk notarization başarılı (uygulama ve DMG "Accepted", damgalandı; Gatekeeper: "Notarized Developer ID").
 
 **Sonraki adım (26 Kasım 2026):** İlk commit, elle deneme listesi ve bir hafta günlük kullanım; ardından lisans metinleri, isim, notarization (Aşama 4).
+
+**Sürüm öncesi çapraz kontrol (26 Kasım 2026):** İki inceleme ajanı (arayüz + güvenlik/veri) 25 bulgu verdi. Düzeltilenler: kısayol reddedilince kaybolmuyor, ⌘K menüsü kayıyor, Ayarlar arkasındaki panel ⌥Space ile öne geliyor, menü açıkken ⌥P ve ⇧↵, boş liste çevirileri, yeni snippet ⌘↵ ile doluyor, ⌘⌫ yalnızca boş aramada siler, kaydedilmemiş düzenleme korunuyor, öneriler açıkken kısayollar, tek seçimde ↵, onboarding bitmeden panel açılmıyor, tur penceresi görünümü; gizli öğeler süre/sınır/Temizle ile silinmiyor, geçmiş taşıma ya hep ya hiç, büyük silmeler 500'lük parçalarla, bozuk tur sayısı reddediliyor, CSV formül önlemi, aynı dosyanın ikinci içe aktarımı gizli öğeleri çoğaltmıyor, derleme numarası commit sayısından (Sparkle yeni sürümü görür).
+
+Bilerek sonraya kalanlar (düşük risk):
+- Eski şifresiz veritabanını şifrelerken resim adımı yarıda kalırsa "Unencrypted backup" klasörü çöpe gitmeyebilir. Yalnızca eski şifresiz kurulumu olanları etkiler; yeni kullanıcıda böyle bir veritabanı yok.
+- Elle gizlenen ve hiçbir desene uymayan metin tekrar kopyalanırsa normal öğe olarak kaydedilir. Çözüm: gizli öğeler için anahtarlı (HMAC) özet sütunu.
+- Anahtarlıktaki gizli öğe anahtarı silinirse yeni anahtar oluşturulur ve eski gizli öğeler okunamaz; kullanıcı uyarılmalı.
+- Yok sayılan uygulamada kopyalayıp 0,5 sn içinde başka uygulamaya geçilirse kopya kaydedilebilir. Çözüm: etkin uygulamayı değişim anında izlemek.
+- İçe aktarılan snippet'ler hassas veri algılayıcısından geçmiyor.
+- `authenticate` sonundaki `keepOpen = false` başka akışların ayarını da kaldırabilir (sayaç ile çözülür).
+- Yerelleştirme testi üçlü (?:) ifadelerin içindeki metinleri göremiyor.

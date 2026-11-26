@@ -73,7 +73,7 @@ final class PanelController {
         panel.onResignKey = { [weak self] in
             MainActor.assumeIsolated {
                 guard let self else { return }
-                guard !self.keepOpen else {
+                guard !self.keepOpen, !self.behindSettings else {
                     self.log.info("Panel lost focus during a system prompt; kept open")
                     return
                 }
@@ -161,7 +161,7 @@ final class PanelController {
             // Clicks in other apps close the panel. Global mouse monitors need no permission.
             outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
                 MainActor.assumeIsolated {
-                    guard self?.keepOpen == false else { return }
+                    guard self?.keepOpen == false, self?.behindSettings == false else { return }
                     self?.hide(reason: "click outside")
                 }
             }
@@ -259,7 +259,7 @@ final class PanelController {
         // transforms. (Checked after the actions menu, which can be open over it.)
         if model.editing != nil, !model.actionsOpen {
             switch (event.keyCode, flags) {
-            case (53, []): model.cancelEdit(); return true
+            case (53, []): model.escapeEditor(); return true
             case (36, [.command]), (76, [.command]): model.finishEdit(); return true
             case (1, [.command]) where model.editing?.snippetID != nil: model.saveSnippetText(); return true
             case (40, [.command]): model.toggleActions(); return true
@@ -279,8 +279,11 @@ final class PanelController {
             case (53, []), (40, [.command]): model.closeActions(); return true
             default:
                 guard model.editing == nil else { return false } // Over the editor: keys stay with the menu.
-                let isShortcut = Self.panelShortcutKeys.contains(event.keyCode) || (event.keyCode == 8 && flags == [.command, .shift])
-                guard flags.contains(.command), isShortcut else { return false }
+                let isShortcut = (flags.contains(.command) && Self.panelShortcutKeys.contains(event.keyCode))
+                    || (event.keyCode == 8 && flags == [.command, .shift])
+                    || (event.keyCode == 35 && flags == [.option])                       // ⌥P
+                    || ((event.keyCode == 36 || event.keyCode == 76) && flags == [.shift]) // ⇧↵
+                guard isShortcut else { return false }
                 model.closeActions()
             }
         }
@@ -314,7 +317,9 @@ final class PanelController {
             case (125, []): model.moveGroupPick(1); return true
             case (36, []), (76, []), (48, []): model.chooseGroupSuggestion(); return true
             case (53, []): model.query = ""; return true
-            default: return false // Typing goes on in the search field.
+            default:
+                // Typing goes on in the search field; ⌘ and ⌥ shortcuts still work below.
+                if flags.isDisjoint(with: [.command, .option]) { return false }
             }
         }
 
@@ -325,7 +330,8 @@ final class PanelController {
             case (125, []): model.moveAppPick(1); return true
             case (36, []), (76, []), (48, []): model.chooseAppSuggestion(); return true
             case (53, []): model.query = ""; return true
-            default: return false
+            default:
+                if flags.isDisjoint(with: [.command, .option]) { return false }
             }
         }
 
@@ -405,7 +411,8 @@ final class PanelController {
         case (15, [.command]): // ⌘R: name a hidden item
             model.requestRename()
             return true
-        case (2, [.command]), (51, [.command]): // ⌘D, and ⌘⌫ as the usual macOS key
+        case (2, [.command]), (51, [.command]) where event.keyCode == 2 || model.query.isEmpty:
+            // ⌘D; ⌘⌫ too, as the usual macOS key, but only in an empty search (it clears the line there).
             model.requestDelete()
             return true
         default:

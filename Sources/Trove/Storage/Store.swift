@@ -247,15 +247,27 @@ final class Store {
         return try? EncryptedFile.open(file, with: imageKey)
     }
 
+    /// Moves the history to another folder, all or nothing: when a file cannot be moved (a full
+    /// disk), the files already moved go back, so the history stays whole in the old folder.
+    /// Nothing that is already in the destination is overwritten.
     static func moveFiles(from source: URL, to destination: URL) throws {
         let fm = FileManager.default
         try fm.createDirectory(at: destination, withIntermediateDirectories: true)
-        for name in fileNames {
-            let from = source.appendingPathComponent(name)
-            guard fm.fileExists(atPath: from.path) else { continue }
-            let to = destination.appendingPathComponent(name)
-            if fm.fileExists(atPath: to.path) { try fm.removeItem(at: to) }
-            try fm.moveItem(at: from, to: to)
+        let present = fileNames.filter { fm.fileExists(atPath: source.appendingPathComponent($0).path) }
+        if let clash = present.first(where: { fm.fileExists(atPath: destination.appendingPathComponent($0).path) }) {
+            throw CocoaError(.fileWriteFileExists, userInfo: [NSFilePathErrorKey: destination.appendingPathComponent(clash).path])
+        }
+        var moved: [String] = []
+        do {
+            for name in present {
+                try fm.moveItem(at: source.appendingPathComponent(name), to: destination.appendingPathComponent(name))
+                moved.append(name)
+            }
+        } catch {
+            for name in moved.reversed() {
+                try? fm.moveItem(at: destination.appendingPathComponent(name), to: source.appendingPathComponent(name))
+            }
+            throw error
         }
     }
 
@@ -545,6 +557,15 @@ final class Store {
     /// Saves a hidden item. Copies of the same secret are not merged: merging would need a
     /// hash of the secret, and a hash of a short secret (a card number) can be reversed.
     @discardableResult
+    /// A Hidden item of this kind, masked form and time is already there (an import done twice).
+    func hasSecret(finding: SensitiveDetector.Finding, characters: Int, at date: Date) throws -> Bool {
+        try dbQueue.read { db in
+            try Clip.filter(Column("kind") == ClipKind.secret.rawValue && Column("text") == finding.masked
+                            && Column("secretReason") == finding.reason && Column("lastCopiedAt") == date)
+                .fetchCount(db) > 0
+        }
+    }
+
     func ingestSecret(sealed: Data, finding: SensitiveDetector.Finding, characters: Int, source: ClipSource,
                       at date: Date, expiresAt: Date?) throws -> Clip {
         var clip = Clip(
@@ -893,7 +914,7 @@ final class Store {
     /// Deletes unpinned clips copied at or after `since`, or all unpinned clips when `since` is nil.
     func clear(since: Date?) throws {
         let files: [String] = try dbQueue.write { db in
-            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil)
+            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil && Column("kind") != ClipKind.secret.rawValue)
             if let since { request = request.filter(Column("lastCopiedAt") >= since) }
             let files = try String.fetchAll(db, request.select(Column("imageFile")).filter(Column("imageFile") != nil))
             _ = try request.deleteAll(db)
@@ -924,7 +945,7 @@ final class Store {
     /// How many clips `clear(since:)` would remove.
     func clearCount(since: Date?) throws -> Int {
         try dbQueue.read { db in
-            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil)
+            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil && Column("kind") != ClipKind.secret.rawValue)
             if let since { request = request.filter(Column("lastCopiedAt") >= since) }
             return try request.fetchCount(db)
         }
@@ -936,16 +957,22 @@ final class Store {
         func remove(_ rows: [Row]) throws {
             guard !rows.isEmpty else { return }
             files += rows.compactMap { $0["imageFile"] as String? }
-            removed += try Clip.deleteAll(db, keys: rows.map { $0["id"] as Int64 })
+            // In parts: one statement with tens of thousands of ids would pass SQLite's limit.
+            let ids = rows.map { $0["id"] as Int64 }
+            for start in stride(from: 0, to: ids.count, by: 500) {
+                removed += try Clip.deleteAll(db, keys: Array(ids[start..<min(start + 500, ids.count)]))
+            }
         }
-        let oldestFirst = "SELECT id, imageFile, byteSize FROM clip WHERE pinned = 0 AND snippetName IS NULL ORDER BY lastCopiedAt ASC"
+        // Kept: pinned items, snippets and Hidden items (those set to expire go by `expiresAt`).
+        let kept = "pinned = 0 AND snippetName IS NULL AND kind != 'secret'"
+        let oldestFirst = "SELECT id, imageFile, byteSize FROM clip WHERE \(kept) ORDER BY lastCopiedAt ASC"
 
         // Hidden items set to delete themselves.
         try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE expiresAt IS NOT NULL AND expiresAt <= ?", arguments: [now]))
 
         if limits.retentionDays > 0 {
             let cutoff = now.addingTimeInterval(-Double(limits.retentionDays) * 86_400)
-            try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE pinned = 0 AND snippetName IS NULL AND lastCopiedAt < ?", arguments: [cutoff]))
+            try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE \(kept) AND lastCopiedAt < ?", arguments: [cutoff]))
         }
         if limits.maxItems > 0 {
             let total = try Clip.fetchCount(db)

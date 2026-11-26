@@ -178,6 +178,8 @@ final class AppModel: ObservableObject {
                 self?.toast.apply(appearance)
                 self?.settingsWindow?.apply(appearance, animated: true)
                 self?.onboardingWindow?.apply(appearance, animated: true)
+                self?.tourWindow?.apply(appearance)
+                self?.importWindow?.apply(appearance)
             }
         }.store(in: &cancellables)
 
@@ -523,11 +525,15 @@ final class AppModel: ObservableObject {
     // MARK: - Panel actions
 
     func togglePanel() {
+        // Behind Settings, the shortcut brings the panel forward (PanelController.toggle).
+        if panel?.behindSettings == true { panel?.toggle(); return }
         if panel?.isVisible == true { panel?.hide(reason: "shortcut") } else { showPanel() }
     }
 
     /// With the panel lock on, the panel opens on its lock screen and asks for Touch ID.
     func showPanel() {
+        // Not before setup is finished: there is no history to show yet.
+        guard settings.onboardingCompleted else { return }
         let locked = panelNeedsUnlock
         panelModel.setPanelLocked(locked)
         panel?.show()
@@ -1303,7 +1309,7 @@ final class AppModel: ObservableObject {
             alert.alertStyle = .warning
             let number = count.formatted()
             alert.messageText = count == 1 ? String(localized: "Delete 1 item?") : String(localized: "Delete \(number) items?")
-            alert.informativeText = String(localized: "With the new limit, \(number) of your items go over it and are deleted now, oldest first. Pinned items are kept. This cannot be undone.")
+            alert.informativeText = String(localized: "With the new limit, \(number) of your items go over it and are deleted now, oldest first. Pinned items, snippets and hidden items are kept. This cannot be undone.")
             alert.addButton(withTitle: count == 1 ? String(localized: "Delete Item") : String(localized: "Delete Items"))
             alert.addButton(withTitle: String(localized: "Cancel"))
             alert.buttons.first?.hasDestructiveAction = true

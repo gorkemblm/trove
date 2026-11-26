@@ -144,6 +144,7 @@
 "Copy Line" = "Satırı Kopyala";
 "Copy Lines" = "Satırları Kopyala";
 "Copy Matching Line" = "Eşleşen Satırı Kopyala";
+"Copy something and it shows up here." = "Bir şey kopyala, burada görünür.";
 "Copy Text from Image" = "Görseldeki Metni Kopyala";
 "Copy the lines that match your search" = "Aramanla eşleşen satırları kopyala";
 "Copy the text in an image" = "Görseldeki metni kopyala";
@@ -175,7 +176,7 @@
 "Done" = "Bitti";
 "Don’t save" = "Kaydetme";
 "Drag them to another app or to a Finder folder." = "Başka bir uygulamaya ya da bir Finder klasörüne sürükle.";
-"Each one asks first and shows how many items it deletes. Pinned items are kept." = "Her biri önce sorar ve kaç öğe sileceğini gösterir. Sabitlenen öğeler korunur.";
+"Each one asks first and shows how many items it deletes. Pinned items, snippets and hidden items are kept." = "Her biri önce sorar ve kaç öğe sileceğini gösterir. Sabitlenenler, snippet'ler ve gizli öğeler korunur.";
 "Edit" = "Düzenle";
 "Edit and transform the text" = "Metni düzenle ve dönüştür";
 "Edit and transform with ⌘E" = "⌘E ile düzenle ve dönüştür";
@@ -338,6 +339,7 @@
 "No hidden items" = "Gizli öğe yok";
 "No location chosen yet" = "Henüz konum seçilmedi";
 "No matching actions" = "Eşleşen eylem yok";
+"No results" = "Sonuç yok";
 "No terminal app found." = "Terminal uygulaması bulunamadı.";
 "No unpinned items were copied in the last 24 hours." = "Son 24 saatte sabitlenmemiş öğe kopyalanmadı.";
 "No unpinned items were copied in the last hour." = "Son bir saatte sabitlenmemiş öğe kopyalanmadı.";
@@ -345,6 +347,9 @@
 "Not Now" = "Şimdi Değil";
 "Not set" = "Ayarlı değil";
 "Nothing copied in these apps is saved." = "Bu uygulamalarda kopyalanan hiçbir şey kaydedilmez.";
+"Nothing copied yet" = "Henüz bir şey kopyalanmadı";
+"Nothing here yet" = "Burada henüz bir şey yok";
+"Nothing in %@ matches “%@”." = "%@ içinde “%@” ile eşleşen bir şey yok.";
 "Nothing is saved until you confirm." = "Sen onaylamadan hiçbir şey kaydedilmez.";
 "Nothing to delete" = "Silinecek bir şey yok";
 "now" = "şimdi";
@@ -388,6 +393,7 @@
 "Paste Edited Text" = "Düzenlenmiş Metni Yapıştır";
 "Paste into the active app" = "Etkin uygulamaya yapıştır";
 "Paste into the active app with ↵" = "↵ ile etkin uygulamaya yapıştır";
+"Paste with ⌘↵ or press Esc twice to discard your changes first." = "Önce ⌘↵ ile yapıştır ya da değişiklikleri atmak için iki kez Esc'e bas.";
 "Pastes it into the app you were in" = "Bulunduğun uygulamaya yapıştırır";
 "Pastes the result · Esc cancels" = "Sonucu yapıştırır · Esc vazgeçer";
 "Pastes them all · or drag them to any app" = "Hepsini yapıştırır · ya da istediğin uygulamaya sürükle";
@@ -410,11 +416,12 @@
 "Pin or unpin" = "Sabitle ya da sabitlemeyi kaldır";
 "Pinned" = "Sabitlenenler";
 "Pinned items and snippets only" = "Yalnızca sabitlenenler ve snippet'ler";
-"Pinned items are kept. This cannot be undone." = "Sabitlenen öğeler korunur. Bu işlem geri alınamaz.";
-"Pinned items are never deleted. When a limit is reached, the oldest items go first. A change that deletes items asks first." = "Sabitlenen öğeler hiçbir zaman silinmez. Bir sınıra ulaşıldığında önce en eski öğeler silinir. Öğe silecek bir değişiklik önce sorar.";
 "Pinned items only" = "Yalnızca sabitlenen öğeler";
+"Pinned items, snippets and hidden items are kept. This cannot be undone." = "Sabitlenenler, snippet'ler ve gizli öğeler korunur. Bu işlem geri alınamaz.";
+"Pinned items, snippets and hidden items are never deleted by limits. When a limit is reached, the oldest items go first. A change that deletes items asks first." = "Sabitlenenler, snippet'ler ve gizli öğeler sınırlar yüzünden hiçbir zaman silinmez. Bir sınıra ulaşıldığında önce en eski öğeler silinir. Öğe silecek bir değişiklik önce sorar.";
 "Plain Text" = "Düz Metin";
 "Press a shortcut…" = "Bir kısayola bas…";
+"Press Esc again to discard your changes." = "Değişikliklerini atmak için Esc'e yeniden bas.";
 "Press Esc to stop selecting." = "Seçimi bitirmek için Esc tuşuna bas.";
 "Press ↵ to copy them all." = "Hepsini kopyalamak için ↵ tuşuna bas.";
 "Press ↵ to paste them all." = "Hepsini yapıştırmak için ↵ tuşuna bas.";
@@ -529,6 +536,7 @@
 "Source" = "Kaynak";
 "Start Using Trove" = "Trove'u Kullanmaya Başla";
 "Startup" = "Başlangıç";
+"Step %lld of %lld" = "Adım %lld / %lld";
 "Stop ignoring %@" = "%@ uygulamasını yoksaymayı bırak";
 "Stop Selecting" = "Seçimi Bitir";
 "Storage" = "Depolama";
@@ -660,7 +668,7 @@
 "While paused, nothing you copy is saved, screenshots included. Quitting Trove resumes recording." = "Duraklatılmışken kopyaladığın hiçbir şey, ekran görüntüleri dahil, kaydedilmez. Trove'dan çıkmak kaydı yeniden başlatır.";
 "Window" = "Pencere";
 "With a recovery password, this history opens on another Mac or after a reinstall. Trove does not store the password; if you forget it, the history still opens on this Mac. Hidden items open only on this Mac." = "Kurtarma şifresiyle bu geçmiş başka bir Mac'te ya da yeniden kurulumdan sonra açılır. Trove şifreyi saklamaz; unutursan geçmiş bu Mac'te açılmaya devam eder. Gizli öğeler yalnızca bu Mac'te açılır.";
-"With the new limit, %@ of your items go over it and are deleted now, oldest first. Pinned items are kept. This cannot be undone." = "Yeni sınırla birlikte %@ öğe sınırı aşıyor ve en eskiden başlayarak şimdi silinecek. Sabitlenen öğeler korunur. Bu işlem geri alınamaz.";
+"With the new limit, %@ of your items go over it and are deleted now, oldest first. Pinned items, snippets and hidden items are kept. This cannot be undone." = "Yeni sınırla birlikte %@ öğe sınırı aşıyor ve en eskiden başlayarak şimdi silinecek. Sabitlenenler, snippet'ler ve gizli öğeler korunur. Bu işlem geri alınamaz.";
 "With ↵, Trove can paste the chosen item into the app you were using, instead of only copying it. macOS asks you to allow this once, in Privacy & Security › Accessibility. Trove uses it only to send ⌘V." = "Trove, ↵ ile seçtiğin öğeyi yalnızca kopyalamak yerine kullandığın uygulamaya doğrudan yapıştırabilir. macOS buna bir kez, Gizlilik ve Güvenlik › Erişilebilirlik bölümünde izin vermeni ister. Trove bu izni yalnızca ⌘V göndermek için kullanır.";
 "Words" = "Kelime";
 "Yesterday" = "Dün";

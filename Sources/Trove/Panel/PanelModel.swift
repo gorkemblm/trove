@@ -741,6 +741,12 @@ final class PanelModel: ObservableObject {
     // MARK: - Actions
 
     func select(_ clip: Clip) {
+        if hasUnsavedEdits, clip.id != selectedID {
+            // A click elsewhere does not throw edits away: ⌘↵ uses them, Esc twice drops them.
+            editing?.note = L("Paste with ⌘↵ or press Esc twice to discard your changes first.")
+            NSSound.beep()
+            return
+        }
         if selecting {
             togglePick(clip)
             return
@@ -758,7 +764,8 @@ final class PanelModel: ObservableObject {
 
     /// What ↵, ⌘D and a drag act on: the group, or the selected item.
     var actionClips: [Clip] {
-        hasGroupSelection ? pickedClips : (selected.map { [$0] } ?? [])
+        if selecting, !picked.isEmpty { return pickedClips } // In select mode the checks count, even one.
+        return selected.map { [$0] } ?? []
     }
 
     /// Hidden items stay sealed: they cannot be copied, dragged or deleted as a group.
@@ -865,7 +872,7 @@ final class PanelModel: ObservableObject {
             app?.copy(pickedClips, plainText: plainText)
             return
         }
-        guard let clip = selected else { NSSound.beep(); return }
+        guard let clip = actionClips.first else { NSSound.beep(); return }
         if clip.kind == .secret {
             guard let revealedText else { NSSound.beep(); return }
             app?.copySecret(clip, text: revealedText)
@@ -999,9 +1006,28 @@ final class PanelModel: ObservableObject {
 
     /// ⌘↵: the edited text is pasted (or copied) and saved in history as a new item.
     func finishEdit() {
-        guard let text = editing?.text, !text.isEmpty else { NSSound.beep(); return }
+        guard let session = editing, !session.text.isEmpty else { NSSound.beep(); return }
         editing = nil
-        app?.useEditedText(text)
+        if let id = session.snippetID {
+            // A snippet keeps what was pasted from it (a new one would stay empty otherwise).
+            app?.saveSnippetText(id: id, session.text)
+            app?.copyText(session.text, message: L("Snippet Saved"))
+        } else {
+            app?.useEditedText(session.text)
+        }
+    }
+
+    /// Changes in the editor that would be lost.
+    var hasUnsavedEdits: Bool { editing.map { $0.text != $0.original } ?? false }
+
+    /// Esc in the editor: with changes, the first press only warns; the second discards.
+    func escapeEditor() {
+        if hasUnsavedEdits, editing?.note != L("Press Esc again to discard your changes.") {
+            editing?.note = L("Press Esc again to discard your changes.")
+            NSSound.beep()
+            return
+        }
+        cancelEdit()
     }
 
     // MARK: - Text in images
@@ -1340,10 +1366,10 @@ final class PanelModel: ObservableObject {
                 self?.requestDelete()
             })
         }
-        list.append(PanelAction(id: "pause", title: app?.isPaused == true ? L("Resume Recording") : L("Pause Recording"),
+        if editing == nil { list.append(PanelAction(id: "pause", title: app?.isPaused == true ? L("Resume Recording") : L("Pause Recording"),
                                 symbol: app?.isPaused == true ? "record.circle" : "pause.circle", keys: ["⌥", "P"], section: 3) { [weak self] in
             self?.togglePause()
-        })
+        }) }
         if !hasGroupSelection {
             list.append(PanelAction(id: "newSnippet", title: L("New Snippet…"), symbol: "bookmark.circle", section: 3) { [weak self] in
                 self?.requestNewSnippet()

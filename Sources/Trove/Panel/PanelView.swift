@@ -584,22 +584,31 @@ struct ActionsMenu: View {
                 .contentShape(Rectangle())
                 .onTapGesture(perform: model.closeActions)
             VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 1) {
-                    if actions.isEmpty {
-                        Text("No matching actions")
-                            .font(.system(size: 12.5))
-                            .foregroundStyle(Theme.faint)
-                            .padding(.horizontal, 10)
-                            .frame(height: 32)
-                    }
-                    ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
-                        if index > 0, actions[index - 1].section != action.section {
-                            Theme.divider.frame(height: 1).padding(.vertical, 4).padding(.horizontal, 6)
+                // Long lists (the editor's transforms) scroll inside a fixed height, so the menu
+                // never grows past the panel; the highlighted row is always scrolled into view.
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 1) {
+                            if actions.isEmpty {
+                                Text("No matching actions")
+                                    .font(.system(size: 12.5))
+                                    .foregroundStyle(Theme.faint)
+                                    .padding(.horizontal, 10)
+                                    .frame(height: 32)
+                            }
+                            ForEach(Array(actions.enumerated()), id: \.element.id) { index, action in
+                                if index > 0, actions[index - 1].section != action.section {
+                                    Theme.divider.frame(height: 1).padding(.vertical, 4).padding(.horizontal, 6)
+                                }
+                                row(action, picked: index == model.actionPick).id(index)
+                            }
                         }
-                        row(action, picked: index == model.actionPick)
+                        .padding(6)
                     }
+                    .scrollIndicators(.automatic)
+                    .frame(height: Self.listHeight(actions))
+                    .onChange(of: model.actionPick) { _, pick in proxy.scrollTo(pick) }
                 }
-                .padding(6)
                 Theme.divider.frame(height: 1)
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").font(.system(size: 12)).foregroundStyle(Theme.faint)
@@ -619,6 +628,13 @@ struct ActionsMenu: View {
             .padding(.bottom, 50) // Just above the footer.
         }
         .onAppear { focused = true }
+    }
+
+    /// Rows are 32 pt (+1 spacing), dividers 9 pt; at most 400 pt, the rest scrolls.
+    static func listHeight(_ actions: [PanelModel.PanelAction]) -> CGFloat {
+        guard !actions.isEmpty else { return 44 }
+        let dividers = zip(actions, actions.dropFirst()).filter { $0.section != $1.section }.count
+        return min(400, CGFloat(actions.count) * 33 + CGFloat(dividers) * 9 + 12)
     }
 
     private func row(_ action: PanelModel.PanelAction, picked: Bool) -> some View {

@@ -2131,6 +2131,49 @@ struct ImportFlowTests {
     }
 }
 
+struct ReleaseCheckTests {
+    @Test @MainActor func limitsAndClearKeepHiddenItems() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let store = try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+        let old = Date(timeIntervalSinceNow: -400 * 86_400)
+        let finding = SensitiveDetector.Finding(reason: "GitHub token", masked: "ghp_…")
+        _ = try store.ingestSecret(sealed: Data([1, 2, 3]), finding: finding, characters: 40,
+                                   source: ClipSource(), at: old, expiresAt: nil)
+        try store.ingest(ClipClassifier.textContent("old note", rtf: nil), source: ClipSource(), at: old)
+        #expect(try store.pruneCount(PruneLimits(retentionDays: 30, maxItems: 0, maxBytes: 0)) == 1) // Only the note.
+        _ = try store.prune(PruneLimits(retentionDays: 30, maxItems: 1, maxBytes: 1))
+        #expect(try store.clearCount(since: nil) == 0)
+        try store.clear(since: nil)
+        #expect(try store.counts()[.hidden] == 1)
+        #expect(try store.hasSecret(finding: finding, characters: 40, at: old)) // A second import skips it.
+    }
+
+    @Test @MainActor func movingTheHistoryIsAllOrNothing() throws {
+        let fm = FileManager.default
+        let root = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let from = root.appendingPathComponent("old"), to = root.appendingPathComponent("new")
+        try fm.createDirectory(at: from.appendingPathComponent("Images"), withIntermediateDirectories: true)
+        try Data("db".utf8).write(to: from.appendingPathComponent("clipboard.sqlite"))
+        // Something with the same name is already in the destination: nothing moves, nothing is lost.
+        try fm.createDirectory(at: to.appendingPathComponent("Images"), withIntermediateDirectories: true)
+        #expect(throws: (any Error).self) { try Store.moveFiles(from: from, to: to) }
+        #expect(fm.fileExists(atPath: from.appendingPathComponent("clipboard.sqlite").path))
+        #expect(!fm.fileExists(atPath: to.appendingPathComponent("clipboard.sqlite").path))
+    }
+
+    @Test func damagedRoundCountsAreRefused() {
+        #expect(throws: (any Error).self) { try Vault.deriveKey(password: "password1", salt: Data(count: 16), iterations: -1) }
+        #expect(throws: (any Error).self) { try Vault.deriveKey(password: "password1", salt: Data(count: 16), iterations: 1 << 40) }
+    }
+
+    @Test func csvCellsNeverRunAsFormulas() {
+        let item = Transfer.Item(kind: "text", text: "=1+2", pinned: false, timesCopied: 1,
+                                 firstCopiedAt: Date(), lastCopiedAt: Date())
+        let csv = String(decoding: Transfer.csv([item]), as: UTF8.self)
+        #expect(csv.contains("'=1+2"))
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))

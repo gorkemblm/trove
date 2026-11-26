@@ -96,6 +96,7 @@ struct ShortcutRecorder: View {
             message = nil
         } catch {
             message = String(describing: error)
+            app.resumeHotKey(role) // The old shortcut keeps working (it was released while recording).
         }
     }
 

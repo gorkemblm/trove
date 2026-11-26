@@ -119,7 +119,9 @@ enum Transfer {
     /// Text-like items as CSV (RFC 4180 quoting): kind, text, source, first and last copied, times, pinned.
     static func csv(_ items: [Item]) -> Data {
         func field(_ value: String) -> String {
-            value.contains(where: { ",\"\n\r".contains($0) }) ? "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : value
+            // A cell starting with = + - @ (or a tab, CR) would run as a formula in Excel or Numbers.
+            let value = value.first.map { "=+-@\t\r".contains($0) } == true ? "'" + value : value
+            return value.contains(where: { ",\"\n\r".contains($0) }) ? "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\"" : value
         }
         let iso = ISO8601DateFormatter()
         var lines = ["kind,text,source,first_copied,last_copied,times_copied,pinned"]
