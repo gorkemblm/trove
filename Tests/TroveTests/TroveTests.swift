@@ -1952,6 +1952,68 @@ struct OpeningAndPauseTests {
     }
 }
 
+struct RaycastImportTests {
+    /// A .rayconfig made like Raycast's: 16 header bytes + gzip(JSON), then
+    /// `openssl enc -aes-256-cbc -nosalt -md sha256 -k <password>`.
+    private func makeRayconfig(json: String, password: String) throws -> URL {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let jsonURL = dir.appendingPathComponent("data.json")
+        try Data(json.utf8).write(to: jsonURL)
+        func run(_ tool: String, _ arguments: [String]) throws {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: tool)
+            process.arguments = arguments
+            try process.run()
+            process.waitUntilExit()
+            #expect(process.terminationStatus == 0)
+        }
+        try run("/usr/bin/gzip", ["-k", jsonURL.path])
+        let plain = dir.appendingPathComponent("plain.bin")
+        try (Data(repeating: 7, count: 16) + Data(contentsOf: dir.appendingPathComponent("data.json.gz"))).write(to: plain)
+        let out = dir.appendingPathComponent("Raycast 2026-11-26.rayconfig")
+        try run("/usr/bin/openssl", ["enc", "-e", "-aes-256-cbc", "-nosalt", "-md", "sha256", "-k", password, "-in", plain.path, "-out", out.path])
+        return out
+    }
+
+    private let sample = #"""
+    {"raycast_version": "1.104.0",
+     "builtin_package_clipboardHistory": {"provider_schemaVersion": 1, "clipboardHistoryRecords": [
+       {"category": "text", "text": "Toplantı notu", "createdAt": "2026-11-20T09:00:00Z", "modifiedAt": "2026-11-25T10:30:00Z",
+        "copyCount": 3, "applicationPath": "/System/Applications/Notes.app", "richText": "e1xydGYxIGhpfQ=="},
+       {"category": "link", "text": "https://example.com/docs", "createdAt": "2026-11-21T09:00:00Z", "modifiedAt": "2026-11-21T09:00:00Z",
+        "copyCount": 1, "applicationPath": "com.apple.Safari"},
+       {"category": "file", "text": "report.pdf", "filePath": "/Users/me/report.pdf", "textContent": "report",
+        "createdAt": "2026-11-22T09:00:00Z", "modifiedAt": "2026-11-22T09:00:00Z", "copyCount": 1},
+       {"category": "image", "text": "Image (640×480)", "filePath": "/Users/me/Library/Caches/com.raycast.macos/x.png",
+        "imageHash": "abc", "createdAt": "2026-11-23T09:00:00Z", "modifiedAt": "2026-11-23T09:00:00Z", "copyCount": 1}
+     ]}}
+    """#
+
+    @Test func readsRaycastExports() throws {
+        let url = try makeRayconfig(json: sample, password: "geçici-parola-1")
+        #expect(try Transfer.detect(url) == .raycast)
+
+        let items = try Transfer.read(url, password: "geçici-parola-1")
+        #expect(items.count == 3) // The image stays in Raycast's cache.
+        let note = try #require(items.first)
+        #expect(note.text == "Toplantı notu" && note.timesCopied == 3)
+        #expect(note.rtf.map { String(decoding: $0, as: UTF8.self) } == #"{\rtf1 hi}"#)
+        #expect(note.sourceApp == "Notes" && note.sourceBundleID == "com.apple.Notes")
+        #expect(note.firstCopiedAt < note.lastCopiedAt)
+        #expect(items[1].sourceBundleID == "com.apple.Safari" && items[1].sourceApp == "Safari")
+        #expect(items[2].kind == ClipKind.file.rawValue && items[2].files == ["/Users/me/report.pdf"])
+    }
+
+    @Test func wrongPasswordAndMissingHistory() throws {
+        let url = try makeRayconfig(json: sample, password: "doğru-parola")
+        #expect(throws: Transfer.TransferError.wrongPassword) { try Transfer.read(url, password: "yanlış-parola") }
+        #expect(throws: Transfer.TransferError.needsPassword) { try Transfer.read(url, password: nil) }
+        let empty = try makeRayconfig(json: #"{"raycast_version": "1"}"#, password: "doğru-parola")
+        #expect(throws: Transfer.TransferError.noClipboardHistory) { try Transfer.read(empty, password: "doğru-parola") }
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))

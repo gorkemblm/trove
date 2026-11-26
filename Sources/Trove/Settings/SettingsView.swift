@@ -409,7 +409,7 @@ private struct StorageSettings: View {
                         Button("Import…") { app.importHistory() }
                         Button("Export…") { exporting = true }
                     }
-                    SettingNote("Import from a Trove export, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported.")
+                    SettingNote("Import from a Trove export, Raycast, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported.")
                 }
             }
         }

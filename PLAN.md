@@ -192,7 +192,9 @@ Bu aşamadaki maddeler birbirinden bağımsız. İstediğin sırayla yapılabili
 - [x] Dışa aktarma (Ayarlar › Storage): şifreli `.clipboardexport` (varsayılan; parola → PBKDF2-SHA256 600.000 tur → AES-256-GCM, zlib sıkıştırma), JSON (şifresiz, uyarılı), CSV (yalnızca metin). Dönem, yalnızca sabitlenenler, görseller seçenekleri. Gizli öğeler hiç dışa aktarılmaz.
 - [x] İçe aktarma (Ayarlar › Storage ve onboarding depolama adımı): kendi şifreli/JSON dosyamız, Maccy (`Storage.sqlite`), Alfred (`clipboard.alfdb`, metin ve dosyalar). Kaynak içerikten tanınır, kayıt sayısı gösterilip onay istenir, tekrarlar birleşir, sırlar hassas içerik kuralına uyar.
 - [ ] Maccy ve Alfred okuyucuları belgelenmiş şemalarla üretilen test veritabanlarıyla doğrulandı; gerçek uygulama dosyalarıyla denenmedi.
-- [ ] Raycast ve Paste: desteklenmiyor (aşağıdaki bulgular).
+- [x] **Raycast (26 Kasım 2026):** Raycast'in kendi dışa aktarması (`.rayconfig`, Settings › Advanced › Export, Clipboard History seçili) parolasıyla okunur. Biçim belgelenmemiş; gerçek bir dosyada doğrulandı: `openssl enc -aes-256-cbc -nosalt -md sha256` (EVP_BytesToKey, SHA-256, tuzsuz), çözülünce 16 baytlık başlık + gzip + JSON; kayıtlar `builtin_package_clipboardHistory.clipboardHistoryRecords` (category, text, richText = Base64 RTF, filePath, createdAt/modifiedAt ISO 8601, copyCount, applicationPath). Görseller Raycast'in önbelleğinde kalır, dışa aktarmada yoktur: aktarılamaz. Parola NFC ve NFD biçiminde denenir.
+- [ ] Paste: dışa aktarma yok, veriler iCloud'da; desteklenemez.
+- [ ] Diğer ürünler (Pastebot, CopyClip, Clipy, Flycut, PasteNow): kullanıcı hangisini kullandıysa araştırılacak.
 
 **Dışa aktarma:** kendi kayıpsız formatımız `.clipboardexport` (zip: `manifest.json` + öğeler + `images/`), ayrıca belgelenmiş JSON ve CSV. Seçenekler: tümü / grup / tarih aralığı / sadece pinned, görseller dahil mi. Parola korumalı export Aşama 2'deki şifrelemeyle gelir.
 

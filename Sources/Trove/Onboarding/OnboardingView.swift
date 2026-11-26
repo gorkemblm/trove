@@ -136,7 +136,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
             }
             if app.store != nil {
-                Button("Import from Maccy, Alfred or a Trove export…") { app.importHistory() }
+                Button("Import from Raycast, Maccy, Alfred or a Trove export…") { app.importHistory() }
                     .buttonStyle(.link)
             }
             Label("A synced folder works: everything in it is encrypted. To open the history on another Mac, set a recovery password in the next step.",

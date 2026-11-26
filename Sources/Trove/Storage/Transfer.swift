@@ -71,6 +71,7 @@ enum Transfer {
         case wrongPassword
         case needsPassword
         case newerVersion
+        case noClipboardHistory
 
         var errorDescription: String? {
             switch self {
@@ -78,6 +79,7 @@ enum Transfer {
             case .wrongPassword: L("The password is not correct.")
             case .needsPassword: L("This export is encrypted. Enter its password.")
             case .newerVersion: L("This export was made by a newer version of Trove.")
+            case .noClipboardHistory: L("This Raycast export has no clipboard history. Export again in Raycast and include Clipboard History.")
             }
         }
     }
@@ -131,19 +133,25 @@ enum Transfer {
     // MARK: - Import
 
     enum Source: String, Sendable {
-        case clipboardEncrypted, clipboardJSON, maccy, alfred
+        case clipboardEncrypted, clipboardJSON, maccy, alfred, raycast
+
+        /// Formats that open with a password.
+        var needsPassword: Bool { self == .clipboardEncrypted || self == .raycast }
 
         var title: String {
             switch self {
             case .clipboardEncrypted, .clipboardJSON: L("a Trove export")
             case .maccy: "Maccy"
             case .alfred: "Alfred"
+            case .raycast: "Raycast"
             }
         }
     }
 
     /// What a file is, from its content (not its name).
     static func detect(_ url: URL) throws -> Source {
+        // Raycast's export is encrypted from the first byte: only its name tells what it is.
+        if url.pathExtension.lowercased() == "rayconfig" { return .raycast }
         let handle = try FileHandle(forReadingFrom: url)
         let head = try handle.read(upToCount: 4_096) ?? Data()
         try handle.close()
@@ -187,6 +195,16 @@ enum Transfer {
             return try readMaccy(url)
         case .alfred:
             return try readAlfred(url)
+        case .raycast:
+            guard let password, !password.isEmpty else { throw TransferError.needsPassword }
+            do {
+                let json = try RaycastImport.decrypt(Data(contentsOf: url), password: password)
+                return try RaycastImport.items(fromJSON: json).items
+            } catch RaycastImport.Failure.wrongPassword {
+                throw TransferError.wrongPassword
+            } catch RaycastImport.Failure.noClipboardHistory {
+                throw TransferError.noClipboardHistory
+            }
         }
     }
 

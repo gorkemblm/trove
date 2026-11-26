@@ -1371,7 +1371,7 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Reads a Clipboard export, Maccy or Alfred history, shows what it holds and asks before
+    /// Reads a Trove export, or Raycast, Maccy or Alfred history, shows what it holds and asks before
     /// saving. Duplicates merge; secrets follow the sensitive content rule.
     func importHistory() {
         guard let store else { return }
@@ -1380,7 +1380,7 @@ final class AppModel: ObservableObject {
         openPanel.canChooseDirectories = false
         openPanel.allowsMultipleSelection = false
         openPanel.prompt = L("Import")
-        openPanel.message = L("Choose a Trove export, Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb.")
+        openPanel.message = L("Choose a Trove export, a Raycast export (.rayconfig), Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb.")
         NSApp.activate()
         guard openPanel.runModal() == .OK, let url = openPanel.url else { return }
 
@@ -1388,8 +1388,8 @@ final class AppModel: ObservableObject {
         let source: Transfer.Source
         do {
             source = try Transfer.detect(url)
-            if source == .clipboardEncrypted {
-                guard let read = askExportPassword(url) else { return }
+            if source.needsPassword {
+                guard let read = askExportPassword(url, source: source) else { return }
                 items = read
             } else {
                 items = try Transfer.read(url, password: nil)
@@ -1474,12 +1474,15 @@ final class AppModel: ObservableObject {
     }
 
     /// Asks for the password of an encrypted export until it opens or the user cancels.
-    private func askExportPassword(_ url: URL) -> [Transfer.Item]? {
+    private func askExportPassword(_ url: URL, source: Transfer.Source) -> [Transfer.Item]? {
         var problem: String?
         while true {
             let alert = NSAlert()
-            alert.messageText = L("Open Encrypted Export")
-            alert.informativeText = (problem.map { $0 + "\n\n" } ?? "") + L("Enter the password this export was made with.")
+            alert.messageText = source == .raycast ? L("Open Raycast Export") : L("Open Encrypted Export")
+            let ask = source == .raycast
+                ? L("Enter the password you set when exporting from Raycast. Raycast keeps images outside its export, so they are not imported.")
+                : L("Enter the password this export was made with.")
+            alert.informativeText = (problem.map { $0 + "\n\n" } ?? "") + ask
             let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
             field.placeholderString = L("Password")
             alert.accessoryView = field

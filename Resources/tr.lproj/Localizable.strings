@@ -78,7 +78,7 @@
 "Characters" = "Karakter";
 "Choose" = "Seç";
 "Choose a location. Trove creates a “%@” folder there. It holds an encrypted database, encrypted images and a key file." = "Bir konum seç. Trove orada “%@” adlı bir klasör oluşturur. Klasörde şifreli bir veritabanı, şifreli görseller ve bir anahtar dosyası bulunur.";
-"Choose a Trove export, Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb." = "Bir Trove dışa aktarımı, Maccy'nin Storage.sqlite dosyasını ya da Alfred'in clipboard.alfdb dosyasını seç.";
+"Choose a Trove export, a Raycast export (.rayconfig), Maccy’s Storage.sqlite or Alfred’s clipboard.alfdb." = "Bir Trove dışa aktarımı, bir Raycast dışa aktarımı (.rayconfig), Maccy'nin Storage.sqlite dosyasını ya da Alfred'in clipboard.alfdb dosyasını seç.";
 "Choose the folder to watch for screenshots." = "Ekran görüntüleri için izlenecek klasörü seç.";
 "Choose…" = "Seç…";
 "Clean Up" = "Temizle";
@@ -169,6 +169,7 @@
 "Encrypted with SQLCipher, AES-256" = "SQLCipher ile şifreli, AES-256";
 "Encrypted, and stays on this Mac" = "Şifreli ve bu Mac'te kalır";
 "Enter the password this export was made with." = "Bu dışa aktarımı oluştururken kullanılan parolayı gir.";
+"Enter the password you set when exporting from Raycast. Raycast keeps images outside its export, so they are not imported." = "Raycast'ten dışa aktarırken girdiğin parolayı yaz. Raycast görselleri dışa aktarmanın dışında tuttuğu için görseller aktarılmaz.";
 "Esc closes" = "Esc kapatır";
 "Every time it opens" = "Her açılışta";
 "Everything in the history folder is encrypted, including the search index. The key never leaves this Mac and is not synced to iCloud Keychain." = "Geçmiş klasöründeki her şey, arama dizini dahil, şifrelidir. Anahtar bu Mac'ten hiç çıkmaz ve iCloud Anahtar Zinciri'ne senkronize edilmez.";
@@ -217,8 +218,8 @@
 "Import %@ items from %@?" = "%1$@ öğe içe aktarılsın mı? (%2$@)";
 "Import & Export" = "İçe ve Dışa Aktarma";
 "Import finished" = "İçe aktarma tamamlandı";
-"Import from a Trove export, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported." = "Bir Trove dışa aktarımından, Maccy'den ya da Alfred'den içe aktar. Şifreli bir dosyaya (başka bir Mac'e taşımak için en iyisi), JSON'a ya da CSV'ye dışa aktar. Gizli öğeler hiçbir zaman dışa aktarılmaz.";
-"Import from Maccy, Alfred or a Trove export…" = "Maccy, Alfred ya da bir Trove dışa aktarımından içe aktar…";
+"Import from a Trove export, Raycast, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported." = "Bir Trove dışa aktarımından, Raycast'ten, Maccy'den ya da Alfred'den içe aktar. Şifreli bir dosyaya (başka bir Mac'e taşımak için en iyisi), JSON'a ya da CSV'ye dışa aktar. Gizli öğeler hiçbir zaman dışa aktarılmaz.";
+"Import from Raycast, Maccy, Alfred or a Trove export…" = "Raycast, Maccy, Alfred ya da bir Trove dışa aktarımından içe aktar…";
 "Import…" = "İçe Aktar…";
 "In the Keychain on this Mac" = "Bu Mac'in Anahtar Zinciri'nde";
 "In Use" = "Kullanılan";
@@ -309,6 +310,7 @@
 "Open in Browser" = "Tarayıcıda Aç";
 "Open link, compose email, call, show in Finder" = "Bağlantıyı aç, e-posta yaz, ara, Finder'da göster";
 "Open Preview" = "Önizlemeyi Aç";
+"Open Raycast Export" = "Raycast Dışa Aktarımını Aç";
 "Open the panel with" = "Paneli açan kısayol";
 "Open Trove" = "Trove'u Aç";
 "Open Trove at login" = "Oturum açılınca Trove'u başlat";
@@ -516,6 +518,7 @@
 "This history has no recovery password." = "Bu geçmişin kurtarma şifresi yok.";
 "This item cannot be opened" = "Bu öğe açılamıyor";
 "This Mac has no Secure Enclave, so hidden items cannot be protected." = "Bu Mac'te Secure Enclave yok; bu yüzden gizli öğeler korunamıyor.";
+"This Raycast export has no clipboard history. Export again in Raycast and include Clipboard History." = "Bu Raycast dışa aktarımında pano geçmişi yok. Raycast'te yeniden dışa aktar ve Clipboard History'yi seç.";
 "This shortcut already opens the panel." = "Bu kısayol zaten paneli açıyor.";
 "This shortcut is already in use by another app." = "Bu kısayol başka bir uygulama tarafından kullanılıyor.";
 "Times copied" = "Kopyalanma sayısı";
