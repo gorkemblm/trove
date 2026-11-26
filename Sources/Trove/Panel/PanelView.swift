@@ -65,11 +65,18 @@ struct PanelView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(Theme.muted)
-            if model.category != .all {
-                GroupChip(category: model.category) { model.category = .all }
-            }
-            if let app = model.appFilter {
-                AppChip(app: app, remove: model.clearAppFilter)
+            // In the order they were added; each slides in and out without moving the others.
+            ForEach(model.chips, id: \.self) { chip in
+                switch chip {
+                case .group:
+                    GroupChip(category: model.category) { model.category = .all }
+                        .transition(.asymmetric(insertion: .scale(scale: 0.85, anchor: .leading).combined(with: .opacity), removal: .opacity))
+                case .app:
+                    if let app = model.appFilter {
+                        AppChip(app: app, remove: model.clearAppFilter)
+                            .transition(.asymmetric(insertion: .scale(scale: 0.85, anchor: .leading).combined(with: .opacity), removal: .opacity))
+                    }
+                }
             }
             TextField(
                 "Search",
@@ -89,6 +96,9 @@ struct PanelView: View {
         }
         .padding(.horizontal, 18)
         .frame(height: 54)
+        // Chips slide in and out; the search text moves with them, smoothly.
+        .animation(.snappy(duration: 0.2), value: model.chips)
+        .animation(.snappy(duration: 0.2), value: model.category)
     }
 }
 

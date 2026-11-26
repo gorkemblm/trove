@@ -1936,6 +1936,23 @@ struct AppFilterTests {
         #expect(model.category == .all)
     }
 
+    @Test func chipsKeepTheOrderTheyWereAddedIn() throws {
+        let (model, _) = try makeModel()
+        model.query = "@arc "
+        model.query = "/text "
+        #expect(model.chips == [.app, .group]) // The app chip stays first: nothing moves.
+        model.query = "/links "
+        #expect(model.chips == [.app, .group]) // Another group: same place.
+        #expect(model.clearGroup()) // ⌫: the app chip goes first…
+        #expect(model.chips == [.group])
+        model.query = "@arc "
+        #expect(model.chips == [.group, .app]) // …and comes back last.
+        model.category = .all
+        #expect(model.chips == [.app])
+        model.willShow() // A new opening: no app chip.
+        #expect(model.chips.isEmpty)
+    }
+
     @Test func unknownAppIsAnOrdinarySearch() throws {
         let (model, _) = try makeModel()
         model.query = "@nowhere"

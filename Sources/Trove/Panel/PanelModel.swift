@@ -291,7 +291,19 @@ final class PanelModel: ObservableObject {
     // MARK: - Apps by typing "@"
 
     /// Only items copied in this app ("@Arc"), shown as a chip in the search field.
-    @Published private(set) var appFilter: SourceApp?
+    @Published private(set) var appFilter: SourceApp? {
+        didSet { updateChips(.app, shown: appFilter != nil) }
+    }
+
+    /// The chips in the search field, in the order they were added: a new one goes last and
+    /// the others stay where they are. Changing the group keeps its chip in place.
+    enum FilterChip: Hashable { case group, app }
+    @Published private(set) var chips: [FilterChip] = []
+
+    private func updateChips(_ chip: FilterChip, shown: Bool) {
+        if shown, !chips.contains(chip) { chips.append(chip) }
+        if !shown { chips.removeAll { $0 == chip } }
+    }
     @Published var appPick = 0
     private var sourceAppsCache: [SourceApp]?
 
@@ -358,6 +370,7 @@ final class PanelModel: ObservableObject {
         didSet {
             guard category != oldValue else { return }
             app?.settings.lastGroup = category.rawValue
+            updateChips(.group, shown: category != .all)
             endSelecting()
             reload(resetSelection: true)
         }
