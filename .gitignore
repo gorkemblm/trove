@@ -1,0 +1,9 @@
+.DS_Store
+/build/
+/.build/
+/.swiftpm/
+*.xcodeproj/
+xcuserdata/
+
+# GRDB documentation pages (not used by the build)
+/Vendor/GRDB/GRDB/Documentation.docc/
