@@ -239,7 +239,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | ⌘K | Eylemler menüsü (aranabilir; tüm eylemler kısayollarıyla) | Panel |
 | ⌘⇧S | Seçim modunu aç / kapat | Panel |
 | ⌘-tık / ⇧-tık / ⇧↑↓ | Birden çok kayıt seç (seçim modu) | Panel |
-| ⌘A | Hepsini seç (arama boşken ya da seçim modunda) | Panel |
+| ⌘A | Seçim modunda hepsini seç; aksi halde arama metnini seçer | Panel |
 | Esc | Seçim modundan çık | Panel |
 | ⌘⇧H | Gizli'ye taşı (isim sorar) / Gizli'den geri taşı | Panel |
 | ⌘R | Gizli öğeye isim ver (Gizli'de) | Panel |

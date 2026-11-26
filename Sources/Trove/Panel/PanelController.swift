@@ -342,7 +342,7 @@ final class PanelController {
         case (1, [.command, .shift]): // ⌘⇧S: select mode on or off
             model.toggleSelecting()
             return true
-        case (0, [.command]) where model.selecting || model.query.isEmpty: // ⌘A: pick every item
+        case (0, [.command]) where model.selecting: // ⌘A: pick every item, only in select mode (else it selects the search text)
             model.pickAll()
             return true
         case (125, []): // Down
