@@ -25,6 +25,8 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    code { font: 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--kbd); border: 1px solid var(--line);
+           border-radius: 6px; padding: 1px 6px; }
     kbd { font: 600 .85em -apple-system, sans-serif; background: var(--kbd); border: 1px solid var(--line);
           border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; }
 
@@ -91,7 +93,7 @@
         <a href="#features">Features</a>
         <a href="#tour">How it works</a>
         <a href="#privacy">Privacy</a>
-        <a href="https://github.com/gorkemblm/trove-releases/issues">Support</a>
+        <a href="https://github.com/gorkemblm/trove/issues">Support</a>
       </nav>
     </header>
 
@@ -100,10 +102,11 @@
       <h1>Everything you copy.<br>Found in a second.</h1>
       <p class="lead">Trove is an encrypted clipboard history for macOS. Press <kbd>⌥</kbd> <kbd>Space</kbd>, type, and <kbd>↵</kbd> pastes it into the app you were in.</p>
       <div class="cta">
-        <a class="button primary" id="download" href="https://github.com/gorkemblm/trove-releases/releases/download/v0.1.0/Trove-0.1.0.dmg">Download for Mac</a>
-        <a class="button secondary" href="https://github.com/gorkemblm/trove-releases/releases">All releases</a>
+        <a class="button primary" id="download" href="https://github.com/gorkemblm/trove/releases/download/v0.1.0/Trove-0.1.0.dmg">Download for Mac</a>
+        <a class="button secondary" href="https://github.com/gorkemblm/trove">View on GitHub</a>
       </div>
       <div class="meta">Version <span id="version">0.1.0</span> · macOS 14 or later · Apple silicon · Free and open source (MIT)</div>
+      <div class="meta" style="margin-top:6px">or with Homebrew: <code>brew install --cask gorkemblm/tap/trove</code></div>
       <div class="window"><img src="demos/browse.gif" alt="Searching and pasting with Trove"></div>
     </div>
 
@@ -150,10 +153,11 @@
 
     <footer>
       <div class="links">
-        <a href="https://github.com/gorkemblm/trove-releases/issues">Report an issue</a>
-        <a href="https://github.com/gorkemblm/trove-releases/security">Security</a>
-        <a href="https://github.com/gorkemblm/trove-releases/releases">Release notes</a>
-        <a href="https://github.com/gorkemblm/trove-releases/blob/main/LICENSE">MIT License</a>
+        <a href="https://github.com/gorkemblm/trove/issues">Report an issue</a>
+        <a href="https://github.com/gorkemblm/trove/security">Security</a>
+        <a href="https://github.com/gorkemblm/trove/releases">Release notes</a>
+        <a href="https://github.com/gorkemblm/trove">Source code</a>
+        <a href="https://github.com/gorkemblm/trove/blob/main/LICENSE">MIT License</a>
       </div>
       <p>Trove is not affiliated with Raycast, Alfred or Maccy; their names describe what can be imported.</p>
     </footer>

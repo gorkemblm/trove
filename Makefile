@@ -5,18 +5,21 @@ SIGN_ID   ?= Developer ID Application
 SCRATCH   := $(HOME)/Library/Caches/$(APP_NAME)-build
 APP       := build/$(APP_NAME).app
 VERSION   := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
-# Where releases are published (the public releases repository).
-RELEASES_REPO := gorkemblm/trove-releases
+# The public repository: source, releases (disk images) and the website (GitHub Pages).
+RELEASES_REPO := gorkemblm/trove
 # Zetetic LLC, publisher of the official SQLCipher.xcframework.
 SQLCIPHER_TEAM := PD7G6HRMGV
 SWIFT     := swift build -c $(CONFIG) --scratch-path "$(SCRATCH)"
 # Daily builds sign without Apple's timestamp server; `make release` uses it (notarization needs it).
 TIMESTAMP ?= --timestamp=none
+# Hardened runtime for Developer ID builds (notarization needs it). An ad-hoc build
+# (SIGN_ID=-, for your own Mac, no Apple account) leaves it out.
+RUNTIME   := $(if $(filter -,$(SIGN_ID)),,--options runtime)
 # The team's App Store Connect API key ("Hashdrop notarization", Developer access), saved in the
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout demos window-check icon app release appcast site version run stop restart logs verify clean
+.PHONY: help build test layout demos window-check icon app release appcast site cask version run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -27,7 +30,8 @@ help:
 	@echo "make app      Compile, assemble and sign $(APP)"
 	@echo "make release  Signed with a timestamp, notarized, stapled: build/releases/$(APP_NAME)-<version>.dmg"
 	@echo "make appcast  Sparkle update list for build/releases, with release notes from CHANGELOG.md"
-	@echo "make site     The public releases repository (website, appcast, README), in build/site"
+	@echo "make site     Website and appcast for GitHub Pages, in build/site"
+	@echo "make cask     Homebrew cask for the current version, in build/Casks"
 	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge, website)"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
@@ -85,18 +89,18 @@ app: build
 	mkdir -p "$(APP)/Contents/Frameworks"; \
 	ditto "$$FW" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
 	install_name_tool -add_rpath @executable_path/../Frameworks "$(APP)/Contents/MacOS/$(APP_NAME)"; \
-	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/SQLCipher.framework"; \
 	SP="$$BIN/Sparkle.framework"; \
 	[ -d "$$SP" ] || { echo "Sparkle.framework missing in $$BIN"; exit 1; }; \
 	ditto "$$SP" "$(APP)/Contents/Frameworks/Sparkle.framework"; \
 	SPV="$(APP)/Contents/Frameworks/Sparkle.framework/Versions/B"; \
-	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/XPCServices/Installer.xpc"; \
-	codesign --force --options runtime $(TIMESTAMP) --entitlements Resources/SparkleDownloader.entitlements \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/XPCServices/Installer.xpc"; \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --entitlements Resources/SparkleDownloader.entitlements \
 		--sign "$(SIGN_ID)" "$$SPV/XPCServices/Downloader.xpc"; \
-	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Autoupdate"; \
-	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Updater.app"; \
-	codesign --force --options runtime $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/Sparkle.framework"; \
-	codesign --force --options runtime $(TIMESTAMP) \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Autoupdate"; \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --sign "$(SIGN_ID)" "$$SPV/Updater.app"; \
+	codesign --force $(RUNTIME) $(TIMESTAMP) --sign "$(SIGN_ID)" "$(APP)/Contents/Frameworks/Sparkle.framework"; \
+	codesign --force $(RUNTIME) $(TIMESTAMP) \
 		--entitlements Resources/$(APP_NAME).entitlements \
 		--sign "$(SIGN_ID)" "$(APP)"
 	@echo "Built $(APP)"
@@ -133,27 +137,30 @@ appcast:
 	@grep -o 'url="[^"]*"' build/releases/appcast.xml
 	@echo "Appcast: build/releases/appcast.xml"
 
-# Everything the public releases repository holds, in build/site: the website and update
-# list (GitHub Pages), its README (from README.md), license, security policy, changelog and
-# issue forms.
+# The website and update list for GitHub Pages (the gh-pages branch), in build/site.
 site:
 	rm -rf build/site && mkdir -p build/site/demos
 	cp Site/index.html build/site/index.html
-	cp -R Site/.github build/site/.github
 	cp Docs/icon.png build/site/icon.png
 	cp Docs/demos/*.gif build/site/demos/
-	cp LICENSE SECURITY.md CHANGELOG.md build/site/
-	python3 Scripts/public_readme.py build/site/README.md
 	touch build/site/.nojekyll
 	@if [ -f build/releases/appcast.xml ]; then cp build/releases/appcast.xml build/site/appcast.xml; else echo "No appcast yet: run make appcast"; fi
 	@echo "Site: build/site"
+
+# The Homebrew cask for the current version (Homebrew/trove.rb.in), in build/Casks/trove.rb.
+# It goes into the tap repository gorkemblm/homebrew-tap, folder Casks.
+cask:
+	@[ -f "build/releases/$(APP_NAME)-$(VERSION).dmg" ] || { echo "No build/releases/$(APP_NAME)-$(VERSION).dmg: run make release first"; exit 1; }
+	mkdir -p build/Casks
+	sed -e "s/@VERSION@/$(VERSION)/" -e "s/@SHA256@/$$(shasum -a 256 "build/releases/$(APP_NAME)-$(VERSION).dmg" | cut -d' ' -f1)/" Homebrew/trove.rb.in > build/Casks/trove.rb
+	@echo "Cask: build/Casks/trove.rb"
 
 # make version NEW=0.2.0: the version in Info.plist and the README badge. Then add a
 # "## 0.2.0" section to CHANGELOG.md.
 version:
 	@[ -n "$(NEW)" ] || { echo "Set NEW=x.y.z"; exit 1; }
 	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(NEW)" Resources/Info.plist
-	sed -E -i '' 's#badge/version-[0-9.]+-#badge/version-$(NEW)-#; s#alt="Version [0-9.]+"#alt="Version $(NEW)"#' README.md
+	sed -E -i '' 's#badge/version-[0-9.]+-#badge/version-$(NEW)-#; s#alt="Version [0-9.]+"#alt="Version $(NEW)"#; s#$(APP_NAME)-[0-9][0-9.]*[0-9]\.dmg#$(APP_NAME)-$(NEW).dmg#g' README.md
 	sed -E -i '' 's#download/v[0-9.]+/$(APP_NAME)-[0-9.]+\.dmg#download/v$(NEW)/$(APP_NAME)-$(NEW).dmg#; s#<span id="version">[0-9.]+</span>#<span id="version">$(NEW)</span>#' Site/index.html
 	@grep -q "^## $(NEW)$$" CHANGELOG.md || echo "Now add a '## $(NEW)' section to CHANGELOG.md"
 

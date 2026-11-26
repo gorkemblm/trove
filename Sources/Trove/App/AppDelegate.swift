@@ -46,6 +46,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 enum AppInfo {
     static let bundleID = Bundle.main.bundleIdentifier ?? "com.iokoda.clipboard"
     static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
-    /// Bug reports and ideas: the Issues page of the public releases repository.
-    static let supportURL = URL(string: "https://github.com/gorkemblm/trove-releases/issues")!
+    /// Bug reports and ideas: the Issues page of the public repository.
+    static let supportURL = URL(string: "https://github.com/gorkemblm/trove/issues")!
 }

@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gorkemblm/trove-releases/releases/latest"><img src="https://img.shields.io/badge/version-0.1.0-2F6FEB" alt="Version 0.1.0"></a>
+  <a href="https://github.com/gorkemblm/trove/releases/latest"><img src="https://img.shields.io/badge/version-0.1.0-2F6FEB" alt="Version 0.1.0"></a>
   <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14 or later">
   <img src="https://img.shields.io/badge/Apple%20Silicon-native-111111" alt="Apple Silicon">
   <img src="https://img.shields.io/badge/notarized-by%20Apple-2EA043" alt="Notarized by Apple">
@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gorkemblm/trove-releases/releases/latest"><b>Download</b></a> ·
+  <a href="https://github.com/gorkemblm/trove/releases/latest"><b>Download</b></a> ·
   <a href="#features">Features</a> ·
   <a href="#privacy-and-security">Privacy</a> ·
   <a href="#support">Support</a> ·
@@ -46,13 +46,30 @@
 
 ## Install
 
-1. Download **Trove.dmg** from the [latest release](https://github.com/gorkemblm/trove-releases/releases/latest).
+**Download (recommended)**
+
+1. Download **Trove-0.1.0.dmg** from the [latest release](https://github.com/gorkemblm/trove/releases/latest).
 2. Open it and drag **Trove** to **Applications**.
 3. Open Trove. A short setup asks where to keep your history, offers a recovery password, and shows how Trove works.
 
-Trove is signed and notarized by Apple. It checks for updates with [Sparkle](https://sparkle-project.org) and asks before it turns on automatic checks.
+**Homebrew**
+
+```sh
+brew install --cask gorkemblm/tap/trove
+```
+
+**From source:** see [Building from source](#building-from-source).
+
+Releases are signed with a Developer ID and notarized by Apple. Trove updates itself with [Sparkle](https://sparkle-project.org): it asks once before it turns on automatic checks, and *Check for Updates…* is in the menu bar menu. Homebrew leaves updates to Trove.
 
 **Requirements:** macOS 14 Sonoma or later, on a Mac with Apple silicon.
+
+| Where | What is there |
+| --- | --- |
+| [Releases](https://github.com/gorkemblm/trove/releases) | The notarized disk image of every version, with its release notes |
+| [Website](https://gorkemblm.github.io/trove/) | Overview, demos and the download button |
+| [Homebrew tap](https://github.com/gorkemblm/homebrew-tap) | The `trove` cask |
+| [Changelog](CHANGELOG.md) | What changed in each version |
 
 ## Features
 
@@ -270,25 +287,41 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 
 ## Building from source
 
-<details>
-<summary>Requirements and make targets</summary>
-
-Requirements: macOS 14+, the Xcode Command Line Tools (Swift 6.1). No Xcode project — SwiftPM and a Makefile.
+You need a Mac with Apple silicon, macOS 14 or later, and the Xcode Command Line Tools (Swift 6.1 or later). There is no Xcode project: the build uses SwiftPM and a Makefile.
 
 ```sh
-make app       # build, assemble and sign build/Trove.app
+xcode-select --install                           # once, if the Command Line Tools are missing
+git clone https://github.com/gorkemblm/trove.git
+cd trove
+make app SIGN_ID=-                               # build and sign for this Mac: build/Trove.app
+open build/Trove.app
+```
+
+`SIGN_ID=-` signs the app *ad hoc*, which needs no Apple account and runs on the Mac that built it. With an Apple Developer ID, leave it out (`make app` uses your *Developer ID Application* certificate). The first build downloads Sparkle through SwiftPM; SQLCipher and GRDB are in the repository.
+
+> A build from source and a downloaded release use the same app identifier. Run one of them, not both: they would share the ⌥ Space shortcut. The Keychain links the history key to the app's signature, so to move a history between the two, set a recovery password first (*Settings › Security*).
+
+<details>
+<summary>All make targets</summary>
+
+```sh
+make app       # build, assemble and sign build/Trove.app (SIGN_ID=- for ad hoc)
 make run       # build and open it
 make test      # unit tests (release, with timing checks)
 make layout    # render the UI offscreen (English and Turkish) and run layout checks
 make demos     # render the animations used here and in the app
-make release   # sign with a timestamp, notarize, staple: build/releases/Trove-<version>.dmg
+make release   # Developer ID: sign with a timestamp, notarize, staple: build/releases/Trove-<version>.dmg
 make appcast   # the Sparkle update list, with release notes from CHANGELOG.md
-make version NEW=0.2.0   # set the version in Info.plist and in the README badge
+make site      # the website and appcast for GitHub Pages: build/site
+make cask      # the Homebrew cask for this version: build/Casks/trove.rb
+make version NEW=0.2.0   # set the version in Info.plist, the README badge and the website
 ```
 
-`SIGN_ID` (default: *Developer ID Application*) and `NOTARY_PROFILE` (a `notarytool` keychain profile) can be set on the command line. SQLCipher comes as Zetetic's signed binary framework (its Team ID is checked); GRDB is vendored with its SQLCipher changes in `Vendor/GRDB`; Sparkle comes as its binary framework.
+`SIGN_ID` (default: *Developer ID Application*) and `NOTARY_PROFILE` (a `notarytool` keychain profile, for `make release`) can be set on the command line. SQLCipher comes as Zetetic's signed binary framework (its Team ID is checked); GRDB is vendored with its SQLCipher changes in `Vendor/GRDB`; Sparkle comes as its binary framework.
 
 The layout checks matter: they render every kind of item in both languages and fail if anything in the panel moves sideways, if the sidebar does not fit, or if a button changes place between items.
+
+**Publishing a release:** `make version NEW=x.y.z`, add a `## x.y.z` section to `CHANGELOG.md`, then `make release appcast site cask`. Upload the disk image to a `vx.y.z` GitHub release, `build/site` to the `gh-pages` branch, and `build/Casks/trove.rb` to the tap.
 
 </details>
 
@@ -316,7 +349,7 @@ Vendor/GRDB/        GRDB 7 with SQLCipher support
 
 ## Support
 
-- **Questions, bugs and ideas:** [open an issue](https://github.com/gorkemblm/trove-releases/issues). Please include your macOS version, your Trove version (*Settings › General › Version*) and the steps that show the problem. The menu bar menu has a shortcut: *Report an Issue…*
+- **Questions, bugs and ideas:** [open an issue](https://github.com/gorkemblm/trove/issues). Please include your macOS version, your Trove version (*Settings › General › Version*) and the steps that show the problem. The menu bar menu has a shortcut: *Report an Issue…*
 - **Security problems:** please report them privately, as described in [SECURITY.md](SECURITY.md), not in a public issue.
 - **Updates:** *Check for Updates…* in the menu bar menu or in *Settings › General*. What changed in each version is in the [changelog](CHANGELOG.md).
 

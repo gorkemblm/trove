@@ -4,7 +4,7 @@ Trove keeps a clipboard history, which can hold passwords, tokens and private me
 
 ## Reporting a problem
 
-Please report security problems **privately**: on the [Trove releases repository](https://github.com/gorkemblm/trove-releases), open the **Security** tab and choose **Report a vulnerability**. Do not open a public issue for them.
+Please report security problems **privately**: on the [Trove repository](https://github.com/gorkemblm/trove), open the **Security** tab and choose **Report a vulnerability**. Do not open a public issue for them.
 
 Include the Trove version (*Settings › General › Version*), your macOS version, what an attacker can do, and the steps to show it.
 
