@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Writes the release notes of one version as HTML, from CHANGELOG.md.
+"""Writes the release notes of one version from CHANGELOG.md.
 
-Usage: release_notes.py VERSION OUTPUT.html
-Sparkle shows the file in its update window (generate_appcast embeds it).
+Usage: release_notes.py VERSION OUTPUT.html   (Sparkle's update window; generate_appcast embeds it)
+       release_notes.py VERSION OUTPUT.md     (the GitHub release text)
 """
 import html
 import re
@@ -13,6 +13,12 @@ text = open("CHANGELOG.md", encoding="utf-8").read()
 match = re.search(rf"^## {re.escape(version)}\n(.*?)(?=^## |\Z)", text, re.S | re.M)
 if not match:
     sys.exit(f"CHANGELOG.md has no section for {version}")
+
+
+if output.endswith(".md"):
+    with open(output, "w", encoding="utf-8") as f:
+        f.write(match.group(1).strip() + "\n")
+    sys.exit(0)
 
 
 def inline(line):

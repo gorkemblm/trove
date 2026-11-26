@@ -388,7 +388,12 @@ make version NEW=0.2.0   # set the version in Info.plist, the README badge and t
 
 The layout checks matter: they render every kind of item in both languages and fail if anything in the panel moves sideways, if the sidebar does not fit, or if a button changes place between items.
 
-**Publishing a release:** `make version NEW=x.y.z`, add a `## x.y.z` section to `CHANGELOG.md`, then `make release appcast site cask`. Upload the disk image to a `vx.y.z` GitHub release, `build/site` to the `gh-pages` branch, and `build/Casks/trove.rb` to the tap.
+**Publishing a release:** work on branches and merge into `main` as you like; users see nothing until a release. Then:
+
+1. `make version NEW=x.y.z` and add a `## x.y.z` section to `CHANGELOG.md`; commit.
+2. `make release appcast site cask`: the notarized disk image, the update list, the website and the cask.
+3. `make publish`: tag `vx.y.z` and create a **draft** GitHub release; the website and cask commits wait locally.
+4. Check the draft, then `make publish-live`: the release goes public first, then the website and appcast (`gh-pages`) and the cask (`gorkemblm/homebrew-tap`).
 
 </details>
 

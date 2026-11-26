@@ -19,7 +19,7 @@ RUNTIME   := $(if $(filter -,$(SIGN_ID)),,--options runtime)
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout demos window-check icon app release appcast site cask version run stop restart logs verify clean
+.PHONY: help build test layout demos window-check icon app release appcast site cask publish publish-live version run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -32,6 +32,8 @@ help:
 	@echo "make appcast  Sparkle update list for build/releases, with release notes from CHANGELOG.md"
 	@echo "make site     Website and appcast for GitHub Pages, in build/site"
 	@echo "make cask     Homebrew cask for the current version, in build/Casks"
+	@echo "make publish  Tag, draft GitHub release, staged website and cask (nothing public yet)"
+	@echo "make publish-live  Publish the draft, then the website, appcast and cask"
 	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge, website)"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
@@ -154,6 +156,14 @@ cask:
 	mkdir -p build/Casks
 	sed -e "s/@VERSION@/$(VERSION)/" -e "s/@SHA256@/$$(shasum -a 256 "build/releases/$(APP_NAME)-$(VERSION).dmg" | cut -d' ' -f1)/" Homebrew/trove.rb.in > build/Casks/trove.rb
 	@echo "Cask: build/Casks/trove.rb"
+
+# Publishing, in two stages (Scripts/publish.sh): a draft release and staged website and cask
+# commits that nobody sees yet; then, after a check, all of it goes live.
+publish:
+	Scripts/publish.sh prepare
+
+publish-live:
+	Scripts/publish.sh live
 
 # make version NEW=0.2.0: the version in Info.plist and the README badge. Then add a
 # "## 0.2.0" section to CHANGELOG.md.
