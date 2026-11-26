@@ -203,7 +203,8 @@ struct ClipListView: View {
                                 .padding(.bottom, 4)
                             ForEach(section.clips) { clip in
                                 ClipRow(clip: clip, selected: clip.id == model.selectedID, active: model.focusArea == .list,
-                                        check: model.selecting ? (clip.id.map(model.picked.contains) ?? false) : nil)
+                                        check: model.selecting ? (clip.id.map(model.picked.contains) ?? false) : nil,
+                                        snippet: clip.id.flatMap { model.imageSnippets[$0] }, terms: model.searchTerms)
                                     .id(clip.rowID)
                                     .overlay {
                                         RowMouseArea(
@@ -334,6 +335,9 @@ struct ClipRow: View {
     var active = true
     /// In select mode: whether the row is picked. Nil outside select mode (no circle).
     var check: Bool? = nil
+    /// An image found by the text in it: that text, in place of the usual details line.
+    var snippet: String? = nil
+    var terms: [String] = []
 
     private var fill: Color {
         if let check { return check ? Theme.accentFill : .clear } // Picked rows match the sidebar's selection.
@@ -354,11 +358,21 @@ struct ClipRow: View {
                     .font(.system(size: 13))
                     .lineLimit(1)
                     .truncationMode(.tail)
-                Text(clip.subtitle)
+                if let snippet {
+                    HStack(spacing: 4) {
+                        Image(systemName: "text.viewfinder").font(.system(size: 10))
+                        Text(Self.highlighted(snippet, terms: terms))
+                    }
                     .font(.system(size: 11.5))
-                    .monospacedDigit()
-                    .foregroundStyle(Theme.faint)
+                    .foregroundStyle(Theme.muted)
                     .lineLimit(1)
+                } else {
+                    Text(clip.subtitle)
+                        .font(.system(size: 11.5))
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.faint)
+                        .lineLimit(1)
+                }
             }
             Spacer(minLength: 0)
             if clip.pinned {
@@ -377,6 +391,20 @@ struct ClipRow: View {
             }
         }
         .contentShape(Rectangle())
+    }
+}
+
+extension ClipRow {
+    /// The searched words in bold and in the text colour.
+    static func highlighted(_ text: String, terms: [String]) -> AttributedString {
+        var result = AttributedString(text)
+        for range in RecognizedText.matchRanges(in: text, terms: terms) {
+            guard let lower = AttributedString.Index(range.lowerBound, within: result),
+                  let upper = AttributedString.Index(range.upperBound, within: result) else { continue }
+            result[lower..<upper].font = .system(size: 11.5, weight: .bold)
+            result[lower..<upper].foregroundColor = Theme.text
+        }
+        return result
     }
 }
 

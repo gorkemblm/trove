@@ -711,9 +711,9 @@ final class AppModel: ObservableObject {
     func openLargePreview(_ clip: Clip) {
         previewWindow.close()
         panel?.keepOpen = true
-        let image = clip.kind == .image ? panelModel.image(for: clip) : nil
-        previewWindow.show(clip: clip, image: image, appearance: settings.panelAppearance, near: panel?.frame,
-                           actionTitle: panelModel.returnTitle) { [weak self] in
+        let image = clip.imageFile != nil ? panelModel.image(for: clip) : nil
+        previewWindow.show(clip: clip, image: image, terms: panelModel.searchTerms, appearance: settings.panelAppearance,
+                           near: panel?.frame, actionTitle: panelModel.returnTitle) { [weak self] in
             self?.previewWindow.close()
             self?.copy(clip, plainText: false)
         }

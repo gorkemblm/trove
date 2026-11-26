@@ -135,6 +135,8 @@ struct AttributedTextView: NSViewRepresentable {
 struct LargePreviewView: View {
     let clip: Clip
     let image: NSImage?
+    /// The words of the panel's search: highlighted in the image and in its text.
+    var terms: [String] = []
     var actionTitle = L("Copy")
     let copy: () -> Void
 
@@ -193,9 +195,18 @@ struct LargePreviewView: View {
 
     @ViewBuilder
     private var content: some View {
-        if clip.kind == .image {
+        if clip.kind == .image || clip.isImageFiles {
             if let image {
-                Image(nsImage: image).resizable().aspectRatio(contentMode: .fit).padding(18)
+                if let text = RecognizedText.load(layout: clip.recognizedLayout, text: clip.recognizedText) {
+                    // The image, and next to it the text read in it: select any part and copy it.
+                    HStack(spacing: 0) {
+                        HighlightedImage(image: image, boxes: text.highlights(for: terms)).padding(18)
+                        Theme.divider.frame(width: 1)
+                        ImageTextPanel(text: text, terms: terms).frame(width: 320)
+                    }
+                } else {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fit).padding(18)
+                }
             } else {
                 EmptyStateView(symbol: "photo", title: "Image not found", message: "The image file is missing from the storage folder.")
             }
@@ -231,7 +242,7 @@ final class PreviewWindowController: NSObject, NSWindowDelegate {
     var isOpen: Bool { window?.isVisible == true }
     var isKey: Bool { window?.isKeyWindow == true }
 
-    func show(clip: Clip, image: NSImage?, appearance: PanelAppearance, near frame: NSRect?, actionTitle: String,
+    func show(clip: Clip, image: NSImage?, terms: [String] = [], appearance: PanelAppearance, near frame: NSRect?, actionTitle: String,
               copy: @escaping () -> Void) {
         close()
         let size = NSSize(width: 900, height: 640)
@@ -257,7 +268,7 @@ final class PreviewWindowController: NSObject, NSWindowDelegate {
         effect.material = panel.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .hudWindow : .popover
         effect.blendingMode = .behindWindow
         effect.state = .active
-        let host = NSHostingView(rootView: LargePreviewView(clip: clip, image: image, actionTitle: actionTitle, copy: copy))
+        let host = NSHostingView(rootView: LargePreviewView(clip: clip, image: image, terms: terms, actionTitle: actionTitle, copy: copy))
         host.translatesAutoresizingMaskIntoConstraints = false
         effect.addSubview(host)
         NSLayoutConstraint.activate([
@@ -289,27 +300,5 @@ final class PreviewWindowController: NSObject, NSWindowDelegate {
             window = nil
             onClose?()
         }
-    }
-}
-
-/// On images with text: Vision found text in it. A click copies the text (as ⌘⇧C does).
-struct ImageTextBadge: View {
-    let copy: () -> Void
-
-    var body: some View {
-        Button(action: copy) {
-            HStack(spacing: 4) {
-                Image(systemName: "text.viewfinder").font(.system(size: 10.5, weight: .semibold))
-                Text("Text").font(.system(size: 11, weight: .semibold))
-            }
-            .foregroundStyle(Theme.muted)
-            .padding(.horizontal, 8)
-            .frame(height: 22)
-            .background(.ultraThinMaterial, in: Capsule())
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .focusable(false)
-        .help(L("Copy the text in this image (⌘⇧C)"))
     }
 }

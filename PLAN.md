@@ -169,6 +169,7 @@ Bu aşama sonunda geçmiş diskte şifreli durur, hassas içerik otomatik ayrı�
 ## Gelecek
 
 - [x] **Görsellerde yazıyla arama ve metni kopyalama (26 Kasım 2026):** Vision bu Mac'te okur (Türkçe/İngilizce, dil otomatik). Tanınan metin şifreli veritabanında `recognizedText` sütununda, arama indeksinde üçüncü sütun (migration v7). Yeni görseller kaydedilince, eskiler açılışta arka planda en yeniden eskiye okunur; kaldığı yerden devam eder. Detayda "Metin" rozeti, ⌘⇧C ve ⌘K'da "Görseldeki Metni Kopyala". Ayar: Gizlilik › Görsellerdeki Metin (varsayılan açık, onboarding'de sorulur); kapalıyken "Tanınan Metni Sil…" önce sorar.
+- [x] **Görseldeki metnin gösterimi:** Her satır resimdeki yeriyle saklanır (`recognizedLayout`, migration v8; görseller bir kez daha okunur). Aramada: listede eşleşen metin satırı, önizlemede aranan kelimelerin üstünde sarı kutu, altta ne kopyalanacağını söyleyen çubuk (aramada eşleşen satır, aksi halde tüm metin; ⌘⇧C). Büyük önizlemede resim ve yanında seçilebilir metin. Vision bu macOS'ta Türkçe desteklemiyor (ş ı ğ düz harf okunur); arama ve vurgulama Türkçe harf farkını yok sayar (`searchFolded`, indekste `recognizedSearch`).
 - [ ] Raycast'ten içe aktarma (şifreli veritabanı; tek seferlik yardımcı gerekir, bkz. içe/dışa aktarma bölümü).
 - [ ] Gizli mod için global kısayol.
 - [ ] **Nasıl çalışır animasyonları:** Onboarding'de kısa döngülü demolar (⌥Space ile açma, `/` ile gruba geçiş, ⌘K, sürükle-bırak, Gizli). Aynı kaynaktan README için GIF/video üretilir, ikisi hep aynı kalır (snapshot altyapısı kareleri üretebilir).

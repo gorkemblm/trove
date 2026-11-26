@@ -419,6 +419,25 @@ final class Store {
             }
             try db.execute(sql: "INSERT INTO clip_fts(clip_fts) VALUES('rebuild')")
         }
+        // v8: where each line of text is in the image (boxes on the preview, matching lines).
+        // Images are read again in the background to get them.
+        // The search index reads a folded copy of the text (recognizedSearch), so a search
+        // matches whether or not Turkish letters were typed or read.
+        migrator.registerMigration("v8-recognized-layout") { db in
+            try db.execute(sql: "ALTER TABLE clip ADD COLUMN recognizedLayout TEXT")
+            try db.execute(sql: "ALTER TABLE clip ADD COLUMN recognizedSearch TEXT")
+            try db.execute(sql: "UPDATE clip SET recognizedText = NULL WHERE recognizedText IS NOT NULL")
+            try db.dropFTS5SynchronizationTriggers(forTable: "clip_fts")
+            try db.drop(table: "clip_fts")
+            try db.create(virtualTable: "clip_fts", using: FTS5()) { t in
+                t.synchronize(withTable: "clip")
+                t.tokenizer = FTS5TokenizerDescriptor(components: ["trigram"])
+                t.column("searchText")
+                t.column("sourceAppName")
+                t.column("recognizedSearch")
+            }
+            try db.execute(sql: "INSERT INTO clip_fts(clip_fts) VALUES('rebuild')")
+        }
         return migrator
     }
 
@@ -433,7 +452,7 @@ final class Store {
         firstCopiedAt, lastCopiedAt, textCharacters, textWords, textLines,
         CASE WHEN kind = 'secret' THEN secretReason END AS secretReason,
         CASE WHEN kind IN ('code', 'data', 'secret', 'file') THEN format END AS format,
-        NULL AS recognizedText
+        NULL AS recognizedText, NULL AS recognizedLayout, NULL AS recognizedSearch
         """
 
     // MARK: - Writing
@@ -686,17 +705,30 @@ final class Store {
         }
     }
 
-    /// Saves what Vision read; an empty text marks an image without text.
-    func setRecognizedText(id: Int64, _ text: String) throws {
+    /// Saves what Vision read. Nil (an image Vision cannot read) or no lines are saved as an
+    /// empty text, so the image is not read again.
+    func setRecognizedText(id: Int64, _ result: RecognizedText?) throws {
+        let lines = result?.lines.isEmpty == false ? result : nil
         try dbQueue.write { db in
-            try db.execute(sql: "UPDATE clip SET recognizedText = ? WHERE id = ?", arguments: [text, id])
+            try db.execute(sql: "UPDATE clip SET recognizedText = ?, recognizedLayout = ?, recognizedSearch = ? WHERE id = ?",
+                           arguments: [lines?.plainText ?? "", lines?.json, lines?.plainText.searchFolded, id])
+        }
+    }
+
+    /// The read text of some items (for the list's "found in the image" line).
+    func recognizedTexts(ids: [Int64]) throws -> [Int64: String] {
+        guard !ids.isEmpty else { return [:] }
+        return try dbQueue.read { db in
+            let rows = try Row.fetchAll(db, sql: "SELECT id, recognizedText FROM clip WHERE id IN (" + ids.map { _ in "?" }.joined(separator: ",")
+                                        + ") AND recognizedText != ''", arguments: StatementArguments(ids))
+            return Dictionary(uniqueKeysWithValues: rows.map { ($0["id"] as Int64, $0["recognizedText"] as String) })
         }
     }
 
     /// Settings › Privacy: forgets every recognized text. The images stay.
     func clearRecognizedText() throws {
         try dbQueue.write { db in
-            try db.execute(sql: "UPDATE clip SET recognizedText = NULL WHERE recognizedText IS NOT NULL")
+            try db.execute(sql: "UPDATE clip SET recognizedText = NULL, recognizedLayout = NULL, recognizedSearch = NULL WHERE recognizedText IS NOT NULL")
         }
     }
 
@@ -847,8 +879,13 @@ final class Store {
             // Terms of 3 or more characters use the trigram index; all of them must match.
             let indexed = terms.filter { $0.count >= 3 }
             if !indexed.isEmpty {
+                func quoted(_ term: String) -> String { "\"" + term.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
+                // Each word as typed, or folded ("yılmaz" also finds text read as "yilmaz").
                 let match = indexed
-                    .map { "\"" + $0.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
+                    .map { term in
+                        let folded = term.searchFolded
+                        return folded == term.lowercased() ? quoted(term) : "(" + quoted(term) + " OR " + quoted(folded) + ")"
+                    }
                     .joined(separator: " AND ")
                 conditions.append("id IN (SELECT rowid FROM clip_fts WHERE clip_fts MATCH ?)")
                 _ = arguments.append(contentsOf: [match])
@@ -856,8 +893,9 @@ final class Store {
             // Shorter terms (trigrams need 3 characters) are checked with LIKE on the remaining rows.
             for term in terms where term.count < 3 {
                 let pattern = "%" + Self.escapeLike(term) + "%"
-                conditions.append("(searchText LIKE ? ESCAPE '\\' OR sourceAppName LIKE ? ESCAPE '\\' OR recognizedText LIKE ? ESCAPE '\\')")
-                _ = arguments.append(contentsOf: [pattern, pattern, pattern])
+                let folded = "%" + Self.escapeLike(term.searchFolded) + "%"
+                conditions.append("(searchText LIKE ? ESCAPE '\\' OR sourceAppName LIKE ? ESCAPE '\\' OR recognizedSearch LIKE ? ESCAPE '\\')")
+                _ = arguments.append(contentsOf: [pattern, pattern, folded])
             }
 
             let filter = conditions.isEmpty ? "" : "WHERE " + conditions.joined(separator: " AND ")

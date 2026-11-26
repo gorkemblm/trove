@@ -47,7 +47,7 @@ final class TextIndexer {
                 guard !Task.isCancelled, app.store === store else { return }
                 // An image Vision cannot read is marked empty, so it is not tried again and again.
                 do {
-                    try store.setRecognizedText(id: id, text ?? "")
+                    try store.setRecognizedText(id: id, text)
                 } catch {
                     log.error("Saving recognized text failed: \(error.localizedDescription, privacy: .public)")
                     return // Otherwise the same image would come back in the next batch.

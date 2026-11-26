@@ -91,6 +91,19 @@ enum SnapshotRunner {
             try write(render(model), to: outputDirectory.appendingPathComponent("panel-group-chip.png"))
             model.category = .all
 
+            // Text in images: a search that matches the text in the screenshot, the boxes on it,
+            // the list line, and the large preview with the text next to the image.
+            model.query = "invoice"
+            model.selectedID = clips["screenshot"]?.id
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-image-text-search.png"))
+            model.query = ""
+            model.selectedID = clips["screenshot"]?.id
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-image-text.png"))
+            if let shot = clips["screenshot"], let image = model.image(for: shot) {
+                try write(renderView(LargePreviewView(clip: shot, image: image, terms: ["paid"], copy: {}), size: NSSize(width: 900, height: 640)),
+                          to: outputDirectory.appendingPathComponent("large-preview-image-text.png"))
+            }
+
             // The actions menu (⌘K) for a screenshot, and filtered.
             model.selectedID = clips["screenshot"]?.id
             model.toggleActions()
@@ -303,7 +316,22 @@ enum SnapshotRunner {
                                           byteSize: png.count, hash: ClipClassifier.hash("image", png))
             clips["image"] = try store.ingest(content, source: ClipSource(bundleID: "com.apple.Preview", appName: "Preview", url: nil),
                                               at: now.addingTimeInterval(-3600))
-            var shot = content
+            // The screenshot is of a document with text, so Vision has something to read.
+            let page = NSImage(size: NSSize(width: 960, height: 540), flipped: true) { rect in
+                NSColor.white.setFill(); rect.fill()
+                let lines = [("Invoice 2026-114", 46.0, NSFont.Weight.bold), ("Customer: Ayşe Yılmaz", 30, .regular),
+                             ("Amount due: 1.250 TL", 30, .regular), ("Due date: 30 November 2026", 30, .regular),
+                             ("Status: paid", 30, .medium)]
+                var y = 60.0
+                for (text, size, weight) in lines {
+                    (text as NSString).draw(at: NSPoint(x: 70, y: y), withAttributes: [
+                        .font: NSFont.systemFont(ofSize: size, weight: weight), .foregroundColor: NSColor.black])
+                    y += size + 36
+                }
+                return true
+            }
+            var shot = page.tiffRepresentation.flatMap(NSBitmapImageRep.init(data:))?.representation(using: .png, properties: [:])
+                .flatMap { ClipClassifier.imageContent(data: $0, maxBytes: 10_000_000) } ?? content
             shot.hash = "screenshot"
             shot.text = "/Users/me/Desktop/Screenshots/Screenshot 2026-11-25 at 22.15.45.png"
             clips["screenshot"] = try store.ingest(shot, source: ClipSource(bundleID: "com.apple.screenshot.launcher", appName: "Screenshot", url: nil),
@@ -334,7 +362,8 @@ enum SnapshotRunner {
         }
         // The screenshot has text in it (the "Text" badge in the detail).
         if let id = clips["screenshot"]?.id {
-            try store.setRecognizedText(id: id, "Invoice 2026-114 · paid")
+            let full = try store.clip(id: id)
+            try store.setRecognizedText(id: id, full.flatMap(store.imageData(for:)).flatMap(TextRecognizer.recognize))
             clips["screenshot"] = try store.clip(id: id)
         }
 

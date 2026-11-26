@@ -92,6 +92,10 @@ struct Clip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, Mutabl
     /// Images: the text Vision found in the picture, for search and "Copy Text". Nil: not read
     /// yet; empty: read, no text. List queries do not load it.
     var recognizedText: String? = nil
+    /// The same text line by line, with each line's place in the image (RecognizedText as JSON).
+    var recognizedLayout: String? = nil
+    /// The same text folded (`searchFolded`) for the search index: "Yılmaz" finds "Yilmaz".
+    var recognizedSearch: String? = nil
 
     var rowID: Int64 { id ?? -1 }
 

@@ -35,7 +35,6 @@ struct DetailView: View {
                     .overlay(alignment: .topTrailing) {
                         HStack(spacing: 6) {
                             if model.preview?.formatted == true { FormattedBadge() }
-                            if model.imageText != nil { ImageTextBadge(copy: model.copyImageText) }
                             if model.canRenameSelected {
                                 PreviewButton(symbol: "pencil", help: L("Name this hidden item (⌘R)"), action: model.requestRename)
                             }
@@ -146,12 +145,7 @@ struct DetailView: View {
             }
         case .image:
             if let image = model.image(for: clip) {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                ImageWithText(image: image, model: model)
             } else {
                 EmptyStateView(symbol: "photo", title: "Image not found", message: "The image file is missing from the storage folder.")
             }
@@ -174,12 +168,7 @@ struct DetailView: View {
             if clip.imageFile != nil, let image = model.image(for: clip) {
                 // A copied image file: its picture, with the file name under it.
                 VStack(alignment: .leading, spacing: 8) {
-                    Image(nsImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    ImageWithText(image: image, model: model)
                     Text(verbatim: clip.filePaths.count > 1
                          ? String(localized: "\(StorageLocation.displayPath(URL(fileURLWithPath: clip.filePaths[0]))) and \((clip.filePaths.count - 1).formatted()) more")
                          : StorageLocation.displayPath(URL(fileURLWithPath: clip.filePaths.first ?? "")))
@@ -381,5 +370,140 @@ struct GroupSelectionView: View {
         return counts.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key.rawValue < $1.key.rawValue }
             .map { "\($0.key.title) × \($0.value.formatted())" }
             .joined(separator: " · ")
+    }
+}
+
+/// An image in the detail. When it has text: boxes around the searched words, and a bar at the
+/// bottom that says what ⌘⇧C copies (the matching line, or all the text).
+struct ImageWithText: View {
+    let image: NSImage
+    @ObservedObject var model: PanelModel
+
+    var body: some View {
+        let terms = model.searchTerms
+        let boxes = model.imageTextLayout?.highlights(for: terms) ?? []
+        HighlightedImage(image: image, boxes: boxes)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(alignment: .bottom) {
+            if model.imageText != nil { textBar.padding(8) }
+        }
+    }
+
+    /// "“Invoice 2026-114” · Copy Line ⌘⇧C" while searching; "Text in image · 14 lines" otherwise.
+    private var textBar: some View {
+        let matches = model.imageMatches
+        let lineCount = model.imageTextLayout?.lines.count ?? 0
+        return Button(action: model.copyImageText) {
+            HStack(spacing: 8) {
+                Image(systemName: "text.viewfinder").font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(matches.isEmpty ? Theme.muted : Color.yellow)
+                Group {
+                    if let first = matches.first {
+                        Text(ClipRow.highlighted(first.text, terms: model.searchTerms))
+                            + Text(verbatim: matches.count > 1 ? "  +\(matches.count - 1)" : "").foregroundColor(Theme.faint)
+                    } else {
+                        Text(lineCount == 1 ? String(localized: "Text in image · 1 line") : String(localized: "Text in image · \(lineCount.formatted()) lines"))
+                    }
+                }
+                .font(.system(size: 12))
+                .lineLimit(1)
+                .truncationMode(.tail)
+                Spacer(minLength: 8)
+                Text(matches.isEmpty ? L("Copy All Text") : (matches.count == 1 ? L("Copy Line") : L("Copy Lines")))
+                    .font(.system(size: 11.5, weight: .semibold))
+                HStack(spacing: 2) { Kbd("⌘"); Kbd("⇧"); Kbd("C") }
+            }
+            .foregroundStyle(Theme.text)
+            .padding(.leading, 10)
+            .padding(.trailing, 6)
+            .frame(height: 30)
+            // Solid, so it reads over light and dark images alike.
+            .background(Theme.dialog.opacity(0.96), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Theme.panelStroke))
+            .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .help(matches.isEmpty ? L("Copy all the text in this image") : L("Copy the lines that match your search"))
+    }
+
+}
+
+/// An aspect-fit image with yellow boxes (fractions of the image size, from the top left).
+struct HighlightedImage: View {
+    let image: NSImage
+    let boxes: [CGRect]
+
+    var body: some View {
+        GeometryReader { geometry in
+            let fitted = Self.fittedRect(image: image.size, in: geometry.size)
+            ZStack(alignment: .topLeading) {
+                Image(nsImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                ForEach(Array(boxes.enumerated()), id: \.offset) { _, box in
+                    let rect = CGRect(x: fitted.minX + box.minX * fitted.width - 2, y: fitted.minY + box.minY * fitted.height - 2,
+                                      width: box.width * fitted.width + 4, height: box.height * fitted.height + 4)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.yellow.opacity(0.28))
+                        .overlay(RoundedRectangle(cornerRadius: 3).strokeBorder(Color.yellow, lineWidth: 1.5))
+                        .frame(width: rect.width, height: rect.height)
+                        .offset(x: rect.minX, y: rect.minY)
+                }
+            }
+        }
+    }
+
+    /// Where an aspect-fit image sits inside its frame.
+    static func fittedRect(image: CGSize, in frame: CGSize) -> CGRect {
+        guard image.width > 0, image.height > 0, frame.width > 0, frame.height > 0 else { return .zero }
+        let scale = min(frame.width / image.width, frame.height / image.height)
+        let size = CGSize(width: image.width * scale, height: image.height * scale)
+        return CGRect(x: (frame.width - size.width) / 2, y: (frame.height - size.height) / 2, width: size.width, height: size.height)
+    }
+}
+
+/// The large preview's text column: every line read in the image, selectable, searched words
+/// marked; and a button for all of it.
+struct ImageTextPanel: View {
+    let text: RecognizedText
+    let terms: [String]
+
+    private var attributed: NSAttributedString {
+        let plain = text.plainText
+        let result = NSMutableAttributedString(string: plain, attributes: [
+            .font: NSFont.systemFont(ofSize: 13.5), .foregroundColor: NSColor.labelColor,
+        ])
+        for range in RecognizedText.matchRanges(in: plain, terms: terms) {
+            result.addAttribute(.backgroundColor, value: NSColor.systemYellow.withAlphaComponent(0.45), range: NSRange(range, in: plain))
+        }
+        return result
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Label("Text in Image", systemImage: "text.viewfinder").font(.system(size: 12.5, weight: .semibold))
+                Spacer()
+                Button(L("Copy All")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(text.plainText, forType: .string)
+                    NSPasteboard.general.setData(Data(), forType: Copier.ownType)
+                }
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 40)
+            Theme.divider.frame(height: 1)
+            AttributedTextView(text: attributed, wraps: true)
+            Text("Select any part and press ⌘C.")
+                .font(.system(size: 11.5))
+                .foregroundStyle(Theme.faint)
+                .padding(.horizontal, 14)
+                .frame(height: 30, alignment: .leading)
+        }
     }
 }

@@ -50,3 +50,14 @@ extension String {
     /// Nil for an empty string.
     var nilIfEmpty: String? { isEmpty ? nil : self }
 }
+
+extension String {
+    /// Lower case, without accents, and the Turkish letters as plain ones (ı İ → i, ş → s,
+    /// ğ → g, ç → c, ö → o, ü → u): "Yılmaz" and "YILMAZ" both become "yilmaz". Vision reads
+    /// Turkish text without its letters, and people type it both ways.
+    var searchFolded: String {
+        replacingOccurrences(of: "İ", with: "i").replacingOccurrences(of: "I", with: "i")
+            .replacingOccurrences(of: "ı", with: "i")
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+    }
+}

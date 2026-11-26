@@ -113,11 +113,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
     }
 
     /// Case, accents and the Turkish dotted and dotless i do not matter: "gor" finds Görseller.
-    static func fold(_ text: String) -> String {
-        text.replacingOccurrences(of: "İ", with: "i").replacingOccurrences(of: "I", with: "i")
-            .replacingOccurrences(of: "ı", with: "i")
-            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "en_US_POSIX"))
-    }
+    static func fold(_ text: String) -> String { text.searchFolded }
 
     /// How well the typed text names this group; lower is better, nil is no match.
     /// 0: the shown name starts with it. 1: the other language's name does.
@@ -320,6 +316,10 @@ final class PanelModel: ObservableObject {
     @Published private(set) var preview: PreviewContent?
     /// The re-indented form of the selected JSON or XML, when it differs from the original.
     private(set) var formattedCopy: String?
+    /// The text read in the selected image, line by line, with each line's place in it.
+    @Published private(set) var imageTextLayout: RecognizedText?
+    /// For a search: the line under each image the text in it matched ("…invoice 2026-114…").
+    @Published private(set) var imageSnippets: [Int64: String] = [:]
     /// The panel lock screen is showing. No history is loaded while it is.
     @Published private(set) var panelLocked = false
     /// Hidden opens after Touch ID and locks again when the panel closes.
@@ -357,12 +357,16 @@ final class PanelModel: ObservableObject {
         revealFailed = false
         preview = nil
         formattedCopy = nil
+        imageTextLayout = nil
         guard let selectedID else {
             detail = nil
             return
         }
         detail = (try? app?.store?.clip(id: selectedID)) ?? selected
         if let detail {
+            if detail.kind == .image || detail.isImageFiles {
+                imageTextLayout = RecognizedText.load(layout: detail.recognizedLayout, text: detail.recognizedText)
+            }
             preview = PreviewContent.make(for: detail, limit: PreviewContent.detailLimit)
             if detail.kind == .data, let text = detail.text, text.count <= 1_000_000,
                let format = ContentDetector.DataFormat(rawValue: detail.format ?? ""), format.canPrettyPrint,
@@ -493,6 +497,7 @@ final class PanelModel: ObservableObject {
             // An empty group has nothing to move through: the arrows stay in the groups.
             // While searching, they stay with the results, even when there are none.
             if clips.isEmpty, search.isEmpty { focusArea = .sidebar }
+            imageSnippets = Self.snippets(for: clips, search: search, store: store)
             // Picks that left the list (deleted, or filtered out by the search) are dropped.
             if !picked.isEmpty { picked.formIntersection(clips.compactMap(\.id)) }
             if resetSelection || selected == nil {
@@ -822,14 +827,44 @@ final class PanelModel: ObservableObject {
 
     /// The text Vision read in the selected image, when there is any.
     var imageText: String? {
-        guard !hasGroupSelection, let detail, detail.kind == .image || detail.isImageFiles else { return nil }
-        return detail.recognizedText?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        guard !hasGroupSelection else { return nil }
+        return imageTextLayout?.plainText.nilIfEmpty
     }
 
-    /// ⌘⇧C: the text in the selected image goes to the clipboard (or is pasted).
+    /// The words of the current search ("/group" text is no search).
+    var searchTerms: [String] { RecognizedText.terms(of: searchQuery) }
+
+    /// Lines of the selected image that contain the searched words.
+    var imageMatches: [RecognizedText.Line] {
+        guard !hasGroupSelection else { return [] }
+        return imageTextLayout?.lines(matching: searchTerms) ?? []
+    }
+
+    /// ⌘⇧C: while searching, the lines that matched; otherwise all the text in the image.
     func copyImageText() {
+        let matches = imageMatches
+        guard !matches.isEmpty else { copyAllImageText(); return }
+        let text = matches.map(\.text).joined(separator: "\n")
+        let message = matches.count == 1 ? String(localized: "Copied: \(matches[0].text)") : String(localized: "Copied \(matches.count.formatted()) Lines")
+        app?.copyText(text, message: message)
+    }
+
+    func copyAllImageText() {
         guard let imageText else { NSSound.beep(); return }
-        app?.copyText(imageText, message: L("Copied Text from Image"))
+        app?.copyText(imageText, message: L("Copied All Text from Image"))
+    }
+
+    /// Images found by the text in them (not by their name) get a line of that text in the list.
+    private static func snippets(for clips: [Clip], search: String, store: Store) -> [Int64: String] {
+        let terms = RecognizedText.terms(of: search)
+        guard !terms.isEmpty else { return [:] }
+        let images = clips.filter { clip in
+            guard clip.kind == .image || clip.isImageFiles else { return false }
+            let title = clip.title
+            return !terms.allSatisfy { title.range(of: $0, options: [.caseInsensitive, .diacriticInsensitive]) != nil }
+        }
+        guard let texts = try? store.recognizedTexts(ids: images.compactMap(\.id)) else { return [:] }
+        return texts.compactMapValues { RecognizedText.snippet(of: $0, terms: terms) }
     }
 
     /// The text indexer read an image: the selected one shows its text at once.
@@ -851,7 +886,7 @@ final class PanelModel: ObservableObject {
     /// The eye button: text, code, data and images open in a larger window.
     var canOpenLargePreview: Bool {
         guard let detail else { return false }
-        return [.text, .code, .data, .image].contains(detail.kind)
+        return [.text, .code, .data, .image].contains(detail.kind) || (detail.isImageFiles && detail.imageFile != nil)
     }
 
     func openLargePreview() {
@@ -993,8 +1028,16 @@ final class PanelModel: ObservableObject {
                 })
             }
             if imageText != nil {
-                list.append(PanelAction(id: "imageText", title: L("Copy Text from Image"), symbol: "text.viewfinder",
-                                        keys: ["⌘", "⇧", "C"], section: 0) { [weak self] in self?.copyImageText() })
+                let matches = imageMatches.count
+                if matches > 0 {
+                    list.append(PanelAction(id: "imageLine", title: matches == 1 ? L("Copy Matching Line") : String(localized: "Copy \(matches.formatted()) Matching Lines"),
+                                            symbol: "text.viewfinder", keys: ["⌘", "⇧", "C"], section: 0) { [weak self] in self?.copyImageText() })
+                    list.append(PanelAction(id: "imageText", title: L("Copy All Text from Image"), symbol: "doc.plaintext",
+                                            section: 0) { [weak self] in self?.copyAllImageText() })
+                } else {
+                    list.append(PanelAction(id: "imageText", title: L("Copy All Text from Image"), symbol: "text.viewfinder",
+                                            keys: ["⌘", "⇧", "C"], section: 0) { [weak self] in self?.copyAllImageText() })
+                }
             }
             if canOpenInTerminal, let terminal = app?.terminal {
                 list.append(PanelAction(id: "terminal", title: String(localized: "Open in \(terminal.name)"), symbol: "terminal",

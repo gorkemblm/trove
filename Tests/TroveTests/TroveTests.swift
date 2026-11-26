@@ -1655,11 +1655,29 @@ struct ImageTextTests {
         return try #require(rep.representation(using: .png, properties: [:]))
     }
 
-    @Test func visionReadsTurkishText() throws {
-        let text = try #require(TextRecognizer.recognize(try Self.imageWithText("Fatura Şubat 2026 ödendi")))
-        #expect(text.localizedCaseInsensitiveContains("fatura"))
-        #expect(text.contains("2026"))
+    @Test func visionReadsTextWithItsPlace() throws {
+        let read = try #require(TextRecognizer.recognize(try Self.imageWithText("Fatura Şubat 2026 ödendi")))
+        let line = try #require(read.lines.first)
+        #expect(read.plainText.localizedCaseInsensitiveContains("fatura"))
+        #expect(read.plainText.contains("2026"))
+        // The text is drawn in the left part of the image, a little below the middle.
+        #expect(line.x > 0 && line.x < 0.2 && line.w > 0.3 && line.y > 0.2 && line.y < 0.8)
         #expect(TextRecognizer.recognize(Data("not an image".utf8)) == nil)
+    }
+
+    private static func line(_ text: String, y: Double = 0) -> RecognizedText.Line {
+        RecognizedText.Line(text: text, x: 0.1, y: y, w: 0.8, h: 0.1)
+    }
+
+    @Test func matchesIgnoreCaseAccentsAndTurkishLetters() {
+        let text = RecognizedText(lines: [Self.line("Customer: Ayse Yilmaz"), Self.line("Status: paid", y: 0.5)])
+        // Vision reads Turkish without its letters; a search with them still matches.
+        #expect(text.lines(matching: ["Yılmaz"]).map(\.text) == ["Customer: Ayse Yilmaz"])
+        #expect(text.lines(matching: ["PAID"]).map(\.text) == ["Status: paid"])
+        #expect(text.lines(matching: ["fatura"]).isEmpty)
+        let box = try? #require(text.highlights(for: ["paid"]).first)
+        #expect(box.map { $0.minX > 0.5 && $0.maxX <= 0.9 + 0.0001 && $0.minY == 0.5 } == true) // The end of the line.
+        #expect(RecognizedText.snippet(of: "Status: paid\nDue: 30 November", terms: ["due"]) == "Status: paid · Due: 30 November")
     }
 
     @Test @MainActor func searchFindsImagesByTheirText() throws {
@@ -1671,16 +1689,24 @@ struct ImageTextTests {
 
         #expect(try store.imagesAwaitingRecognition(limit: 10).map(\.id) == [id])
         #expect(try store.recognitionProgress() == (done: 0, total: 1))
-        try store.setRecognizedText(id: id, "Kargo takip numarası 4815")
+        try store.setRecognizedText(id: id, RecognizedText(lines: [Self.line("Kargo takip numarasi 4815"), Self.line("Alici: Gorkem Yilmaz", y: 0.4)]))
         #expect(try store.imagesAwaitingRecognition(limit: 10).isEmpty)
         #expect(try store.recognitionProgress() == (done: 1, total: 1))
 
         #expect(try store.fetch(category: .images, query: "kargo", limit: 10).map(\.id) == [id]) // Trigram index.
+        #expect(try store.fetch(category: .all, query: "numarası", limit: 10).map(\.id) == [id]) // Turkish letters typed.
+        #expect(try store.fetch(category: .all, query: "Görkem", limit: 10).map(\.id) == [id])
         #expect(try store.fetch(category: .all, query: "48", limit: 10).map(\.id) == [id])      // Short terms: LIKE.
         #expect(try store.fetch(category: .all, query: "fatura", limit: 10).isEmpty)
-        // The list does not load it; the detail does.
+        #expect(try store.recognizedTexts(ids: [id])[id]?.hasPrefix("Kargo") == true)
+        // The list does not load it; the detail does, with each line's place.
         #expect(try store.fetch(category: .images, query: "", limit: 10).first?.recognizedText == nil)
-        #expect(try store.clip(id: id)?.recognizedText == "Kargo takip numarası 4815")
+        let full = try #require(try store.clip(id: id))
+        #expect(RecognizedText.load(layout: full.recognizedLayout, text: full.recognizedText)?.lines.count == 2)
+
+        // An image Vision cannot read is marked, so it is not read again.
+        try store.setRecognizedText(id: id, nil)
+        #expect(try store.imagesAwaitingRecognition(limit: 10).isEmpty)
 
         try store.clearRecognizedText()
         #expect(try store.fetch(category: .all, query: "kargo", limit: 10).isEmpty)
