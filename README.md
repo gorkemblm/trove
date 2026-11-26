@@ -56,6 +56,7 @@
 **Homebrew**
 
 ```sh
+brew trust --cask gorkemblm/tap/trove     # Homebrew 7 and later ask once for a tap outside Homebrew
 brew install --cask gorkemblm/tap/trove
 ```
 
