@@ -443,6 +443,7 @@ T = {
 "Go to group": "Gruba git",
 "Go to a group": "Bir gruba git",
 "Actions": "Eylemler",
+    "Report an Issue…": "Sorun Bildir…",
     "Changing the location, or this option, moves the history.": "Konumu ya da bu seçeneği değiştirmek geçmişi taşır.",
     "Choose a location. This is what Trove keeps there; nothing else in the folder is touched.": "Bir konum seçin. Trove orada yalnızca aşağıdakileri tutar; klasördeki başka hiçbir şeye dokunmaz.",
     "Encrypted database · encrypted images · key file": "Şifreli veritabanı · şifreli görseller · anahtar dosyası",

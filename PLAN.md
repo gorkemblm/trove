@@ -1,6 +1,6 @@
 # Clipboard Uygulaması — Aşamalı Plan
 
-25 Kasım 2026 · Kaynak: https://claude.ai/artifact/WqD5R4LV8YUWdcwewLYc9s
+25 Kasım 2026
 
 ## Özet
 
@@ -49,7 +49,6 @@ Ayarlar ekranı (⌘,) izleyiciyi, depolamayı, temizleyiciyi ve kısayolu yapı
 ## Tasarım
 
 Seçilen yerleşim: **B — Kenar çubuğu** (kategoriler solda ve sayılarıyla, ortada liste, sağda önizleme ve detay). Ayarlar ekranı aynı canvas'ta.
-Tasarım canvas'ı: https://claude.ai/artifact/S9yB8Dx9ParN7v2y7gZ7tW
 
 ## Aşama 0 — Proje kurulumu
 

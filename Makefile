@@ -4,6 +4,9 @@ SIGN_ID   ?= Developer ID Application
 # Build products stay outside the Seafile folder, so they do not sync.
 SCRATCH   := $(HOME)/Library/Caches/$(APP_NAME)-build
 APP       := build/$(APP_NAME).app
+VERSION   := $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+# Where releases are published (the public releases repository).
+RELEASES_REPO := gorkemblm/trove-releases
 # Zetetic LLC, publisher of the official SQLCipher.xcframework.
 SQLCIPHER_TEAM := PD7G6HRMGV
 SWIFT     := swift build -c $(CONFIG) --scratch-path "$(SCRATCH)"
@@ -13,7 +16,7 @@ TIMESTAMP ?= --timestamp=none
 # keychain as this notarytool profile. A team key works for every app of the team.
 NOTARY_PROFILE ?= hashdrop-notary
 
-.PHONY: help build test layout demos window-check icon app release appcast run stop restart logs verify clean
+.PHONY: help build test layout demos window-check icon app release appcast version run stop restart logs verify clean
 
 help:
 	@echo "make build    Compile ($(CONFIG))"
@@ -22,7 +25,9 @@ help:
 	@echo "make window-check  Layout checks plus one that opens a real window on screen"
 	@echo "make icon     Redraw Resources/AppIcon.icns"
 	@echo "make app      Compile, assemble and sign $(APP)"
-	@echo "make release  Signed with a timestamp, notarized, stapled, in build/$(APP_NAME).dmg"
+	@echo "make release  Signed with a timestamp, notarized, stapled: build/releases/$(APP_NAME)-<version>.dmg"
+	@echo "make appcast  Sparkle update list for build/releases, with release notes from CHANGELOG.md"
+	@echo "make version NEW=x.y.z  Set the version (Info.plist, README badge)"
 	@echo "make run      Build the app and open it"
 	@echo "make stop     Quit the running app"
 	@echo "make restart  stop + run"
@@ -108,17 +113,32 @@ release: app
 	xcrun notarytool submit build/$(APP_NAME).dmg --keychain-profile "$(NOTARY_PROFILE)" --wait
 	xcrun stapler staple build/$(APP_NAME).dmg
 	spctl --assess --type open --context context:primary-signature -v build/$(APP_NAME).dmg
-	@echo "Notarized: build/$(APP_NAME).dmg"
+	mkdir -p build/releases
+	cp build/$(APP_NAME).dmg "build/releases/$(APP_NAME)-$(VERSION).dmg"
+	python3 Scripts/release_notes.py $(VERSION) "build/releases/$(APP_NAME)-$(VERSION).html"
+	@echo "Notarized: build/releases/$(APP_NAME)-$(VERSION).dmg"
 
 # The update list (Sparkle appcast) for the notarized disk images in build/releases. Each
-# image is signed with the EdDSA key in the login keychain (generate_keys made it once).
-# DOWNLOAD_PREFIX is where the images are published, for example a GitHub release URL.
+# image is signed with the EdDSA key in the login keychain (generate_keys made it once), and
+# its release notes (from CHANGELOG.md) are embedded. Each image is downloaded from its own
+# GitHub release: .../releases/download/v<version>/Trove-<version>.dmg.
 SPARKLE_BIN = $(SCRATCH)/artifacts/sparkle/Sparkle/bin
+DOWNLOADS = https://github.com/$(RELEASES_REPO)/releases/download
 appcast:
-	@[ -n "$(DOWNLOAD_PREFIX)" ] || { echo "Set DOWNLOAD_PREFIX=https://…/"; exit 1; }
-	mkdir -p build/releases
-	"$(SPARKLE_BIN)/generate_appcast" --download-url-prefix "$(DOWNLOAD_PREFIX)" build/releases
+	@ls build/releases/$(APP_NAME)-*.dmg >/dev/null 2>&1 || { echo "No disk images in build/releases: run make release first"; exit 1; }
+	"$(SPARKLE_BIN)/generate_appcast" --embed-release-notes \
+		--download-url-prefix "$(DOWNLOADS)/" --link "https://github.com/$(RELEASES_REPO)" build/releases
+	sed -E -i '' 's#$(DOWNLOADS)/($(APP_NAME)-([0-9][0-9.]*)\.dmg)#$(DOWNLOADS)/v\2/\1#g' build/releases/appcast.xml
+	@grep -o 'url="[^"]*"' build/releases/appcast.xml
 	@echo "Appcast: build/releases/appcast.xml"
+
+# make version NEW=0.2.0: the version in Info.plist and the README badge. Then add a
+# "## 0.2.0" section to CHANGELOG.md.
+version:
+	@[ -n "$(NEW)" ] || { echo "Set NEW=x.y.z"; exit 1; }
+	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(NEW)" Resources/Info.plist
+	sed -E -i '' 's#badge/version-[0-9.]+-#badge/version-$(NEW)-#; s#alt="Version [0-9.]+"#alt="Version $(NEW)"#' README.md
+	@grep -q "^## $(NEW)$$" CHANGELOG.md || echo "Now add a '## $(NEW)' section to CHANGELOG.md"
 
 run: app
 	open "$(APP)"

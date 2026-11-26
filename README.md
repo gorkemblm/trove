@@ -1,34 +1,56 @@
-# Trove
+<p align="center">
+  <img src="Docs/icon.png" width="128" height="128" alt="Trove icon">
+</p>
 
-**An encrypted clipboard history for macOS.** Trove keeps what you copy — text, links, images, files, colors, code — so you can find it again in a second. Open it with **⌥ Space**, type, press **↵**, and it pastes into the app you were in.
+<h1 align="center">Trove</h1>
 
-Everything stays on your Mac, encrypted. Trove itself has no network access.
+<p align="center">
+  <b>An encrypted clipboard history for macOS.</b><br>
+  Everything you copy, found again in a second: <kbd>⌥</kbd> <kbd>Space</kbd>, type, <kbd>↵</kbd>.
+</p>
 
-> Status: pre-release (0.1.0), in active development. macOS 14 or later.
+<p align="center">
+  <a href="https://github.com/gorkemblm/trove-releases/releases/latest"><img src="https://img.shields.io/badge/version-0.1.0-2F6FEB" alt="Version 0.1.0"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14 or later">
+  <img src="https://img.shields.io/badge/Apple%20Silicon-native-111111" alt="Apple Silicon">
+  <img src="https://img.shields.io/badge/notarized-by%20Apple-2EA043" alt="Notarized by Apple">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6E7781" alt="MIT License"></a>
+</p>
 
-![Find and paste](Docs/demos/browse.gif)
+<p align="center">
+  <a href="https://github.com/gorkemblm/trove-releases/releases/latest"><b>Download</b></a> ·
+  <a href="#features">Features</a> ·
+  <a href="#privacy-and-security">Privacy</a> ·
+  <a href="#support">Support</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
 
----
+<p align="center">
+  <img src="Docs/demos/browse.gif" width="720" alt="Find and paste with Trove">
+</p>
 
-## Contents
+## Highlights
 
-- [The basics](#the-basics)
-- [Finding things](#finding-things): search, groups with `/`, apps with `@`
-- [Doing things](#doing-things): actions (⌘K), editing and transforms (⌘E), snippets (⌘S)
-- [Images and screenshots](#images-and-screenshots): text in images, screenshots, image files
-- [Several items at once](#several-items-at-once): select, paste, drag
-- [Hidden items and sensitive content](#hidden-items-and-sensitive-content)
-- [Privacy and security](#privacy-and-security): what is stored, how it is encrypted
-- [Import and export](#import-and-export): Raycast, Maccy, Alfred
-- [Settings](#settings)
-- [All keyboard shortcuts](#all-keyboard-shortcuts)
-- [Building from source](#building-from-source)
-- [Project layout](#project-layout)
-- [Acknowledgements](#acknowledgements)
+- **Fast:** opens over any app with ⌥ Space; search is instant across tens of thousands of items.
+- **Private:** the history is encrypted on disk, and the app itself has no network access.
+- **Finds text inside screenshots:** images are read on your Mac, so a word in a screenshot finds it.
+- **Keyboard first:** jump to a group with `/`, to an app with `@`, every action with ⌘K.
+- **More than history:** named snippets, an editor with text transforms, several items at once, drag and drop.
+- **Brings your history along:** import from Raycast, Maccy and Alfred.
 
----
+## Install
 
-## The basics
+1. Download **Trove.dmg** from the [latest release](https://github.com/gorkemblm/trove-releases/releases/latest).
+2. Open it and drag **Trove** to **Applications**.
+3. Open Trove. A short setup asks where to keep your history, offers a recovery password, and shows how Trove works.
+
+Trove is signed and notarized by Apple. It checks for updates with [Sparkle](https://sparkle-project.org) and asks before it turns on automatic checks.
+
+**Requirements:** macOS 14 Sonoma or later, on a Mac with Apple silicon.
+
+## Features
+
+### The basics
 
 1. **Open** — press **⌥ Space** in any app. The panel opens over it; the app you were in keeps its place.
 2. **Find** — type to search. **↑ ↓** move through the items, **← →** move between the groups on the left and the items.
@@ -189,6 +211,9 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 
 ## Settings
 
+<details>
+<summary>What each Settings tab holds</summary>
+
 | Tab | What is there |
 | --- | --- |
 | **General** | Open at login · the panel shortcut · pause recording, and a pause shortcut · which group the panel opens in · what ↵ does (paste or copy) · terminal for ⌘T · language · menu bar and Dock icons · screenshot folder · sidebar groups · appearance (dark, light, system) · version, *How Trove Works*, acknowledgements · updates |
@@ -197,7 +222,12 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 | **Privacy** | Sensitive content · text in images · page addresses from Chromium browsers · ignored apps |
 | **Shortcuts** | Every shortcut, by section |
 
+</details>
+
 ## All keyboard shortcuts
+
+<details>
+<summary>Every shortcut, anywhere and in the panel</summary>
 
 **Anywhere**
 
@@ -230,7 +260,12 @@ Items you already have are **merged**, not duplicated. **Export** (*Settings ›
 | ⌘, | Settings |
 | Esc | Clear the search, end select mode, close |
 
+</details>
+
 ## Building from source
+
+<details>
+<summary>Requirements and make targets</summary>
 
 Requirements: macOS 14+, the Xcode Command Line Tools (Swift 6.1). No Xcode project — SwiftPM and a Makefile.
 
@@ -240,14 +275,21 @@ make run       # build and open it
 make test      # unit tests (release, with timing checks)
 make layout    # render the UI offscreen (English and Turkish) and run layout checks
 make demos     # render the animations used here and in the app
-make release   # sign with a timestamp, notarize, staple, and make build/Trove.dmg
+make release   # sign with a timestamp, notarize, staple: build/releases/Trove-<version>.dmg
+make appcast   # the Sparkle update list, with release notes from CHANGELOG.md
+make version NEW=0.2.0   # set the version in Info.plist and in the README badge
 ```
 
 `SIGN_ID` (default: *Developer ID Application*) and `NOTARY_PROFILE` (a `notarytool` keychain profile) can be set on the command line. SQLCipher comes as Zetetic's signed binary framework (its Team ID is checked); GRDB is vendored with its SQLCipher changes in `Vendor/GRDB`; Sparkle comes as its binary framework.
 
 The layout checks matter: they render every kind of item in both languages and fail if anything in the panel moves sideways, if the sidebar does not fit, or if a button changes place between items.
 
+</details>
+
 ## Project layout
+
+<details>
+<summary>Where things are in the source</summary>
 
 ```
 Sources/Trove/
@@ -264,8 +306,20 @@ Resources/          Info.plist, entitlements, icon, translations, demos, licence
 Vendor/GRDB/        GRDB 7 with SQLCipher support
 ```
 
+</details>
+
+## Support
+
+- **Questions, bugs and ideas:** [open an issue](https://github.com/gorkemblm/trove-releases/issues). Please include your macOS version, your Trove version (*Settings › General › Version*) and the steps that show the problem. The menu bar menu has a shortcut: *Report an Issue…*
+- **Security problems:** please report them privately, as described in [SECURITY.md](SECURITY.md), not in a public issue.
+- **Updates:** *Check for Updates…* in the menu bar menu or in *Settings › General*. What changed in each version is in the [changelog](CHANGELOG.md).
+
 ## Acknowledgements
 
 Trove is built with [GRDB](https://github.com/groue/GRDB.swift) (MIT), [SQLCipher](https://www.zetetic.net/sqlcipher/) Community Edition (BSD-style) and [Sparkle](https://sparkle-project.org) (MIT). Their licences are in *Settings › General › Acknowledgements* and in `Resources/Licenses`.
 
 Trove is not affiliated with Raycast, Maccy or Alfred; their names appear only to describe what can be imported.
+
+## License
+
+Trove is released under the [MIT License](LICENSE).

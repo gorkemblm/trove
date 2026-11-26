@@ -1038,11 +1038,12 @@ final class AppModel: ObservableObject {
         let quit = MenuAction { [weak self] in self?.quit() }
         let update = MenuAction { [weak self] in self?.updates?.check() }
         let tour = MenuAction { [weak self] in self?.showTour() }
+        let support = MenuAction { NSWorkspace.shared.open(AppInfo.supportURL) }
         let resume = MenuAction { [weak self] in self?.resumeRecording() }
         let pause10 = MenuAction { [weak self] in self?.pauseRecording(minutes: 10) }
         let pause60 = MenuAction { [weak self] in self?.pauseRecording(minutes: 60) }
         let pauseAll = MenuAction { [weak self] in self?.pauseRecording(minutes: nil) }
-        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll, update, tour]
+        statusActions = [open, prefs, quit, resume, pause10, pause60, pauseAll, update, tour, support]
         let menu = NSMenu()
         menu.addItem(open.item(String(localized: "Open Trove")))
         menu.addItem(.separator())
@@ -1059,6 +1060,7 @@ final class AppModel: ObservableObject {
         menu.addItem(.separator())
         menu.addItem(tour.item(String(localized: "How Trove Works…")))
         menu.addItem(update.item(String(localized: "Check for Updates…")))
+        menu.addItem(support.item(String(localized: "Report an Issue…")))
         menu.addItem(prefs.item(String(localized: "Settings…"), key: ","))
         menu.addItem(quit.item(String(localized: "Quit Trove"), key: "q"))
         item.menu = menu

@@ -660,7 +660,7 @@ struct ContentDetectorTests {
             "go home",
             "- süt\n- ekmek\n- yumurta",
             "1. Giriş\n2. Yöntem\n3. Sonuç",
-            "Merhaba,\n\nEkteki dosyayı inceleyebilir misiniz?\n\nTeşekkürler,\nGörkem",
+            "Merhaba,\n\nEkteki dosyayı inceleyebilir misiniz?\n\nTeşekkürler,\nDeniz",
             "{not json at all",
             "[link](https://example.com)",
             "Fiyat: 120 TL (KDV dahil)",
@@ -1767,13 +1767,13 @@ struct ImageTextTests {
 
         #expect(try store.imagesAwaitingRecognition(limit: 10).map(\.id) == [id])
         #expect(try store.recognitionProgress() == (done: 0, total: 1))
-        try store.setRecognizedText(id: id, RecognizedText(lines: [Self.line("Kargo takip numarasi 4815"), Self.line("Alici: Gorkem Yilmaz", y: 0.4)]))
+        try store.setRecognizedText(id: id, RecognizedText(lines: [Self.line("Kargo takip numarasi 4815"), Self.line("Alici: Deniz Yilmaz", y: 0.4)]))
         #expect(try store.imagesAwaitingRecognition(limit: 10).isEmpty)
         #expect(try store.recognitionProgress() == (done: 1, total: 1))
 
         #expect(try store.fetch(category: .images, query: "kargo", limit: 10).map(\.id) == [id]) // Trigram index.
         #expect(try store.fetch(category: .all, query: "numarası", limit: 10).map(\.id) == [id]) // Turkish letters typed.
-        #expect(try store.fetch(category: .all, query: "Görkem", limit: 10).map(\.id) == [id])
+        #expect(try store.fetch(category: .all, query: "Deniz", limit: 10).map(\.id) == [id])
         #expect(try store.fetch(category: .all, query: "48", limit: 10).map(\.id) == [id])      // Short terms: LIKE.
         #expect(try store.fetch(category: .all, query: "fatura", limit: 10).isEmpty)
         #expect(try store.recognizedTexts(ids: [id])[id]?.hasPrefix("Kargo") == true)
