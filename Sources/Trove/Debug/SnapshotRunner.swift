@@ -263,6 +263,26 @@ enum SnapshotRunner {
                 )
             }
 
+            // MARK: Check 4b: nothing moves sideways, whatever is selected. A view that wants more
+            // width than it has (a long name, a wide image bar) pushes the whole panel; then the
+            // sidebar and the search bar move too.
+            let steadyRegion = CGRect(x: 0, y: 0, width: 196, height: size.height - 44)
+            model.selectedID = clips["text"]?.id
+            let steady = render(model)
+            for name in clips.keys.sorted() where name != "secret" {
+                model.selectedID = clips[name]?.id
+                failures += check("Panel: nothing moves sideways (\(name))", diff(steady, render(model), in: steadyRegion), maxWidth: 0.5)
+            }
+            for (name, query) in [("screenshot", "invoice"), ("photoFile", "holiday")] {
+                model.query = query
+                model.selectedID = clips[name]?.id
+                failures += check("Panel: nothing moves sideways (\(name), search “\(query)”)",
+                                  diff(steady, render(model), in: CGRect(x: 0, y: 56, width: 196, height: 400)), maxWidth: 0.5)
+            }
+            model.query = ""
+            model.selectedID = clips["photoFile"]?.id
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-photo-file.png"))
+
             // MARK: Check 5: list rows keep their height and title position when times change
             let rowRegion = CGRect(x: 197, y: 56, width: 330, height: 459)
             model.selectedID = clips["text"]?.id
@@ -375,6 +395,16 @@ enum SnapshotRunner {
             shot.text = "/Users/me/Desktop/Screenshots/Screenshot 2026-11-25 at 22.15.45.png"
             clips["screenshot"] = try store.ingest(shot, source: ClipSource(bundleID: "com.apple.screenshot.launcher", appName: "Screenshot", url: nil),
                                                    at: now.addingTimeInterval(-3700))
+            // A photo copied in Finder: a file item with a preview, in Images and Files.
+            var photo = CapturedContent(kind: .file, text: "/Users/me/Pictures/Holiday photo with a rather long file name.jpg",
+                                        byteSize: 60, hash: "photo-file")
+            photo.format = Clip.imageFilesFormat
+            photo.imageData = shot.imageData
+            photo.imageWidth = shot.imageWidth
+            photo.imageHeight = shot.imageHeight
+            photo.fileSize = 2_400_000
+            clips["photoFile"] = try store.ingest(photo, source: ClipSource(bundleID: "com.apple.finder", appName: "Finder", url: nil),
+                                                  at: now.addingTimeInterval(-3800))
         }
 
         for (name, text, app, bundle, minutes) in [
