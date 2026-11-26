@@ -213,10 +213,11 @@ Kaynaklar: [Raycast Import & Export](https://manual.raycast.com/import-export), 
 Bu aşama sadece uygulamayı başkalarına vermek istersen gerekir. Kişisel kullanımda atlanır.
 
 - [ ] Developer ID imzası (hesap mevcut, Aşama 0'dan beri kullanılıyor)
-- [ ] Notarization (Gatekeeper uyarısı çıkmaması için)
+- [x] Notarization (Gatekeeper uyarısı çıkmaması için) — `make release`, 26 Kasım 2026
 - [ ] Sparkle ile otomatik güncelleme. Bu, uygulamaya yalnızca güncelleme sunucusuna bağlanma izni açar.
 - [x] İlk açılış ekranı (onboarding) — Aşama 1'de yapıldı
-- [ ] DMG paketi ve basit bir tanıtım sayfası
+- [x] DMG paketi (`make release` → build/Trove.dmg)
+- [ ] Basit bir tanıtım sayfası
 
 ## Kısayollar ve ayarlar
 
@@ -283,6 +284,6 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 
 **İsim (26 Kasım 2026):** Uygulamanın adı **Trove**. Paket kimliği (`com.iokoda.clipboard`), anahtarlık servisi, veri klasörü adları ("Clipboard History") ve dışa aktarma biçimi (`.clipboardexport`) bilerek değişmedi: değişirse mevcut şifreli geçmiş, ayarlar ve izinler yeni uygulamaya geçmez. Dağıtımdan önce istenirse onaylı bir taşıma ile değiştirilebilir.
 
-**Lisanslar ve notarization:** Ayarlar › Genel › Teşekkürler GRDB ve SQLCipher lisanslarını gösterir. `make release` hazır; ekibin App Store Connect API anahtarını (anahtarlıktaki `hashdrop-notary` profili) kullanır. 26 Kasım 2026'da Apple "agreement missing" (403) döndürdü: Program Lisans Sözleşmesi aynı gün kabul edildi, etkinleşmesi bekleniyor.
+**Lisanslar ve notarization:** Ayarlar › Genel › Teşekkürler GRDB ve SQLCipher lisanslarını gösterir. `make release` hazır; ekibin App Store Connect API anahtarını (anahtarlıktaki `hashdrop-notary` profili) kullanır. 26 Kasım 2026: ilk notarization başarılı (uygulama ve DMG "Accepted", damgalandı; Gatekeeper: "Notarized Developer ID").
 
 **Sonraki adım (26 Kasım 2026):** İlk commit, elle deneme listesi ve bir hafta günlük kullanım; ardından lisans metinleri, isim, notarization (Aşama 4).
