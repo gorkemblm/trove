@@ -94,13 +94,20 @@ struct DemoTour: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: compact ? 10 : 14) {
-            AnimatedImage(url: demo.url)
-                .aspectRatio(PanelController.size.width / PanelController.size.height, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
-                .id(demo)
+            // ‹ animation › : the arrows outside it, in the middle of its height.
+            HStack(spacing: 10) {
+                arrow("chevron.left", enabled: index > 0) { move(-1) }
+                    .keyboardShortcut(.leftArrow, modifiers: [])
+                AnimatedImage(url: demo.url)
+                    .aspectRatio(PanelController.size.width / PanelController.size.height, contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+                    .id(demo)
+                arrow("chevron.right", enabled: index < Demo.allCases.count - 1) { move(1) }
+                    .keyboardShortcut(.rightArrow, modifiers: [])
+            }
             HStack(spacing: 8) {
                 Text(verbatim: demo.title).font(.system(size: compact ? 14 : 16, weight: .semibold))
                 Spacer(minLength: 8)
@@ -111,25 +118,32 @@ struct DemoTour: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(minHeight: compact ? 48 : 54, alignment: .top)
-            HStack {
-                Button { move(-1) } label: { Image(systemName: "chevron.left") }
-                    .buttonStyle(.borderless).disabled(index == 0)
-                    .keyboardShortcut(.leftArrow, modifiers: [])
-                Spacer()
-                HStack(spacing: 6) {
-                    ForEach(Demo.allCases.indices, id: \.self) { dot in
-                        Circle().fill(dot == index ? Color.accentColor : Color.primary.opacity(0.2))
-                            .frame(width: 6, height: 6)
-                            .onTapGesture { index = dot }
-                    }
+            HStack(spacing: 6) {
+                ForEach(Demo.allCases.indices, id: \.self) { dot in
+                    Circle().fill(dot == index ? Color.accentColor : Color.primary.opacity(0.2))
+                        .frame(width: 6, height: 6)
+                        .contentShape(Rectangle().inset(by: -4))
+                        .onTapGesture { index = dot }
                 }
-                Spacer()
-                Button { move(1) } label: { Image(systemName: "chevron.right") }
-                    .buttonStyle(.borderless).disabled(index == Demo.allCases.count - 1)
-                    .keyboardShortcut(.rightArrow, modifiers: [])
             }
+            .frame(maxWidth: .infinity)
         }
         .animation(.easeInOut(duration: 0.15), value: index)
+    }
+
+    /// A round button beside the animation; it fades out at the first and last demo.
+    private func arrow(_ symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .semibold))
+                .frame(width: 30, height: 30)
+                .background(Color.primary.opacity(0.08), in: Circle())
+                .overlay(Circle().strokeBorder(Color.primary.opacity(0.1)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .opacity(enabled ? 1 : 0)
+        .disabled(!enabled)
     }
 
     private func move(_ delta: Int) {
