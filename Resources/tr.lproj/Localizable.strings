@@ -60,7 +60,7 @@
 "Add screenshots to history" = "Ekran görüntülerini geçmişe ekle";
 "Add screenshots to Trove?" = "Ekran görüntüleri Trove'a eklensin mi?";
 "Addresses" = "Adresler";
-"Alfred keeps its clipboard in clipboard.alfdb. The file window opens in its folder." = "Alfred pano geçmişini clipboard.alfdb dosyasında tutar. Dosya penceresi o klasörde açılır.";
+"Alfred keeps its clipboard in its Databases folder. The file window opens there: choose the folder." = "Alfred pano geçmişini Databases klasöründe tutar. Dosya penceresi orada açılır: klasörü seç.";
 "All" = "Tümü";
 "All actions" = "Tüm eylemler";
 "All, Text, Links, Images, Files" = "Tümü, Metin, Bağlantılar, Görseller, Dosyalar";
@@ -79,6 +79,7 @@
 "Base64 Encode" = "Base64 Kodla";
 "Both icons are off by default: Trove runs in the background. Press ⌘, in the panel to open these settings." = "İki simge de varsayılan olarak kapalıdır: Trove arka planda çalışır. Bu ayarları açmak için panelde ⌘, tuşlarına bas.";
 "Bring your clipboard history from another app. Nothing is saved until you confirm." = "Pano geçmişini başka bir uygulamadan getir. Sen onaylamadan hiçbir şey kaydedilmez.";
+"Bring your history from %@…" = "Geçmişini getir: %@…";
 "Call" = "Ara";
 "Cancel" = "Vazgeç";
 "Cancel Editing" = "Düzenlemeyi Bırak";
@@ -237,6 +238,7 @@
 "Import from a Trove export, Raycast, Maccy or Alfred. Export to an encrypted file (best for moving to another Mac), JSON or CSV. Hidden items are never exported." = "Bir Trove dışa aktarımından, Raycast'ten, Maccy'den ya da Alfred'den içe aktar. Şifreli bir dosyaya (başka bir Mac'e taşımak için en iyisi), JSON'a ya da CSV'ye dışa aktar. Gizli öğeler hiçbir zaman dışa aktarılmaz.";
 "Import from Raycast, Maccy, Alfred or a Trove export…" = "Raycast, Maccy, Alfred ya da bir Trove dışa aktarımından içe aktar…";
 "Import History" = "Geçmişi İçe Aktar";
+"Import history from another app…" = "Başka bir uygulamadan geçmişi içe aktar…";
 "Import More…" = "Başka Bir Kaynaktan…";
 "Importing…" = "İçe aktarılıyor…";
 "Import…" = "İçe Aktar…";
@@ -277,7 +279,7 @@
 "Lock after" = "Kilitlenme";
 "Locked" = "Kilitli";
 "lowercase" = "küçük harf";
-"Maccy keeps its history in Storage.sqlite. The file window opens in its folder." = "Maccy geçmişini Storage.sqlite dosyasında tutar. Dosya penceresi o klasörde açılır.";
+"Maccy keeps its history in its Maccy folder. The file window opens there: choose the folder." = "Maccy geçmişini kendi Maccy klasöründe tutar. Dosya penceresi orada açılır: klasörü seç.";
 "macOS now saves screenshots in “%@”." = "macOS ekran görüntülerini artık “%@” konumuna kaydediyor.";
 "macOS saves screenshots as files in “%@”, so they never reach the clipboard. Trove can add each new screenshot to Images. Next, click Watch Folder to allow it." = "macOS ekran görüntülerini “%@” konumuna dosya olarak kaydeder; bu yüzden panoya hiç gelmezler. Trove her yeni ekran görüntüsünü Görseller'e ekleyebilir. İzin vermek için bir sonraki pencerede Klasörü İzle'ye tıkla.";
 "macOS saves screenshots as files, so they never reach the clipboard. Turn this on and Trove suggests the folder macOS uses; one click allows it. Screenshots taken with ⌃ (for example ⌃⇧⌘4) go to the clipboard and are added in any case." = "macOS ekran görüntülerini dosya olarak kaydeder; bu yüzden panoya hiç gelmezler. Bunu açarsan Trove macOS'un kullandığı klasörü önerir; tek tıkla izin verirsin. ⌃ ile alınan ekran görüntüleri (örneğin ⌃⇧⌘4) panoya gider ve her durumda eklenir.";
@@ -318,6 +320,7 @@
 "Not Now" = "Şimdi Değil";
 "Not set" = "Ayarlı değil";
 "Nothing copied in these apps is saved." = "Bu uygulamalarda kopyalanan hiçbir şey kaydedilmez.";
+"Nothing is saved until you confirm." = "Sen onaylamadan hiçbir şey kaydedilmez.";
 "Nothing to delete" = "Silinecek bir şey yok";
 "now" = "şimdi";
 "Number" = "Numara";
@@ -342,6 +345,7 @@
 "Opening the file…" = "Dosya açılıyor…";
 "Opens this history on another Mac or after a reinstall. Without it, the history opens only on this Mac." = "Bu geçmişi başka bir Mac'te ya da yeniden kurulumdan sonra açar. Şifre olmadan geçmiş yalnızca bu Mac'te açılır.";
 "Opens with %@" = "%@ ile açılır";
+"Other sources" = "Diğer kaynaklar";
 "Panel" = "Panel";
 "Panel Lock" = "Panel Kilidi";
 "Panel Opens In" = "Panel Açılınca";

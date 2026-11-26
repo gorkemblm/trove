@@ -975,6 +975,32 @@ struct TransferTests {
         #expect(items[1].files == ["/Users/me/a.pdf"])
     }
 
+    /// Maccy (SwiftData) writes in WAL mode: its newest rows can be only in Storage.sqlite-wal
+    /// while it runs. The import reads a copy that includes the log.
+    @Test func readsMaccyRowsStillInItsLog() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("Storage.sqlite")
+        let pool = try DatabasePool(path: url.path) // WAL mode, like Maccy.
+        try pool.write { db in
+            try db.execute(sql: """
+                CREATE TABLE ZHISTORYITEM (Z_PK INTEGER PRIMARY KEY, ZAPPLICATION VARCHAR, ZFIRSTCOPIEDAT TIMESTAMP,
+                    ZLASTCOPIEDAT TIMESTAMP, ZNUMBEROFCOPIES INTEGER, ZPIN VARCHAR, ZTITLE VARCHAR);
+                CREATE TABLE ZHISTORYITEMCONTENT (Z_PK INTEGER PRIMARY KEY, ZITEM INTEGER, ZTYPE VARCHAR, ZVALUE BLOB);
+                """)
+        }
+        try pool.writeWithoutTransaction { db in try db.checkpoint(.truncate) } // The tables are in the main file…
+        try pool.write { db in // …the row only in the log, as long as the pool stays open.
+            try db.execute(sql: "INSERT INTO ZHISTORYITEM VALUES (1, 'com.apple.Safari', 785000000, 785000100, 1, NULL, 'new')")
+            try db.execute(sql: "INSERT INTO ZHISTORYITEMCONTENT VALUES (1, 1, 'public.utf8-plain-text', ?)", arguments: [Data("just copied".utf8)])
+        }
+        #expect(FileManager.default.fileExists(atPath: url.path + "-wal"))
+        let items = try Transfer.read(url, password: nil)
+        Transfer.removeCopies()
+        #expect(items.map(\.text) == ["just copied"])
+        #expect(items.first?.sourceApp == "Safari") // The name of the installed app.
+        try pool.close()
+    }
+
     @Test func readsAlfred() throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("clipboard.alfdb")

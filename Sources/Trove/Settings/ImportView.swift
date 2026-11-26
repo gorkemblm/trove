@@ -98,33 +98,31 @@ struct ImportView: View {
 
     // MARK: Steps
 
+    @State private var showOthers = false
+
     private var chooseStep: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(spacing: 0) {
-                ForEach(Array(ImportSource.allCases.enumerated()), id: \.element) { index, source in
-                    if index > 0 { Divider().padding(.leading, 66) }
-                    Button { flow.choose(source, in: NSApp.keyWindow) } label: {
-                        HStack(spacing: 14) {
-                            SourceIcon(source: source, size: 38)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(verbatim: source.title).font(.system(size: 14, weight: .semibold))
-                                Text(verbatim: source.howTo).font(.system(size: 12)).foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: 12)
-                            Text("Choose…").font(.system(size: 12.5, weight: .medium))
-                                .padding(.horizontal, 12).frame(height: 26)
-                                .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                        }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .contentShape(Rectangle())
+        let nearby = ImportSource.nearby
+        let others = ImportSource.others
+        return VStack(alignment: .leading, spacing: 14) {
+            sourceList(nearby, iconSize: 38)
+            if !others.isEmpty {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) { showOthers.toggle() }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.right").font(.system(size: 10, weight: .bold))
+                            .rotationEffect(.degrees(showOthers ? 90 : 0))
+                        Text("Other sources").font(.system(size: 12.5, weight: .medium))
+                        Text(verbatim: others.map(\.title).joined(separator: ", ")).font(.system(size: 12.5)).foregroundStyle(.secondary)
                     }
-                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                if showOthers {
+                    sourceList(others, iconSize: 30)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
-            .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.09)))
             problemLine
             Spacer(minLength: 0)
             HStack {
@@ -134,6 +132,34 @@ struct ImportView: View {
                 Button("Close", action: close).keyboardShortcut(.cancelAction)
             }
         }
+    }
+
+    private func sourceList(_ sources: [ImportSource], iconSize: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(sources.enumerated()), id: \.element) { index, source in
+                if index > 0 { Divider().padding(.leading, iconSize + 28) }
+                Button { flow.choose(source, in: NSApp.keyWindow) } label: {
+                    HStack(spacing: 14) {
+                        SourceIcon(source: source, size: iconSize)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(verbatim: source.title).font(.system(size: 14, weight: .semibold))
+                            Text(verbatim: source.howTo).font(.system(size: 12)).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 12)
+                        Text("Choose…").font(.system(size: 12.5, weight: .medium))
+                            .padding(.horizontal, 12).frame(height: 26)
+                            .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, iconSize > 32 ? 12 : 9)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .background(Color.primary.opacity(0.035), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color.primary.opacity(0.09)))
     }
 
     private func passwordStep(_ source: ImportSource, _ url: URL) -> some View {
@@ -277,10 +303,12 @@ struct SourceIcon: View {
             } else if let icon = AppIcons.icon(for: source.bundleID) {
                 Image(nsImage: icon).resizable()
             } else {
-                Image(systemName: "shippingbox")
-                    .font(.system(size: size * 0.45))
+                // Not installed: a letter tile. Other companies' logos are not bundled with Trove.
+                Text(verbatim: String(source.title.prefix(1)))
+                    .font(.system(size: size * 0.46, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
                     .frame(width: size, height: size)
-                    .background(Color.primary.opacity(0.07), in: RoundedRectangle(cornerRadius: size * 0.22, style: .continuous))
+                    .background(source.tint.gradient, in: RoundedRectangle(cornerRadius: size * 0.24, style: .continuous))
             }
         }
         .frame(width: size, height: size)

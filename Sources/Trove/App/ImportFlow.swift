@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import OSLog
 import UniformTypeIdentifiers
 
@@ -17,6 +18,16 @@ enum ImportSource: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// The letter tile's colour when the app is not installed.
+    var tint: Color {
+        switch self {
+        case .raycast: Color(red: 0.92, green: 0.30, blue: 0.30)
+        case .maccy: Color(red: 0.25, green: 0.50, blue: 0.95)
+        case .alfred: Color(red: 0.45, green: 0.36, blue: 0.85)
+        case .trove: .accentColor
+        }
+    }
+
     /// The installed app's own icon is shown (nothing is bundled).
     var bundleID: String? {
         switch self {
@@ -30,15 +41,35 @@ enum ImportSource: String, CaseIterable, Identifiable, Sendable {
     var howTo: String {
         switch self {
         case .raycast: L("In Raycast: Settings › Advanced › Export, with Clipboard History. Then choose the .rayconfig file.")
-        case .maccy: L("Maccy keeps its history in Storage.sqlite. The file window opens in its folder.")
-        case .alfred: L("Alfred keeps its clipboard in clipboard.alfdb. The file window opens in its folder.")
+        case .maccy: L("Maccy keeps its history in its Maccy folder. The file window opens there: choose the folder.")
+        case .alfred: L("Alfred keeps its clipboard in its Databases folder. The file window opens there: choose the folder.")
         case .trove: L("A file exported from Trove on this or another Mac (.clipboardexport or .json).")
         }
     }
 
+    /// Trove's own exports always count; the others when the app is on this Mac.
+    var isInstalled: Bool {
+        guard let bundleID else { return true }
+        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) != nil
+    }
+
+    /// What the import window lists first: the apps on this Mac, then Trove's own exports.
+    static var nearby: [ImportSource] { allCases.filter { $0 != .trove && $0.isInstalled } + [.trove] }
+    /// The rest, behind "Other sources": a file can come from another Mac.
+    static var others: [ImportSource] { allCases.filter { !$0.isInstalled } }
+
     /// The real home folder (the sandbox's home is the app container).
     private static var home: URL {
         URL(fileURLWithPath: String(cString: getpwuid(getuid()).pointee.pw_dir), isDirectory: true)
+    }
+
+    /// The database file inside the folder that can be chosen instead.
+    var databaseName: String? {
+        switch self {
+        case .maccy: "Storage.sqlite"
+        case .alfred: "clipboard.alfdb"
+        default: nil
+        }
     }
 
     var startFolder: URL? {
@@ -139,7 +170,9 @@ final class ImportFlow: ObservableObject {
         problem = nil
         let panel = NSOpenPanel()
         panel.canChooseFiles = true
-        panel.canChooseDirectories = false
+        // Maccy and Alfred: choosing their folder also lets Trove read the database's newest
+        // rows, which can sit in a file next to it.
+        panel.canChooseDirectories = source == .maccy || source == .alfred
         panel.allowsMultipleSelection = false
         panel.showsHiddenFiles = source == .maccy || source == .alfred
         panel.prompt = L("Choose")
@@ -154,6 +187,8 @@ final class ImportFlow: ObservableObject {
 
     /// A chosen file: checked against the source, then read (after its password, if it has one).
     func open(_ url: URL, as source: ImportSource) {
+        var url = url
+        if url.hasDirectoryPath, let file = source.databaseName { url = url.appendingPathComponent(file) }
         do {
             let detected = try Transfer.detect(url)
             guard source.accepts(detected) else {
@@ -186,6 +221,7 @@ final class ImportFlow: ObservableObject {
         work = Task { [weak self] in
             // Decrypting, reading and sorting run off the main thread: the window keeps drawing.
             let outcome: Result<Sorted, Error> = await Task.detached(priority: .userInitiated) {
+                defer { Transfer.removeCopies() }
                 do {
                     let loaded = try Transfer.load(url, password: password)
                     await self?.setReading(source, String(localized: "Checking \(loaded.items.count.formatted()) items…"))

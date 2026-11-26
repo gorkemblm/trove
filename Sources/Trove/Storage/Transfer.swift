@@ -1,3 +1,4 @@
+import AppKit
 import CryptoKit
 import Foundation
 import GRDB
@@ -156,6 +157,7 @@ enum Transfer {
         let head = try handle.read(upToCount: 4_096) ?? Data()
         try handle.close()
         if head.starts(with: Store.sqliteHeader) {
+            // Only the table names: read in place (cheap), the copy is made when reading.
             let queue = try DatabaseQueue(path: url.path, configuration: readOnly)
             defer { try? queue.close() }
             let tables = try queue.read { db in try String.fetchAll(db, sql: "SELECT name FROM sqlite_master WHERE type = 'table'") }
@@ -219,6 +221,32 @@ enum Transfer {
         }
     }
 
+    /// Another app's database, read from a private copy: the app may be writing to it, and its
+    /// newest rows can still be in the write-ahead log next to it (`-wal`, `-shm`), which is
+    /// copied too when it can be read (the folder was chosen, not only the file).
+    private static func openCopy(_ url: URL) throws -> DatabaseQueue {
+        let fm = FileManager.default
+        let folder = fm.temporaryDirectory.appendingPathComponent("import-" + UUID().uuidString, isDirectory: true)
+        try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+        let copy = folder.appendingPathComponent(url.lastPathComponent)
+        try fm.copyItem(at: url, to: copy)
+        for suffix in ["-wal", "-shm"] {
+            let side = URL(fileURLWithPath: url.path + suffix)
+            if fm.isReadableFile(atPath: side.path) { try? fm.copyItem(at: side, to: URL(fileURLWithPath: copy.path + suffix)) }
+        }
+        let queue = try DatabaseQueue(path: copy.path) // Not read-only: SQLite applies the log to the copy.
+        copies.append(folder)
+        return queue
+    }
+
+    /// The private copies of this run, removed by `removeCopies()` (and with the temporary folder).
+    nonisolated(unsafe) private static var copies: [URL] = []
+
+    static func removeCopies() {
+        for folder in copies { try? FileManager.default.removeItem(at: folder) }
+        copies = []
+    }
+
     private static var readOnly: Configuration {
         var configuration = Configuration()
         configuration.readonly = true
@@ -231,7 +259,7 @@ enum Transfer {
     /// ZHISTORYITEMCONTENT row per pasteboard type. Columns are checked first, because the
     /// schema differs between Maccy versions. Core Data dates count seconds from 2001.
     private static func readMaccy(_ url: URL) throws -> [Item] {
-        let queue = try DatabaseQueue(path: url.path, configuration: readOnly)
+        let queue = try openCopy(url)
         defer { try? queue.close() }
         return try queue.read { db in
             let itemColumns = Set(try db.columns(in: "ZHISTORYITEM").map(\.name))
@@ -258,6 +286,9 @@ enum Transfer {
                 var item = Item(kind: ClipKind.text.rawValue, pinned: pinned, timesCopied: max(1, row["times"] as Int? ?? 1),
                                 firstCopiedAt: first, lastCopiedAt: last)
                 item.sourceBundleID = row["app"]
+                // Maccy keeps the bundle identifier; the app's name is shown when it is installed.
+                item.sourceApp = item.sourceBundleID.flatMap(NSWorkspace.shared.urlForApplication(withBundleIdentifier:))
+                    .map { $0.deletingPathExtension().lastPathComponent }
                 if let fileURL = types["public.file-url"], let string = String(data: fileURL, encoding: .utf8), let url = URL(string: string) {
                     item.kind = ClipKind.file.rawValue
                     item.files = [url.path]
@@ -282,7 +313,7 @@ enum Transfer {
     /// 2001; `dataType` is 0 for text and 2 for files (images live in a separate folder and are
     /// not imported).
     private static func readAlfred(_ url: URL) throws -> [Item] {
-        let queue = try DatabaseQueue(path: url.path, configuration: readOnly)
+        let queue = try openCopy(url)
         defer { try? queue.close() }
         return try queue.read { db in
             let columns = Set(try db.columns(in: "clipboard").map(\.name))

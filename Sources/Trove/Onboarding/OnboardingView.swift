@@ -136,8 +136,28 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
             }
             if app.store != nil {
-                Button("Import from Raycast, Maccy, Alfred or a Trove export…") { app.importHistory() }
-                    .buttonStyle(.link)
+                // Apps found on this Mac, with their icons: their history can come along.
+                let found = ImportSource.nearby.filter { $0 != .trove }
+                Button { app.importHistory() } label: {
+                    HStack(spacing: 10) {
+                        HStack(spacing: -6) {
+                            ForEach(found.isEmpty ? [.trove] : found) { SourceIcon(source: $0, size: 26) }
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(found.isEmpty ? L("Import history from another app…")
+                                 : String(localized: "Bring your history from \(found.map(\.title).formatted(.list(type: .and)))…"))
+                                .font(.system(size: 13, weight: .medium))
+                            Text("Nothing is saved until you confirm.").font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
+                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
             Label("A synced folder works: everything in it is encrypted. To open the history on another Mac, set a recovery password in the next step.",
                   systemImage: "info.circle")
