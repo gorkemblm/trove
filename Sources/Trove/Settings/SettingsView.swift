@@ -334,14 +334,7 @@ private struct StorageSettings: View {
         VStack(spacing: 0) {
             SettingsSection {
                 SettingRow(label: "Location") {
-                    HStack(spacing: 8) {
-                        Image(systemName: "folder.fill").foregroundStyle(Color.accentColor)
-                        Text(StorageLocation.displayPath(app.storageDirectory))
-                            .font(.system(size: 12.5, design: .monospaced))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
+                    HistoryFolderTree(app: app, settings: settings)
                     HStack(spacing: 8) {
                         Button("Change…") { app.chooseStorageLocation() }
                         Button("Show in Finder") { app.revealStorage() }
@@ -352,7 +345,8 @@ private struct StorageSettings: View {
                     if let warning = app.storageWarning {
                         SettingNote(verbatim: warning, color: .orange)
                     }
-                    SettingNote("History lives in a “\(StorageLocation.historyFolderName)” folder. Changing the location moves it.")
+                    HistoryFolderToggle(app: app, settings: settings)
+                    SettingNote("Changing the location, or this option, moves the history.")
                 }
             }
             SettingsDivider()

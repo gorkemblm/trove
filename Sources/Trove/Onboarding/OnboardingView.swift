@@ -135,32 +135,22 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Where should Trove keep your history?")
                 .font(.system(size: 22, weight: .bold))
-            Text("Choose a location. Trove creates a “\(StorageLocation.historyFolderName)” folder there. It holds an encrypted database, encrypted images and a key file.")
+            Text("Choose a location. This is what Trove keeps there; nothing else in the folder is touched.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 12) {
-                Image(systemName: app.store == nil ? "folder.badge.questionmark" : "folder.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(app.store == nil ? Color.secondary : Color.accentColor)
-                    .frame(width: 36)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(verbatim: app.store == nil ? L("No location chosen yet") : app.storageDirectory.lastPathComponent)
-                        .font(.headline)
-                    if app.store != nil {
-                        Text(StorageLocation.displayPath(app.storageDirectory))
-                            .font(.system(.callout, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    HistoryFolderTree(app: app, settings: settings)
+                    Spacer(minLength: 8)
+                    Button(app.store == nil ? L("Choose…") : L("Change…")) { app.chooseStorageLocation() }
                 }
-                Spacer(minLength: 8)
-                Button(app.store == nil ? L("Choose…") : L("Change…")) { app.chooseStorageLocation() }
+                Divider()
+                HistoryFolderToggle(app: app, settings: settings)
             }
             .padding(14)
             .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
-            .padding(.top, 6)
+            .padding(.top, 2)
 
             if app.store != nil, let provider = app.storageSyncProvider {
                 Label("This folder is synced by \(provider). It receives only encrypted files.",

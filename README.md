@@ -159,7 +159,7 @@ You can also lock the whole panel with Touch ID after some minutes of not using 
 
 | What | Where | Protection |
 | --- | --- | --- |
-| The history database | A *Clipboard History* folder in a location you choose (a synced folder is fine) | **SQLCipher**, AES-256: the whole database and its search index |
+| The history database | A *Trove History* folder in a location you choose, or the location itself if you turn the folder off (a synced folder is fine) | **SQLCipher**, AES-256: the whole database and its search index |
 | Images | Same folder | **AES-256-GCM**, one file per image |
 | The data key | Your login Keychain (not synced) | A random 256-bit key; separate database and image keys are derived from it with HKDF |
 | Key file (`clipboard.key`) | Same folder | With a **recovery password**, the data key is wrapped with PBKDF2-SHA256 (600,000 rounds) — so the history opens on another Mac |

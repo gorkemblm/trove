@@ -132,6 +132,7 @@ final class AppSettings: ObservableObject {
         static let returnAction = "returnAction"
         static let terminalBundleID = "terminalBundleID"
         static let recognizeText = "recognizeText"
+        static let historySubfolder = "historySubfolder"
         static let openingGroup = "openingGroup"
         static let lastGroup = "lastGroup"
         static let lockPanel = "lockPanel"
@@ -178,6 +179,8 @@ final class AppSettings: ObservableObject {
     @Published var lastGroup: Int { didSet { defaults.set(lastGroup, forKey: Key.lastGroup) } }
     /// Read the text in images (Vision, on this Mac), so search finds them by it.
     @Published var recognizeText: Bool { didSet { defaults.set(recognizeText, forKey: Key.recognizeText) } }
+    /// A chosen location gets its own "Trove History" folder. Off: the files go straight into it.
+    @Published var historySubfolder: Bool { didSet { defaults.set(historySubfolder, forKey: Key.historySubfolder) } }
     /// The terminal for "Open in Terminal". Nil: the first installed one (see TerminalApp).
     @Published var terminalBundleID: String? { didSet { defaults.set(terminalBundleID, forKey: Key.terminalBundleID) } }
     /// True once the user answered "Paste directly into apps?" (or decided in onboarding).
@@ -200,6 +203,7 @@ final class AppSettings: ObservableObject {
             Key.showDockIcon: false,
             Key.recordSourceURL: true,
             Key.recognizeText: true,
+            Key.historySubfolder: true,
         ])
         retentionDays = defaults.integer(forKey: Key.retentionDays)
         maxItems = defaults.integer(forKey: Key.maxItems)
@@ -223,6 +227,7 @@ final class AppSettings: ObservableObject {
         pastePromptAnswered = defaults.bool(forKey: Key.pastePromptAnswered)
         terminalBundleID = defaults.string(forKey: Key.terminalBundleID)
         recognizeText = defaults.bool(forKey: Key.recognizeText)
+        historySubfolder = defaults.bool(forKey: Key.historySubfolder)
         openingGroup = defaults.string(forKey: Key.openingGroup).flatMap(OpeningGroup.init(rawValue:)) ?? .last
         lastGroup = defaults.integer(forKey: Key.lastGroup)
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted)

@@ -289,7 +289,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | Kaynak uygulama tespiti yaklaşık | Arka planda script ile kopyalanan içerikte yanlış uygulama görünür | Detayda "yaklaşık" olarak kabul edilir |
 | Seafile ile senkronizasyon | SQLite bozulması, hassas verinin buluta gitmesi | Uyarı + zorunlu şifreleme |
 
-**İsim (26 Kasım 2026):** Uygulamanın adı **Trove**. Paket kimliği (`com.iokoda.clipboard`), anahtarlık servisi, veri klasörü adları ("Clipboard History") ve dışa aktarma biçimi (`.clipboardexport`) bilerek değişmedi: değişirse mevcut şifreli geçmiş, ayarlar ve izinler yeni uygulamaya geçmez. Dağıtımdan önce istenirse onaylı bir taşıma ile değiştirilebilir.
+**İsim (26 Kasım 2026):** Uygulamanın adı **Trove**. Paket kimliği (`com.iokoda.clipboard`), anahtarlık servisi, ve dışa aktarma biçimi (`.clipboardexport`) bilerek değişmedi: değişirse mevcut şifreli geçmiş, ayarlar ve izinler yeni uygulamaya geçmez. Dağıtımdan önce istenirse onaylı bir taşıma ile değiştirilebilir.
 
 **Lisanslar ve notarization:** Ayarlar › Genel › Teşekkürler GRDB ve SQLCipher lisanslarını gösterir. `make release` hazır; ekibin App Store Connect API anahtarını (anahtarlıktaki `hashdrop-notary` profili) kullanır. 26 Kasım 2026: ilk notarization başarılı (uygulama ve DMG "Accepted", damgalandı; Gatekeeper: "Notarized Developer ID").
 
@@ -305,3 +305,5 @@ Sonraya kalan düşük riskli maddeler de tamamlandı (26 Kasım 2026):
 - İçe aktarılan snippet'ler de algılayıcıdan geçer; hassas olan, snippet adıyla Gizli'ye gider.
 - Paneli açık tutan akışlar (Ayarlar, Touch ID, sürükleme, büyük önizleme) kendi nedenlerini ayrı sayar; biri bitince diğerini kapatmaz.
 - Yerelleştirme testi `?:` içindeki metinleri de görür.
+
+**Konum klasörü (26 Kasım 2026):** Onboarding ve Ayarlar › Depolama, seçilen konumda ne oluşacağını klasör ağacı olarak gösterir (konum › "Trove History" › şifreli veritabanı, görseller, anahtar). "Geçmişi ayrı bir klasörde tut" kapatılırsa dosyalar doğrudan seçilen klasöre yazılır; açık geçmiş varken değiştirmek onu taşır (yukarı taşımada sandbox izni için klasör penceresi o klasörde açılır). Yeni klasör adı "Trove History"; eski "Clipboard History" klasörleri tanınmaya devam eder. Taşımadan sonra boş kalan geçmiş klasörü kaldırılır, içinde başka dosya varsa dokunulmaz.

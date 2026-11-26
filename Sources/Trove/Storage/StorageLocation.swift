@@ -1,13 +1,24 @@
 import Foundation
 
 enum StorageLocation {
-    static let historyFolderName = "Clipboard History"
+    /// The folder Trove creates in a chosen location (unless the user turns that off).
+    static let historyFolderName = "Trove History"
+    /// Names of history folders, including the one that versions before the rename created.
+    static let historyFolderNames: Set<String> = [historyFolderName, "Clipboard History"]
+
+    static func isHistoryFolder(_ url: URL) -> Bool { historyFolderNames.contains(url.lastPathComponent) }
+
+    /// The location the user chose: the parent of a history folder, or the folder itself.
+    static func location(of directory: URL) -> URL {
+        isHistoryFolder(directory) ? directory.deletingLastPathComponent() : directory
+    }
 
     /// The folder that holds the history for a location the user picked.
-    /// A picked folder that already holds history, or is itself named "Clipboard History", is used as is.
-    /// Any other location gets a "Clipboard History" folder inside it.
-    static func historyFolder(for picked: URL, fileExists: (String) -> Bool = { FileManager.default.fileExists(atPath: $0) }) -> URL {
-        if picked.lastPathComponent == historyFolderName
+    /// A picked folder that already holds history, or is itself a history folder, is used as is.
+    /// Any other location gets a "Trove History" folder inside it, unless `subfolder` is off.
+    static func historyFolder(for picked: URL, subfolder: Bool = true,
+                              fileExists: (String) -> Bool = { FileManager.default.fileExists(atPath: $0) }) -> URL {
+        if !subfolder || isHistoryFolder(picked)
             || fileExists(picked.appendingPathComponent(Store.databaseFileName).path) {
             return picked
         }

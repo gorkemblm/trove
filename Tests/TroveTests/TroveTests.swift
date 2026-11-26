@@ -171,7 +171,11 @@ struct StorageLocationTests {
     @Test func createsHistoryFolderInsidePickedLocation() {
         let picked = URL(fileURLWithPath: "/Users/me/Documents")
         let result = StorageLocation.historyFolder(for: picked, fileExists: { _ in false })
-        #expect(result.path == "/Users/me/Documents/Clipboard History")
+        #expect(result.path == "/Users/me/Documents/Trove History")
+        // Own folder off: the files go straight into the picked folder.
+        #expect(StorageLocation.historyFolder(for: picked, subfolder: false, fileExists: { _ in false }) == picked)
+        #expect(StorageLocation.location(of: result).path == picked.path)
+        #expect(StorageLocation.location(of: picked) == picked)
     }
 
     @Test func reusesFolderThatAlreadyHoldsHistory() {
@@ -180,6 +184,8 @@ struct StorageLocationTests {
         #expect(result == picked)
         let named = URL(fileURLWithPath: "/Users/me/Clipboard History")
         #expect(StorageLocation.historyFolder(for: named, fileExists: { _ in false }) == named)
+        let renamed = URL(fileURLWithPath: "/Users/me/Trove History")
+        #expect(StorageLocation.historyFolder(for: renamed, fileExists: { _ in false }) == renamed)
     }
 
     @Test func detectsSyncedFolders() {

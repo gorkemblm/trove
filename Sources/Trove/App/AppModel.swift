@@ -136,6 +136,9 @@ final class AppModel: ObservableObject {
         // an earlier one left open.
         settings.openingGroup = .all
         settings.lastGroup = ClipCategory.all.rawValue
+        // A typical chosen location for the Settings and onboarding pictures (never written to).
+        storageDirectory = URL(fileURLWithPath: StorageLocation.realHome + "/Documents", isDirectory: true)
+            .appendingPathComponent(StorageLocation.historyFolderName, isDirectory: true)
     }
 
     // MARK: - Onboarding
@@ -1201,24 +1204,57 @@ final class AppModel: ObservableObject {
         log.info("Recovery password \(password == nil ? "removed" : "set", privacy: .public)")
     }
 
-    /// Asks for a location and creates (or reuses) the "Clipboard History" folder in it.
-    /// Existing history moves along. Returns true when a store is open at the new folder.
+    /// Asks for a location and creates (or reuses) the "Trove History" folder in it, or uses the
+    /// location itself when that is turned off. Existing history moves along. Returns true when a
+    /// store is open at the new folder.
     @discardableResult
-    func chooseStorageLocation() -> Bool {
+    func chooseStorageLocation(startingAt start: URL? = nil, message: String? = nil) -> Bool {
         let openPanel = NSOpenPanel()
         openPanel.canChooseDirectories = true
         openPanel.canChooseFiles = false
         openPanel.canCreateDirectories = true
         openPanel.allowsMultipleSelection = false
+        openPanel.directoryURL = start
         openPanel.prompt = String(localized: "Choose")
-        openPanel.message = String(localized: "Trove creates a “\(StorageLocation.historyFolderName)” folder in the location you choose.")
+        openPanel.message = message ?? (settings.historySubfolder
+            ? String(localized: "Trove creates a “\(StorageLocation.historyFolderName)” folder in the location you choose.")
+            : String(localized: "Trove saves its files directly in the folder you choose."))
         NSApp.activate()
         guard openPanel.runModal() == .OK, let picked = openPanel.url else { return false }
+        return moveStorage(to: StorageLocation.historyFolder(for: picked, subfolder: settings.historySubfolder))
+    }
 
-        let url = StorageLocation.historyFolder(for: picked)
+    /// True when the history has its own folder inside the chosen location.
+    var usesHistoryFolder: Bool {
+        store == nil ? settings.historySubfolder : StorageLocation.isHistoryFolder(storageDirectory)
+    }
+
+    /// The "own folder" switch. With a history already open, it moves: into a new "Trove History"
+    /// folder in the same place, or up into the chosen location. Going up needs the user's
+    /// permission for that folder (sandbox), so a folder dialog opens there, already selected.
+    func setUsesHistoryFolder(_ on: Bool) {
+        let before = settings.historySubfolder
+        settings.historySubfolder = on
+        guard store != nil, on != StorageLocation.isHistoryFolder(storageDirectory) else { return }
+        let moved: Bool
+        if on {
+            moved = moveStorage(to: storageDirectory.appendingPathComponent(StorageLocation.historyFolderName, isDirectory: true))
+        } else {
+            let parent = storageDirectory.deletingLastPathComponent()
+            moved = chooseStorageLocation(startingAt: parent, message: String(localized:
+                "To save directly in “\(parent.lastPathComponent)”, Trove needs your permission for that folder. Click Choose."))
+        }
+        if !moved { settings.historySubfolder = before }
+    }
+
+    /// Opens (and if needed moves) the history at `url`.
+    @discardableResult
+    private func moveStorage(to url: URL) -> Bool {
         if store != nil, url.standardizedFileURL == storageDirectory.standardizedFileURL { return true }
 
-        if let provider = StorageLocation.syncProvider(for: url) {
+        // Asked once per sync service: moving within the same synced folder does not ask again.
+        if let provider = StorageLocation.syncProvider(for: url),
+           store == nil || StorageLocation.syncProvider(for: storageDirectory) != provider {
             let alert = NSAlert()
             alert.alertStyle = .informational
             alert.messageText = String(localized: "This folder is synced by \(provider)")
@@ -1268,6 +1304,7 @@ final class AppModel: ObservableObject {
         if !hasExisting, oldHasHistory, oldDirectory.standardizedFileURL != url.standardizedFileURL {
             do {
                 try Store.moveFiles(from: oldDirectory, to: url)
+                Self.removeIfEmptyHistoryFolder(oldDirectory)
             } catch {
                 url.stopAccessingSecurityScopedResource()
                 if hadStore { openStore(at: oldDirectory) }
@@ -1291,6 +1328,16 @@ final class AppModel: ObservableObject {
         panelModel.storeDidChange()
         log.info("Storage folder set to \(url.path, privacy: .public)")
         return true
+    }
+
+    /// A history folder left empty by a move goes away, so no empty "Trove History" stays behind.
+    /// Anything else in it (the user's own files) keeps it where it is.
+    private static func removeIfEmptyHistoryFolder(_ folder: URL) {
+        guard StorageLocation.isHistoryFolder(folder) else { return }
+        let fm = FileManager.default
+        let rest = ((try? fm.contentsOfDirectory(atPath: folder.path)) ?? ["?"]).filter { $0 != ".DS_Store" }
+        guard rest.isEmpty else { return }
+        try? fm.removeItem(at: folder)
     }
 
     func revealStorage() {
