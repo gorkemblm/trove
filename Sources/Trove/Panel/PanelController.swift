@@ -248,6 +248,7 @@ final class PanelController {
             switch (event.keyCode, flags) {
             case (53, []): model.cancelEdit(); return true
             case (36, [.command]), (76, [.command]): model.finishEdit(); return true
+            case (1, [.command]) where model.editing?.snippetID != nil: model.saveSnippetText(); return true
             case (40, [.command]): model.toggleActions(); return true
             case (12, [.command]): NSApp.terminate(nil); return true
             default: return false
@@ -342,6 +343,9 @@ final class PanelController {
             return true
         case (126, [.shift]):
             model.extendSelection(-1)
+            return true
+        case (1, [.command]): // ⌘S: save as a snippet
+            model.requestSaveSnippet()
             return true
         case (14, [.command]): // ⌘E: edit and transform
             model.requestEdit()

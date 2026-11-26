@@ -23,9 +23,10 @@ struct DetailView: View {
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 10) {
                     // A named hidden item shows its name first, where the eye looks.
-                    if clip.kind == .secret, let name = clip.format {
+                    // A named hidden item or a snippet shows its name first, where the eye looks.
+                    if let name = clip.snippetName ?? (clip.kind == .secret ? clip.format : nil) {
                         HStack(spacing: 8) {
-                            Image(systemName: "tag.fill").font(.system(size: 12)).foregroundStyle(Color.accentColor)
+                            Image(systemName: clip.isSnippet ? "bookmark.fill" : "tag.fill").font(.system(size: 12)).foregroundStyle(Color.accentColor)
                             Text(verbatim: name).font(.system(size: 17, weight: .semibold)).lineLimit(1)
                         }
                         .padding(.trailing, 76) // Room for the buttons.
@@ -99,7 +100,7 @@ struct DetailView: View {
             }
         case .email, .phone:
             VStack(alignment: .leading, spacing: 8) {
-                Text(clip.kind == .email ? clip.title : (clip.text ?? ""))
+                Text(clip.kind == .email ? clip.contentTitle : (clip.text ?? ""))
                     .font(.system(size: 17, weight: .medium))
                     .textSelection(.enabled)
                     .lineLimit(6)

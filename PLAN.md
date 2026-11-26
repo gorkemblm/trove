@@ -179,7 +179,7 @@ Bu aşama sonunda geçmiş diskte şifreli durur, hassas içerik otomatik ayrı�
 Bu aşamadaki maddeler birbirinden bağımsız. İstediğin sırayla yapılabilir veya çıkarılabilir.
 
 - [x] **Otomatik yapıştırma:** ↵ seçili kaydı önceki uygulamaya yapıştırır (varsayılan; Ayarlar › General › Return Tuşu'ndan "yalnızca kopyala" seçilebilir). Erişilebilirlik izni ister; izin yoksa kopyalar. ⌘V tuşu o anki klavye düzenine göre bulunur (Türkçe F dahil).
-- [ ] **Snippet'ler:** Kalıcı, isimli metinler. Ayrı bir sekmede durur, saklama süresinden etkilenmez.
+- [x] **Snippet'ler (26 Kasım 2026):** ⌘S bir metin kaydını adıyla snippet yapar; kenar çubuğunda Snippet'ler grubu. Sınırlar ve Temizle silmez (migration v9, `snippetName`). Aynı metin yeniden kopyalanınca snippet yerinde kalır, geçmişe yeni kayıt girer. ⌘R yeniden adlandırır, ⌘E içeriği düzenler (⌘S kaydeder), ⌘K › Yeni Snippet… boş başlar. Dışa aktarma henüz snippet adını taşımıyor.
 - [x] **Çoklu seçim:** Birden çok kaydı seç, aralarına satır sonu koyarak tek seferde yapıştır (26 Kasım 2026; sürükle-bırak ve toplu silme ile).
 - [x] **Yapıştırmadan önce düzenle (26 Kasım 2026):** ⌘E sağ tarafı düzenleyiciye çevirir; ⌘↵ sonucu yapıştırır ve geçmişe yeni kayıt olarak ekler, Esc vazgeçer. Görseldeki metin de düzenlenebilir.
 - [ ] **Uygulamaya göre filtre:** Aramada `app:Arc` gibi bir sözdizimi.
@@ -236,6 +236,7 @@ Panel açıkken arama kutusu her zaman odakta kalır. Bu yüzden tek tuşlu kıs
 | / | Gruba git (öneri listesi; ↵/⇥ seçer, boşluk ilk eşleşeni seçip aramaya devam eder; boş aramada ⌫ Tümü'ne döner) | Panel |
 | ⌘⇧C | Görseldeki metni kopyala | Panel |
 | ⌘E | Düzenle ve dönüştür (⌘↵ yapıştırır, Esc vazgeçer) | Panel |
+| ⌘S | Snippet olarak kaydet (düzenleyicide: snippet'i kaydet) | Panel |
 | ⌘T | Dosyanın klasörünü terminalde aç (Ayarlar › Genel › Terminal) | Panel |
 | ⌘K | Eylemler menüsü (aranabilir; tüm eylemler kısayollarıyla) | Panel |
 | ⌘⇧S | Seçim modunu aç / kapat | Panel |

@@ -104,6 +104,17 @@ enum SnapshotRunner {
                           to: outputDirectory.appendingPathComponent("large-preview-image-text.png"))
             }
 
+            // Snippets: the naming card, then the group with one snippet.
+            model.selectedID = clips["email"]?.id
+            model.requestSaveSnippet()
+            model.naming?.name = "Work email"
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-snippet-naming.png"))
+            model.confirmNaming()
+            model.category = .snippets
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-snippets.png"))
+            if let id = clips["email"]?.id { try? app.store?.removeSnippet(id: id) }
+            model.category = .all
+
             // The editor (⌘E) on a JSON item, after "Format JSON".
             model.selectedID = clips["json"]?.id
             model.requestEdit()

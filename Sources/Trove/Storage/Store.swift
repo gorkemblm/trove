@@ -438,6 +438,11 @@ final class Store {
             }
             try db.execute(sql: "INSERT INTO clip_fts(clip_fts) VALUES('rebuild')")
         }
+        // v9: snippets. Kept like pinned items: pruning and Clear skip them.
+        migrator.registerMigration("v9-snippets") { db in
+            try db.execute(sql: "ALTER TABLE clip ADD COLUMN snippetName TEXT")
+            try db.execute(sql: "CREATE INDEX clip_snippet ON clip(snippetName) WHERE snippetName IS NOT NULL")
+        }
         return migrator
     }
 
@@ -452,7 +457,7 @@ final class Store {
         firstCopiedAt, lastCopiedAt, textCharacters, textWords, textLines,
         CASE WHEN kind = 'secret' THEN secretReason END AS secretReason,
         CASE WHEN kind IN ('code', 'data', 'secret', 'file') THEN format END AS format,
-        NULL AS recognizedText, NULL AS recognizedLayout, NULL AS recognizedSearch
+        NULL AS recognizedText, NULL AS recognizedLayout, NULL AS recognizedSearch, snippetName
         """
 
     // MARK: - Writing
@@ -682,6 +687,71 @@ final class Store {
     }
 
     /// The complete clip, with full text and rich text. List queries return only a preview.
+    // MARK: - Snippets
+
+    /// Makes a text item a snippet. It gets its own content key, so copying the same text again
+    /// adds a history item and leaves the snippet where it is.
+    func makeSnippet(id: Int64, name: String) throws {
+        try dbQueue.write { db in
+            guard var clip = try Clip.fetchOne(db, key: id), clip.kind.isTextual else { return }
+            clip.snippetName = name
+            clip.contentHash = "snippet:" + UUID().uuidString
+            clip.prepareDerivedFields()
+            try clip.update(db)
+        }
+    }
+
+    func renameSnippet(id: Int64, name: String) throws {
+        try dbQueue.write { db in
+            guard var clip = try Clip.fetchOne(db, key: id), clip.isSnippet else { return }
+            clip.snippetName = name
+            clip.prepareDerivedFields()
+            try clip.update(db)
+        }
+    }
+
+    /// Back to an ordinary history item (it is pruned like the others from now on).
+    func removeSnippet(id: Int64) throws {
+        try dbQueue.write { db in
+            guard var clip = try Clip.fetchOne(db, key: id), clip.isSnippet else { return }
+            clip.snippetName = nil
+            clip.contentHash = ClipClassifier.hash(clip.kind.rawValue, (clip.text ?? "") + "\u{0}" + UUID().uuidString)
+            clip.prepareDerivedFields()
+            try clip.update(db)
+        }
+    }
+
+    /// A new, empty snippet (⌘K › New Snippet); its text is written in the editor next.
+    @discardableResult
+    func newSnippet(name: String, at date: Date = Date()) throws -> Clip {
+        try dbQueue.write { db in
+            var clip = Clip(id: nil, kind: .text, text: "", rtf: nil, byteSize: 0, contentHash: "snippet:" + UUID().uuidString,
+                            pinned: false, timesCopied: 0, firstCopiedAt: date, lastCopiedAt: date)
+            clip.snippetName = name
+            clip.prepareDerivedFields()
+            try clip.insert(db)
+            return clip
+        }
+    }
+
+    /// The editor saved a snippet's text. Its kind follows the new text (a link, code…).
+    func updateSnippetText(id: Int64, _ text: String) throws {
+        try dbQueue.write { db in
+            guard var clip = try Clip.fetchOne(db, key: id), clip.isSnippet else { return }
+            let content = ClipClassifier.textContent(text, rtf: nil)
+            clip.kind = content.kind
+            clip.text = content.text
+            clip.rtf = nil
+            clip.format = content.format
+            clip.byteSize = content.byteSize
+            clip.textCharacters = nil
+            clip.textWords = nil
+            clip.textLines = nil
+            clip.prepareDerivedFields()
+            try clip.update(db)
+        }
+    }
+
     // MARK: - Text in images
 
     /// Images (and image files with a preview) whose text has not been read yet, newest first.
@@ -764,7 +834,7 @@ final class Store {
     /// Deletes unpinned clips copied at or after `since`, or all unpinned clips when `since` is nil.
     func clear(since: Date?) throws {
         let files: [String] = try dbQueue.write { db in
-            var request = Clip.filter(Column("pinned") == false)
+            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil)
             if let since { request = request.filter(Column("lastCopiedAt") >= since) }
             let files = try String.fetchAll(db, request.select(Column("imageFile")).filter(Column("imageFile") != nil))
             _ = try request.deleteAll(db)
@@ -795,7 +865,7 @@ final class Store {
     /// How many clips `clear(since:)` would remove.
     func clearCount(since: Date?) throws -> Int {
         try dbQueue.read { db in
-            var request = Clip.filter(Column("pinned") == false)
+            var request = Clip.filter(Column("pinned") == false && Column("snippetName") == nil)
             if let since { request = request.filter(Column("lastCopiedAt") >= since) }
             return try request.fetchCount(db)
         }
@@ -809,14 +879,14 @@ final class Store {
             files += rows.compactMap { $0["imageFile"] as String? }
             removed += try Clip.deleteAll(db, keys: rows.map { $0["id"] as Int64 })
         }
-        let oldestFirst = "SELECT id, imageFile, byteSize FROM clip WHERE pinned = 0 ORDER BY lastCopiedAt ASC"
+        let oldestFirst = "SELECT id, imageFile, byteSize FROM clip WHERE pinned = 0 AND snippetName IS NULL ORDER BY lastCopiedAt ASC"
 
         // Hidden items set to delete themselves.
         try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE expiresAt IS NOT NULL AND expiresAt <= ?", arguments: [now]))
 
         if limits.retentionDays > 0 {
             let cutoff = now.addingTimeInterval(-Double(limits.retentionDays) * 86_400)
-            try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE pinned = 0 AND lastCopiedAt < ?", arguments: [cutoff]))
+            try remove(Row.fetchAll(db, sql: "SELECT id, imageFile FROM clip WHERE pinned = 0 AND snippetName IS NULL AND lastCopiedAt < ?", arguments: [cutoff]))
         }
         if limits.maxItems > 0 {
             let total = try Clip.fetchCount(db)
@@ -871,6 +941,9 @@ final class Store {
             if category.kinds == nil {
                 conditions.append("kind != 'secret'") // Hidden items appear only in Hidden.
             }
+            if category == .snippets {
+                conditions.append("snippetName IS NOT NULL")
+            }
             if category == .pinned {
                 conditions.append("pinned = 1")
             }
@@ -916,13 +989,16 @@ final class Store {
                 byKind[row["kind"]] = row["n"]
             }
             let pinned = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM clip WHERE pinned = 1 AND kind != 'secret'") ?? 0
+            let snippets = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM clip WHERE snippetName IS NOT NULL") ?? 0
             let imageFiles = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM clip WHERE kind = 'file' AND format = ?",
                                               arguments: [Clip.imageFilesFormat]) ?? 0
             let screenshots = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM clip WHERE kind = 'image' AND sourceBundleID = ?",
                                                arguments: [Clip.screenshotSource]) ?? 0
             var result: [ClipCategory: Int] = [:]
             for category in ClipCategory.allCases {
-                if category == .pinned {
+                if category == .snippets {
+                    result[category] = snippets
+                } else if category == .pinned {
                     result[category] = pinned
                 } else if category == .screenshots {
                     result[category] = screenshots

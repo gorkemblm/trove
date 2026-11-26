@@ -8,9 +8,11 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
     case code, emails, phones, colors, data
     /// Sub-group of Images: screenshots saved to the screenshot folder.
     case screenshots
+    /// Named texts kept for good.
+    case snippets
 
     /// Top to bottom, as the sidebar shows them; ↑↓ follow this order.
-    static let sidebarOrder: [ClipCategory] = [.all, .text, .code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned, .hidden]
+    static let sidebarOrder: [ClipCategory] = [.all, .text, .code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned, .snippets, .hidden]
     /// ⌘1 … ⌘5.
     static let numbered: [ClipCategory] = [.all, .text, .links, .images, .files]
 
@@ -24,7 +26,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         }
     }
     /// Groups the user can turn off in Settings. All, Text and Hidden always show.
-    static let optional: [ClipCategory] = [.code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned]
+    static let optional: [ClipCategory] = [.code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned, .snippets]
 
     var id: Int { rawValue }
 
@@ -43,6 +45,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .colors: L("Colors")
         case .data: L("Data")
         case .screenshots: L("Screenshots")
+        case .snippets: L("Snippets")
         }
     }
 
@@ -62,6 +65,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .colors: L("Search colors…")
         case .data: L("Search data…")
         case .screenshots: L("Search screenshots…")
+        case .snippets: L("Search snippets…")
         }
     }
 
@@ -81,6 +85,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .colors: "Colors"
         case .data: "Data"
         case .screenshots: "Screenshots"
+        case .snippets: "Snippets"
         }
     }
 
@@ -92,6 +97,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .links: ["url", "web", "bağlantı"]
         case .images: ["img", "image", "photo", "picture", "foto", "resim"]
         case .screenshots: ["screenshot", "capture", "shot", "ekran", "görüntü"]
+        case .snippets: ["snippet", "template", "şablon", "kayıtlı", "metin"]
         case .files: ["file", "doc", "dosya", "belge"]
         case .pinned: ["pin", "favorite", "sabit"]
         case .hidden: ["secret", "lock", "password", "şifre", "kilit"]
@@ -148,13 +154,14 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .colors: "paintpalette"
         case .data: "curlybraces"
         case .screenshots: "camera.viewfinder"
+        case .snippets: "bookmark"
         }
     }
 
     /// Kinds shown in this category. Nil means every kind except hidden items.
     var kinds: [ClipKind]? {
         switch self {
-        case .all, .pinned: nil
+        case .all, .pinned, .snippets: nil
         case .hidden: [.secret]
         case .text: [.text, .code, .data, .email, .phone, .color]
         case .data: [.data]
@@ -293,10 +300,13 @@ final class PanelModel: ObservableObject {
     }
     /// The name card: moving an item to Hidden, or renaming a hidden item.
     struct NamingRequest {
-        enum Purpose { case hide, rename }
+        enum Purpose { case hide, rename, saveSnippet, renameSnippet, newSnippet }
         let purpose: Purpose
-        let clip: Clip
+        /// Nil for a new snippet.
+        let clip: Clip?
         var name: String
+
+        var isSnippet: Bool { [.saveSnippet, .renameSnippet, .newSnippet].contains(purpose) }
     }
 
     @Published var naming: NamingRequest?
@@ -305,6 +315,10 @@ final class PanelModel: ObservableObject {
     struct EditSession: Equatable {
         var text: String
         let original: String
+        /// Editing a snippet: ⌘S saves the text into it.
+        var snippetID: Int64? = nil
+        /// A snippet made just now: cancelling with no text removes it again.
+        var isNewSnippet = false
         /// What the transform could not do ("This is not valid JSON."), shown under the text.
         var note: String?
     }
@@ -848,7 +862,7 @@ final class PanelModel: ObservableObject {
     func requestEdit() {
         guard canEditSelected, let detail else { NSSound.beep(); return }
         let text = detail.kind.isTextual ? (detail.text ?? "") : (imageText ?? "")
-        editing = EditSession(text: text, original: text)
+        editing = EditSession(text: text, original: text, snippetID: detail.isSnippet ? detail.id : nil)
         focusArea = .list
     }
 
@@ -871,6 +885,13 @@ final class PanelModel: ObservableObject {
     }
 
     func cancelEdit() {
+        // A new snippet left empty is not kept.
+        if let session = editing, session.isNewSnippet, let id = session.snippetID, session.text.isEmpty,
+           let clip = clips.first(where: { $0.id == id }) {
+            editing = nil
+            app?.delete(clip)
+            reload(resetSelection: true)
+        }
         editing = nil
         focusRequest += 1
     }
@@ -962,9 +983,9 @@ final class PanelModel: ObservableObject {
     // MARK: - Hidden on purpose
 
     /// Text items can be hidden; a revealed hidden item can go back.
-    var canHideSelected: Bool { !hasGroupSelection && (selected.map { $0.kind.isTextual } ?? false) }
+    var canHideSelected: Bool { !hasGroupSelection && (selected.map { $0.kind.isTextual && !$0.isSnippet } ?? false) }
     var canMoveBackSelected: Bool { selected?.kind == .secret && revealedText != nil }
-    var canRenameSelected: Bool { selected?.kind == .secret && hiddenUnlocked }
+    var canRenameSelected: Bool { (selected?.kind == .secret && hiddenUnlocked) || (!hasGroupSelection && selected?.isSnippet == true) }
 
     /// ⌘⇧H: hides a text item (asks for a name first), or moves a revealed hidden item back.
     func requestHideToggle() {
@@ -976,16 +997,67 @@ final class PanelModel: ObservableObject {
     /// ⌘R in Hidden.
     func requestRename() {
         guard canRenameSelected, let clip = selected else { NSSound.beep(); return }
-        naming = NamingRequest(purpose: .rename, clip: clip, name: clip.format ?? "")
+        if clip.isSnippet {
+            naming = NamingRequest(purpose: .renameSnippet, clip: clip, name: clip.snippetName ?? "")
+        } else {
+            naming = NamingRequest(purpose: .rename, clip: clip, name: clip.format ?? "")
+        }
+    }
+
+    // MARK: - Snippets
+
+    /// Text items that are not snippets yet.
+    var canSaveSnippet: Bool {
+        !hasGroupSelection && (selected.map { $0.kind.isTextual && !$0.isSnippet } ?? false)
+    }
+
+    /// ⌘S: asks for a name, then the item becomes a snippet.
+    func requestSaveSnippet() {
+        guard canSaveSnippet, let clip = selected else { NSSound.beep(); return }
+        naming = NamingRequest(purpose: .saveSnippet, clip: clip, name: "")
+    }
+
+    /// ⌘K › New Snippet: a name first, then the editor for its text.
+    func requestNewSnippet() {
+        naming = NamingRequest(purpose: .newSnippet, clip: nil, name: "")
+    }
+
+    func removeSelectedSnippet() {
+        guard let clip = selected, clip.isSnippet else { NSSound.beep(); return }
+        app?.removeSnippet(clip)
+    }
+
+    /// ⌘S in the editor of a snippet.
+    func saveSnippetText() {
+        guard let session = editing, let id = session.snippetID else { NSSound.beep(); return }
+        editing = nil
+        app?.saveSnippetText(id: id, session.text)
+        focusRequest += 1
     }
 
     func confirmNaming() {
         guard let request = naming else { return }
         naming = nil
         let name = request.name.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        // A snippet needs a name: it is how it shows and how search finds it.
+        if request.isSnippet, name == nil {
+            naming = request
+            NSSound.beep()
+            return
+        }
         switch request.purpose {
-        case .hide: app?.hideItem(request.clip, name: name)
-        case .rename: app?.renameHidden(request.clip, name: name)
+        case .hide: if let clip = request.clip { app?.hideItem(clip, name: name) }
+        case .rename: if let clip = request.clip { app?.renameHidden(clip, name: name) }
+        case .saveSnippet: if let clip = request.clip, let name { app?.makeSnippet(clip, name: name) }
+        case .renameSnippet: if let clip = request.clip, let name { app?.renameSnippet(clip, name: name) }
+        case .newSnippet:
+            if let name, let id = app?.newSnippet(name: name) {
+                category = .snippets
+                reload(resetSelection: false)
+                selectedID = id
+                editing = EditSession(text: "", original: "", snippetID: id, isNewSnippet: true)
+                return
+            }
         }
         focusRequest += 1
     }
@@ -1074,6 +1146,10 @@ final class PanelModel: ObservableObject {
                                             section: index + 1) { [weak self] in self?.apply(transform) })
                 }
             }
+            if editing?.snippetID != nil {
+                list.insert(PanelAction(id: "saveSnippet", title: L("Save Snippet"), symbol: "bookmark.fill", keys: ["⌘", "S"],
+                                        section: 0) { [weak self] in self?.saveSnippetText() }, at: 0)
+            }
             list.append(PanelAction(id: "resetEdit", title: L("Undo All Changes"), symbol: "arrow.uturn.backward", section: 9) { [weak self] in
                 self?.resetEdit()
             })
@@ -1119,6 +1195,16 @@ final class PanelModel: ObservableObject {
                 list.append(PanelAction(id: "edit", title: L("Edit and Transform…"), symbol: "pencil.and.list.clipboard",
                                         keys: ["⌘", "E"], section: 0) { [weak self] in self?.requestEdit() })
             }
+            if canSaveSnippet {
+                list.append(PanelAction(id: "saveSnippet", title: L("Save as Snippet…"), symbol: "bookmark", keys: ["⌘", "S"],
+                                        section: 1) { [weak self] in self?.requestSaveSnippet() })
+            }
+            if clip.isSnippet {
+                list.append(PanelAction(id: "renameSnippet", title: L("Rename Snippet…"), symbol: "pencil", keys: ["⌘", "R"],
+                                        section: 1) { [weak self] in self?.requestRename() })
+                list.append(PanelAction(id: "removeSnippet", title: L("Remove from Snippets"), symbol: "bookmark.slash",
+                                        section: 1) { [weak self] in self?.removeSelectedSnippet() })
+            }
             if canOpenInTerminal, let terminal = app?.terminal {
                 list.append(PanelAction(id: "terminal", title: String(localized: "Open in \(terminal.name)"), symbol: "terminal",
                                         keys: ["⌘", "T"], section: 0) { [weak self] in self?.openInTerminal() })
@@ -1151,6 +1237,11 @@ final class PanelModel: ObservableObject {
             }
             list.append(PanelAction(id: "delete", title: L("Delete…"), symbol: "trash", keys: ["⌘", "D"], destructive: true, section: 2) { [weak self] in
                 self?.requestDelete()
+            })
+        }
+        if !hasGroupSelection {
+            list.append(PanelAction(id: "newSnippet", title: L("New Snippet…"), symbol: "bookmark.circle", section: 3) { [weak self] in
+                self?.requestNewSnippet()
             })
         }
         list.append(PanelAction(id: "settings", title: L("Settings…"), symbol: "gearshape", keys: ["⌘", ","], section: 3) { [weak self] in

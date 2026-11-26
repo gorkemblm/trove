@@ -90,17 +90,18 @@ struct SidebarView: View {
     @ObservedObject var model: PanelModel
 
     /// Sized so that every group fits the panel (see the "Sidebar fits" layout check).
-    static let rowHeight: CGFloat = 32
-    static let subrowHeight: CGFloat = 26
+    static let rowHeight: CGFloat = 30
+    static let subrowHeight: CGFloat = 25
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             let groups = model.visibleGroups
-            ForEach(groups.filter { $0 != .pinned && $0 != .hidden }) { category in
+            ForEach(groups.filter { ![.pinned, .snippets, .hidden].contains($0) }) { category in
                 if category.isSubgroup { subrow(category) } else { row(category) }
             }
             Theme.divider.frame(height: 1).padding(.vertical, 6).padding(.horizontal, 4)
             if groups.contains(.pinned) { row(.pinned) }
+            if groups.contains(.snippets) { row(.snippets) }
             row(.hidden)
             Spacer(minLength: 0)
         }
@@ -459,6 +460,9 @@ struct FooterView: View {
             }
             Spacer()
             if model.editing != nil {
+                if model.editing?.snippetID != nil {
+                    FooterAction(title: L("Save Snippet"), keys: ["⌘", "S"]) { model.saveSnippetText() }
+                }
                 FooterAction(title: model.returnTitle, keys: ["⌘", "↵"], prominent: true) { model.finishEdit() }
                 Theme.divider.frame(width: 1, height: 16).padding(.horizontal, 4)
             } else if model.hasGroupSelection || model.selected != nil {
@@ -722,20 +726,42 @@ struct NamingCard: View {
     @ObservedObject var model: PanelModel
     @FocusState private var focused: Bool
 
-    private var hiding: Bool { model.naming?.purpose == .hide }
+    private var purpose: PanelModel.NamingRequest.Purpose { model.naming?.purpose ?? .hide }
+    private var hiding: Bool { purpose == .hide }
+    private var isSnippet: Bool { model.naming?.isSnippet == true }
+
+    private var title: Text {
+        switch purpose {
+        case .hide: Text("Name this item")
+        case .rename: Text("Rename hidden item")
+        case .saveSnippet: Text("Save as snippet")
+        case .renameSnippet: Text("Rename snippet")
+        case .newSnippet: Text("New snippet")
+        }
+    }
+
+    private var note: Text? {
+        switch purpose {
+        case .hide: Text("It is sealed with this Mac’s Secure Enclave and leaves your history. Search finds it by name only.")
+        case .saveSnippet: Text("Snippets are kept for good: no limit and no Clear removes them. Search finds them by name.")
+        case .newSnippet: Text("Name it, then write its text.")
+        case .rename, .renameSnippet: nil
+        }
+    }
 
     var body: some View {
-        PanelDialog(eyebrow: "Hidden", symbol: hiding ? "lock.fill" : "pencil", tint: .accentColor,
-                    title: hiding ? Text("Name this item") : Text("Rename hidden item"), cancel: model.cancelNaming) {
-            if hiding {
-                Text("It is sealed with this Mac’s Secure Enclave and leaves your history. Search finds it by name only.")
+        PanelDialog(eyebrow: isSnippet ? "Snippet" : "Hidden",
+                    symbol: isSnippet ? "bookmark.fill" : (hiding ? "lock.fill" : "pencil"), tint: .accentColor,
+                    title: title, cancel: model.cancelNaming) {
+            if let note {
+                note
                     .font(.system(size: 12.5))
                     .foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack(spacing: 8) {
                 Image(systemName: "tag").font(.system(size: 13)).foregroundStyle(Theme.faint)
-                TextField("Name (optional)", text: Binding(
+                TextField(isSnippet ? "Name" : "Name (optional)", text: Binding(
                     get: { model.naming?.name ?? "" },
                     set: { model.naming?.name = $0 }
                 ))
@@ -751,7 +777,7 @@ struct NamingCard: View {
             HStack(spacing: 16) {
                 Spacer()
                 KeyHint(title: "Cancel", key: "esc", action: model.cancelNaming)
-                KeyHint(title: hiding ? "Hide" : "Save", key: "↵", primary: true, action: model.confirmNaming)
+                KeyHint(title: hiding ? "Hide" : (purpose == .newSnippet ? "Next" : "Save"), key: "↵", primary: true, action: model.confirmNaming)
             }
             .padding(.top, 4)
         }

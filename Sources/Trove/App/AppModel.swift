@@ -730,6 +730,51 @@ final class AppModel: ObservableObject {
         previewWindow.close()
     }
 
+    // MARK: - Snippets
+
+    func makeSnippet(_ clip: Clip, name: String) {
+        guard let id = clip.id else { return }
+        do {
+            try store?.makeSnippet(id: id, name: name)
+            toast.show(String(localized: "Saved as Snippet “\(name)”"), symbol: "bookmark.fill")
+        } catch {
+            showError(String(localized: "The snippet could not be saved"), error)
+        }
+        panelModel.storeDidChange()
+    }
+
+    func renameSnippet(_ clip: Clip, name: String) {
+        guard let id = clip.id else { return }
+        try? store?.renameSnippet(id: id, name: name)
+        panelModel.storeDidChange()
+    }
+
+    func removeSnippet(_ clip: Clip) {
+        guard let id = clip.id else { return }
+        try? store?.removeSnippet(id: id)
+        panelModel.storeDidChange()
+    }
+
+    /// A new, empty snippet; returns its id for the editor.
+    func newSnippet(name: String) -> Int64? {
+        do {
+            return try store?.newSnippet(name: name).id
+        } catch {
+            showError(String(localized: "The snippet could not be saved"), error)
+            return nil
+        }
+    }
+
+    func saveSnippetText(id: Int64, _ text: String) {
+        do {
+            try store?.updateSnippetText(id: id, text)
+            toast.show(L("Snippet Saved"), symbol: "bookmark.fill")
+        } catch {
+            showError(String(localized: "The snippet could not be saved"), error)
+        }
+        panelModel.storeDidChange()
+    }
+
     /// The editor's result: saved as a new item (so it can be found again), then pasted or copied.
     func useEditedText(_ text: String) {
         ingest(ClipClassifier.textContent(text, rtf: nil), source: ClipSource(bundleID: AppInfo.bundleID, appName: "Trove", url: nil))

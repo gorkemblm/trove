@@ -96,6 +96,11 @@ struct Clip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, Mutabl
     var recognizedLayout: String? = nil
     /// The same text folded (`searchFolded`) for the search index: "Yılmaz" finds "Yilmaz".
     var recognizedSearch: String? = nil
+    /// Snippets: the name ("Home address"). Snippets are kept like pinned items and never
+    /// pruned; search finds them by name and content.
+    var snippetName: String? = nil
+
+    var isSnippet: Bool { snippetName != nil }
 
     var rowID: Int64 { id ?? -1 }
 
@@ -107,11 +112,12 @@ struct Clip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, Mutabl
         case .text, .code, .data:
             guard let text else { return }
             searchText = String(text.prefix(Self.searchCharacters))
+            if let snippetName { searchText = snippetName + "\n" + (searchText ?? "") }
             textCharacters = text.count
             textWords = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
             textLines = text.isEmpty ? 0 : text.split(separator: "\n", omittingEmptySubsequences: false).count
         case .link, .color, .file, .email, .phone:
-            searchText = text
+            searchText = snippetName.map { $0 + "\n" + (text ?? "") } ?? text
         case .image:
             // Screenshots keep their file path in `text`; search finds them by file name.
             searchText = text.map { ($0 as NSString).lastPathComponent }
@@ -159,7 +165,11 @@ extension Clip {
         }
     }
 
-    var title: String {
+    /// A snippet shows its name; everything else its content.
+    var title: String { snippetName ?? contentTitle }
+
+    /// The one-line form of the content, whatever the item's name is.
+    var contentTitle: String {
         switch kind {
         case .text, .code, .data:
             let head = (text ?? "").prefix(1000)
@@ -192,6 +202,12 @@ extension Clip {
     }
 
     var subtitle: String {
+        // A snippet's name is its title; the line under it shows the start of its content.
+        if isSnippet {
+            let body = (searchText ?? text ?? "").split(separator: "\n", maxSplits: 1).dropFirst().first ?? Substring(text ?? "")
+            let line = body.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+            return line.isEmpty ? L("Empty snippet") : String(line.prefix(200))
+        }
         var parts: [String] = []
         if let sourceAppName { parts.append(sourceAppName) }
         switch kind {

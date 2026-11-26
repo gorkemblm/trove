@@ -1764,6 +1764,71 @@ struct TextTransformTests {
     }
 }
 
+@MainActor
+struct SnippetTests {
+    private func store() throws -> Store {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        return try Store.inMemory(imagesDirectory: dir.appendingPathComponent("Images"))
+    }
+
+    @Test func snippetsAreKeptAndFoundByName() throws {
+        let store = try store()
+        let old = Date().addingTimeInterval(-90 * 86_400)
+        let address = try store.ingest(ClipClassifier.textContent("Hürriyet Mah. 59010", rtf: nil), source: ClipSource(), at: old)
+        try store.ingest(ClipClassifier.textContent("old note", rtf: nil), source: ClipSource(), at: old)
+        let id = try #require(address.id)
+        try store.makeSnippet(id: id, name: "Ev adresi")
+
+        #expect(try store.counts()[.snippets] == 1)
+        #expect(try store.fetch(category: .snippets, query: "", limit: 10).first?.title == "Ev adresi")
+        #expect(try store.fetch(category: .all, query: "adresi", limit: 10).map(\.id) == [id]) // By name.
+        #expect(try store.fetch(category: .all, query: "Hürriyet", limit: 10).map(\.id) == [id]) // And content.
+
+        // Limits and Clear leave it.
+        #expect(try store.pruneCount(PruneLimits(retentionDays: 30, maxItems: 0, maxBytes: 0)) == 1)
+        try store.prune(PruneLimits(retentionDays: 30, maxItems: 0, maxBytes: 0))
+        #expect(try store.clearCount(since: nil) == 0)
+        try store.clear(since: nil)
+        #expect(try store.clip(id: id)?.snippetName == "Ev adresi")
+
+        // Copying the same text again adds a history item; the snippet stays as it is.
+        let again = try store.ingest(ClipClassifier.textContent("Hürriyet Mah. 59010", rtf: nil), source: ClipSource(), at: Date())
+        #expect(again.id != id && again.snippetName == nil)
+
+        try store.renameSnippet(id: id, name: "Adres")
+        #expect(try store.clip(id: id)?.title == "Adres")
+        try store.removeSnippet(id: id)
+        #expect(try store.counts()[.snippets] == 0)
+        #expect(try store.clearCount(since: nil) == 2) // An ordinary item again.
+    }
+
+    @Test func newSnippetGetsItsTextFromTheEditor() throws {
+        let store = try store()
+        let snippet = try store.newSnippet(name: "Signature")
+        let id = try #require(snippet.id)
+        try store.updateSnippetText(id: id, "https://example.com")
+        let saved = try #require(try store.clip(id: id))
+        #expect(saved.text == "https://example.com" && saved.kind == .link && saved.snippetName == "Signature")
+    }
+
+    @Test func savingAsSnippetNeedsAName() throws {
+        let app = AppModel()
+        let store = try store()
+        app.installStoreForSnapshots(store, hiddenKey: SoftwareHiddenKey())
+        try store.ingest(ClipClassifier.textContent("TR12 0006 2000 0000 0000 0000 00 is not here", rtf: nil), source: ClipSource(), at: Date())
+        let model = app.panelModel
+        model.willShow()
+        model.requestSaveSnippet()
+        model.confirmNaming() // No name: the card stays.
+        #expect(model.naming != nil)
+        model.naming?.name = "  Not IBAN  "
+        model.confirmNaming()
+        #expect(model.naming == nil)
+        #expect(try store.counts()[.snippets] == 1)
+        #expect(!model.canSaveSnippet && model.canRenameSelected && !model.canHideSelected)
+    }
+}
+
 struct TerminalTests {
     @Test func warpLinkEncodesThePath() throws {
         let link = try #require(TerminalApp.warpLink(for: URL(fileURLWithPath: "/Users/me/My Project")))
