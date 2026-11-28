@@ -61,7 +61,6 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     func show() {
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
+        window.showInFront()
     }
 }

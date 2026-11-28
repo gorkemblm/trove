@@ -19,3 +19,17 @@ extension NSWindow {
         self.appearance = target
     }
 }
+
+extension NSWindow {
+    /// Opens the window in front of every app, with the keyboard.
+    ///
+    /// Since macOS 14, `NSApp.activate()` is only a request. The panel does not activate Trove,
+    /// so while another app is active the request can be refused, and `makeKeyAndOrderFront`
+    /// alone then puts the window behind that app's windows. `orderFrontRegardless` shows it
+    /// in front in any case; the first click gives it the keyboard if activation was refused.
+    func showInFront() {
+        NSApp.activate()
+        makeKeyAndOrderFront(nil)
+        orderFrontRegardless()
+    }
+}

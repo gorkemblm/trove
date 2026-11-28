@@ -35,8 +35,7 @@ final class TourWindowController {
 
     func show() {
         if !window.isVisible { window.center() }
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
+        window.showInFront()
     }
 }
 

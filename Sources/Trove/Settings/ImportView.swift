@@ -43,8 +43,7 @@ final class ImportWindowController: NSObject, NSWindowDelegate {
             flow.restart()
             window.center()
         }
-        NSApp.activate()
-        window.makeKeyAndOrderFront(nil)
+        window.showInFront()
     }
 
     /// While items are being saved, the window stays (closing would leave half an import).
