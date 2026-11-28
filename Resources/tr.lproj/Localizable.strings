@@ -46,7 +46,7 @@
 "7 days" = "7 gün";
 "90 days" = "90 gün";
 "A file exported from Trove on this or another Mac (.clipboardexport or .json)." = "Bu ya da başka bir Mac'teki Trove'dan dışa aktarılmış bir dosya (.clipboardexport ya da .json).";
-"A group you turn off leaves the sidebar only: its items still show in All and in search." = "Kapattığın grup yalnızca kenar çubuğundan kalkar; öğeleri Tümü'nde ve aramada görünmeye devam eder.";
+"A group you turn off leaves the sidebar only: its items still show in All and in search. Text and Hidden always show." = "Kapattığın grup yalnızca kenar çubuğundan kalkar; öğeleri Tümü'nde ve aramada görünmeye devam eder. Metin ve Gizli her zaman görünür.";
 "A long passphrase is best: the key file may be copied by sync services." = "En iyisi uzun bir parola cümlesi: anahtar dosyası senkronizasyon servislerine kopyalanabilir.";
 "A one-line JSON from the terminal" = "Terminalden tek satırlık bir JSON";
 "A recovery password is set. Change it later in Settings › Security." = "Kurtarma şifresi belirlendi. Daha sonra Ayarlar › Güvenlik'ten değiştirebilirsin.";

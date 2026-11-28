@@ -42,7 +42,7 @@ struct SettingsView: View {
 
 // MARK: - General
 
-private struct GeneralSettings: View {
+struct GeneralSettings: View {
     @ObservedObject var app: AppModel
     @ObservedObject var settings: AppSettings
     @State private var loginError: String?
@@ -54,6 +54,22 @@ private struct GeneralSettings: View {
             newValue.save()
             language = newValue
         })
+    }
+
+    private func groupColumn(_ categories: [ClipCategory]) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            ForEach(categories) { category in
+                if ClipCategory.optional.contains(category) {
+                    Toggle(category.title, isOn: groupBinding(category))
+                        .toggleStyle(.checkbox)
+                        .padding(.leading, category.isSubgroup ? 20 : 0)
+                } else {
+                    Toggle(category.title, isOn: .constant(true))
+                        .toggleStyle(.checkbox)
+                        .disabled(true)
+                }
+            }
+        }
     }
 
     private func groupBinding(_ category: ClipCategory) -> Binding<Bool> {
@@ -198,14 +214,14 @@ private struct GeneralSettings: View {
             SettingsDivider()
             SettingsSection {
                 SettingRow(label: "Sidebar Groups", alignment: .top, labelOffset: 1) {
-                    LazyVGrid(columns: [GridItem(.fixed(130), alignment: .leading), GridItem(.fixed(130), alignment: .leading),
-                                        GridItem(.fixed(130), alignment: .leading)], alignment: .leading, spacing: 8) {
-                        ForEach(ClipCategory.optional) { category in
-                            Toggle(category.parent.map { "\(category.title) (\($0.title))" } ?? category.title, isOn: groupBinding(category))
-                                .toggleStyle(.checkbox)
-                        }
+                    // The sidebar's tree: sub-groups indented under their group. Text and Hidden
+                    // always show, so their boxes are on and dimmed.
+                    HStack(alignment: .top, spacing: 36) {
+                        groupColumn([.text, .code, .data, .emails, .phones, .ips, .colors])
+                        groupColumn([.links, .images, .screenshots, .files])
+                        groupColumn([.pinned, .snippets, .hidden])
                     }
-                    SettingNote("A group you turn off leaves the sidebar only: its items still show in All and in search.")
+                    SettingNote("A group you turn off leaves the sidebar only: its items still show in All and in search. Text and Hidden always show.")
                 }
             }
             SettingsDivider()

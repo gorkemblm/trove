@@ -170,6 +170,11 @@ enum SnapshotRunner {
                               to: outputDirectory.appendingPathComponent("settings-\(tab.rawValue)\(dark ? "-dark" : "").png"))
                 }
             }
+            // General, whole page without scrolling: the lower sections are not in the window snapshot.
+            let general = GeneralSettings(app: app, settings: app.settings).padding(.bottom, 12)
+            let fullHeight = NSHostingView(rootView: general.frame(width: SettingsView.size.width)).fittingSize.height
+            try write(renderView(general, size: NSSize(width: SettingsView.size.width, height: fullHeight), dark: false),
+                      to: outputDirectory.appendingPathComponent("settings-general-full.png"))
 
             // The import window, step by step (a sample plan like a Raycast export).
             let flow = ImportFlow(app: app)
