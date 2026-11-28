@@ -24,6 +24,10 @@ enum SnapshotRunner {
             model.selectedID = clips["text"]?.id
             model.focusSidebar()
             try write(render(model), to: outputDirectory.appendingPathComponent("panel-sidebar-focus.png"))
+            model.category = .ips
+            model.selectedID = clips["ip"]?.id
+            try write(render(model), to: outputDirectory.appendingPathComponent("panel-ips-group.png"))
+            model.category = .all
             model.focusList()
             model.category = .files
             model.query = "nothing-matches-this"
@@ -277,7 +281,7 @@ enum SnapshotRunner {
             let headerRegion = CGRect(x: 540, y: 240, width: 130, height: 78) // Below the preview, which ends at y 238.
             model.selectedID = clips["text"]?.id
             let reference = render(model)
-            for name in ["textOther", "link", "linkOther", "image", "file", "color", "email", "phone", "code", "screenshot", "json", "yaml", "csv"] {
+            for name in ["textOther", "link", "linkOther", "image", "file", "color", "email", "phone", "ip", "code", "screenshot", "json", "yaml", "csv"] {
                 model.selectedID = clips[name]?.id
                 failures += check(
                     "Detail: Information header and labels stay put (text → \(name))",
@@ -433,6 +437,7 @@ enum SnapshotRunner {
         for (name, text, app, bundle, minutes) in [
             ("email", "jane.miller@example.com", "Mail", "com.apple.mail", 30.0),
             ("phone", "+1 415 555 0132", "Messages", "com.apple.MobileSMS", 40.0),
+            ("ip", "192.168.1.24/24", "Terminal", "com.apple.Terminal", 45.0),
             ("code", "func greet(name: String) -> String {\n    return \"Hello, \\(name)\"\n}", "Code", "com.microsoft.VSCode", 50.0),
             ("json", #"{"name":"Clipboard","version":"0.1.0","features":["search","hidden","screenshots"],"limits":{"items":5000,"days":30},"encrypted":true}"#,
              "Terminal", "com.apple.Terminal", 55.0),
