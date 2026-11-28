@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// "How Trove Works": the demos of onboarding, opened again from the menu bar menu, ⌘K or Settings.
+/// "How Trove Works": the demos of onboarding, opened again from the menu bar menu or Settings.
 @MainActor
 final class TourWindowController {
     private let window: NSWindow

@@ -171,7 +171,7 @@ Type **@** to see the apps you copied things in, with their icons and counts, mo
 <details>
 <summary><b>Every action with ⌘K</b></summary>
 
-**⌘K** opens a menu of everything you can do with the selected item, each with its shortcut: paste, paste as plain text, open, show in Finder, copy the text in an image, edit, pin, move to Hidden, save as a snippet, select several, open in the terminal, delete, settings, *How Trove Works*. Type to filter it, **↑ ↓** and **↵** to run one.
+**⌘K** opens a menu of everything you can do with the selected item, each with its shortcut: paste, paste as plain text, open, show in Finder, copy the text in an image, edit, pin, move to Hidden, save as a snippet, select several, open in the terminal, delete, settings. Type to filter it, **↑ ↓** and **↵** to run one.
 
 You never *need* the menu: every action also has its own shortcut, which works with the menu open or closed.
 

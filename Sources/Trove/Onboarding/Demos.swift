@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// The short animated demos of "How Trove Works" (onboarding, the menu bar menu, ⌘K) and of the
+/// The short animated demos of "How Trove Works" (onboarding, the menu bar menu, Settings) and of the
 /// README. `make demos` renders them from the real panel with sample data, in English and Turkish
 /// (Resources/<language>.lproj/Demos/<name>.gif); the README uses the English ones (Docs/demos).
 enum Demo: String, CaseIterable, Identifiable {
