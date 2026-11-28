@@ -10,23 +10,25 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
     case screenshots
     /// Named texts kept for good.
     case snippets
+    /// Sub-group of Text: IP addresses. Settings store raw values, so new groups go last.
+    case ips
 
     /// Top to bottom, as the sidebar shows them; ↑↓ follow this order.
-    static let sidebarOrder: [ClipCategory] = [.all, .text, .code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned, .snippets, .hidden]
+    static let sidebarOrder: [ClipCategory] = [.all, .text, .code, .data, .emails, .phones, .ips, .colors, .links, .images, .screenshots, .files, .pinned, .snippets, .hidden]
     /// ⌘1 … ⌘5.
     static let numbered: [ClipCategory] = [.all, .text, .links, .images, .files]
 
-    var isSubgroup: Bool { [.code, .data, .emails, .phones, .colors, .screenshots].contains(self) }
+    var isSubgroup: Bool { [.code, .data, .emails, .phones, .ips, .colors, .screenshots].contains(self) }
     /// The group a sub-group belongs to.
     var parent: ClipCategory? {
         switch self {
-        case .code, .data, .emails, .phones, .colors: .text
+        case .code, .data, .emails, .phones, .ips, .colors: .text
         case .screenshots: .images
         default: nil
         }
     }
     /// Groups the user can turn off in Settings. All, Text and Hidden always show.
-    static let optional: [ClipCategory] = [.code, .data, .emails, .phones, .colors, .links, .images, .screenshots, .files, .pinned, .snippets]
+    static let optional: [ClipCategory] = [.code, .data, .emails, .phones, .ips, .colors, .links, .images, .screenshots, .files, .pinned, .snippets]
 
     var id: Int { rawValue }
 
@@ -42,6 +44,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .code: L("Code")
         case .emails: L("Emails")
         case .phones: L("Phones")
+        case .ips: L("IP Addresses")
         case .colors: L("Colors")
         case .data: L("Data")
         case .screenshots: L("Screenshots")
@@ -62,6 +65,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .code: L("Search code…")
         case .emails: L("Search emails…")
         case .phones: L("Search phone numbers…")
+        case .ips: L("Search IP addresses…")
         case .colors: L("Search colors…")
         case .data: L("Search data…")
         case .screenshots: L("Search screenshots…")
@@ -82,6 +86,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .code: "Code"
         case .emails: "Emails"
         case .phones: "Phones"
+        case .ips: "IP Addresses"
         case .colors: "Colors"
         case .data: "Data"
         case .screenshots: "Screenshots"
@@ -104,6 +109,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .code: ["swift", "script", "kod"]
         case .emails: ["mail", "eposta", "e-posta"]
         case .phones: ["tel", "phone", "telefon", "numara"]
+        case .ips: ["ip", "ipv4", "ipv6", "network", "ağ", "sunucu", "server"]
         case .colors: ["color", "colour", "hex", "rgb", "renk"]
         case .data: ["json", "xml", "yaml", "csv", "veri"]
         }
@@ -151,6 +157,7 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         case .code: "chevron.left.forwardslash.chevron.right"
         case .emails: "envelope"
         case .phones: "phone"
+        case .ips: "network"
         case .colors: "paintpalette"
         case .data: "curlybraces"
         case .screenshots: "camera.viewfinder"
@@ -163,11 +170,12 @@ enum ClipCategory: Int, CaseIterable, Identifiable, Sendable {
         switch self {
         case .all, .pinned, .snippets: nil
         case .hidden: [.secret]
-        case .text: [.text, .code, .data, .email, .phone, .color]
+        case .text: [.text, .code, .data, .email, .phone, .ip, .color]
         case .data: [.data]
         case .code: [.code]
         case .emails: [.email]
         case .phones: [.phone]
+        case .ips: [.ip]
         case .colors: [.color]
         case .links: [.link]
         case .images, .screenshots: [.image]

@@ -6,6 +6,8 @@ enum ClipKind: String, Codable, CaseIterable, Sendable {
     case text, link, image, file, color
     /// Kinds of text, shown under Text: source code or a command, e-mail addresses, a phone number.
     case code, email, phone
+    /// IPv4 or IPv6 addresses, shown under Text.
+    case ip
     /// Structured data: JSON, XML, YAML, CSV and similar. `format` names it.
     case data
     /// A detected secret. `text` holds only a masked form; the content is in `sealed`.
@@ -21,6 +23,7 @@ enum ClipKind: String, Codable, CaseIterable, Sendable {
         case .code: L("Code")
         case .email: L("Email")
         case .phone: L("Phone")
+        case .ip: L("IP Address")
         case .data: L("Data")
         case .secret: L("Hidden")
         }
@@ -36,6 +39,7 @@ enum ClipKind: String, Codable, CaseIterable, Sendable {
         case .code: "chevron.left.forwardslash.chevron.right"
         case .email: "envelope"
         case .phone: "phone"
+        case .ip: "network"
         case .data: "curlybraces"
         case .secret: "key"
         }
@@ -44,7 +48,7 @@ enum ClipKind: String, Codable, CaseIterable, Sendable {
     /// Kinds that hold text the user copied (secret detection runs on these).
     var isTextual: Bool {
         switch self {
-        case .text, .link, .color, .code, .email, .phone, .data: true
+        case .text, .link, .color, .code, .email, .phone, .ip, .data: true
         case .image, .file, .secret: false
         }
     }
@@ -116,7 +120,7 @@ struct Clip: Codable, Identifiable, Equatable, Sendable, FetchableRecord, Mutabl
             textCharacters = text.count
             textWords = text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count
             textLines = text.isEmpty ? 0 : text.split(separator: "\n", omittingEmptySubsequences: false).count
-        case .link, .color, .file, .email, .phone:
+        case .link, .color, .file, .email, .phone, .ip:
             searchText = snippetName.map { $0 + "\n" + (text ?? "") } ?? text
         case .image:
             // Screenshots keep their file path in `text`; search finds them by file name.
@@ -182,6 +186,8 @@ extension Clip {
             return String(cells.prefix(300))
         case .link, .color, .phone:
             return text ?? ""
+        case .ip:
+            return (text ?? "").split(whereSeparator: { $0 == "," || $0 == ";" || $0.isWhitespace }).joined(separator: ", ")
         case .email:
             return (text ?? "").split(whereSeparator: { ",;\n".contains($0) })
                 .map { $0.trimmingCharacters(in: .whitespaces) }.joined(separator: ", ")
@@ -219,7 +225,7 @@ extension Clip {
             parts.append(count == 1 ? L("1 file") : String(localized: "\(number) files"))
         case .code, .data:
             parts.append(format.map(L) ?? kind.title)
-        case .text, .link, .color, .email, .phone:
+        case .text, .link, .color, .email, .phone, .ip:
             parts.append(kind.title)
         case .secret:
             parts.append(secretReason.map(L) ?? kind.title)

@@ -13,7 +13,7 @@ enum Copier {
         var items: [NSPasteboardItem] = []
 
         switch clip.kind {
-        case .text, .color, .code, .email, .phone, .data:
+        case .text, .color, .code, .email, .phone, .ip, .data:
             let item = NSPasteboardItem()
             item.setString(clip.text ?? "", forType: .string)
             if !plainText, let rtf = clip.rtf { item.setData(rtf, forType: .rtf) }
@@ -77,7 +77,7 @@ enum Copier {
     /// (the screenshot itself, or a temporary PNG); without one they are left out.
     static func groupItems(_ clip: Clip, imageFile: URL?) -> [NSPasteboardItem] {
         switch clip.kind {
-        case .text, .color, .code, .email, .phone, .data:
+        case .text, .color, .code, .email, .phone, .ip, .data:
             let item = NSPasteboardItem()
             item.setString(clip.text ?? "", forType: .string)
             return [item]

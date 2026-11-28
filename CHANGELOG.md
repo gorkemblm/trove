@@ -2,6 +2,11 @@
 
 Every release of Trove. Versions follow [Semantic Versioning](https://semver.org).
 
+## Unreleased
+
+- **IP addresses** have their own group under Text: IPv4 and IPv6, with a prefix length or a port, alone or as a list. The details show the version and whether the address is public, private or local. Addresses already in the history move to the group.
+- **Settings** and the other Trove windows open in front of the active app, also the first time.
+
 ## 0.1.0
 
 The first public release.

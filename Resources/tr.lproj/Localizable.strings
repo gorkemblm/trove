@@ -271,6 +271,8 @@
 "In Use" = "Kullanılan";
 "Include images" = "Görselleri dahil et";
 "Information" = "Bilgiler";
+"IP Address" = "IP adresi";
+"IP Addresses" = "IP Adresleri";
 "It is pinned. This cannot be undone." = "Bu öğe sabitlenmiş. Bu işlem geri alınamaz.";
 "It is sealed with this Mac’s Secure Enclave and leaves your history. Search finds it by name only." = "Bu Mac'in Secure Enclave'iyle mühürlenir ve geçmişinden çıkar. Arama onu yalnızca ismiyle bulur.";
 "It was sealed on another Mac, or this Mac’s hidden key was removed." = "Başka bir Mac'te mühürlenmiş ya da bu Mac'in gizli anahtarı silinmiş.";
@@ -304,10 +306,12 @@
 "Light" = "Açık";
 "Lines" = "Satırlar";
 "Link" = "Bağlantı";
+"Link-local" = "Bağlantı-yerel";
 "Links" = "Bağlantılar";
 "Location" = "Konum";
 "Lock after" = "Kilitlenme";
 "Locked" = "Kilitli";
+"Loopback" = "Bu Mac (loopback)";
 "lowercase" = "küçük harf";
 "Maccy keeps its history in its Maccy folder. The file window opens there: choose the folder." = "Maccy geçmişini kendi Maccy klasöründe tutar. Dosya penceresi orada açılır: klasörü seç.";
 "macOS now saves screenshots in “%@”." = "macOS ekran görüntülerini artık “%@” konumuna kaydediyor.";
@@ -319,6 +323,7 @@
 "Menu Bar Icon" = "Menü Çubuğu Simgesi";
 "Minify JSON" = "JSON'u Tek Satıra İndir";
 "Minimize" = "Küçült";
+"Mixed" = "Karışık";
 "Move Back to History" = "Geçmişe Geri Taşı";
 "Move back to history (⌘⇧H)" = "Geçmişe geri taşı (⌘⇧H)";
 "Move the selection" = "Seçimi taşı";
@@ -327,6 +332,7 @@
 "Move to Hidden, or back" = "Gizli'ye taşı ya da geri al";
 "Moved Back to History" = "Geçmişe Geri Taşındı";
 "Moved to Hidden" = "Gizli'ye Taşındı";
+"Multicast" = "Çoklu yayın";
 "Name" = "Ad";
 "Name (optional)" = "İsim (isteğe bağlı)";
 "Name a hidden item" = "Gizli öğeye isim ver";
@@ -432,8 +438,10 @@
 "Press ↵ to copy them all." = "Hepsini kopyalamak için ↵ tuşuna bas.";
 "Press ↵ to paste them all." = "Hepsini yapıştırmak için ↵ tuşuna bas.";
 "Privacy" = "Gizlilik";
+"Private" = "Özel (yerel ağ)";
 "Private key" = "Özel anahtar";
 "Property List" = "Özellik Listesi";
+"Public" = "Genel (internet)";
 "Quit Trove" = "Trove'dan Çık";
 "Raycast keeps images outside its export, so they are not imported." = "Raycast görselleri dışa aktarmanın dışında tutar; bu yüzden görseller aktarılmaz.";
 "Read on this Mac. Images already in your history are read in the background." = "Bu Mac'te okunur. Geçmişindeki görseller arka planda okunur.";
@@ -493,6 +501,7 @@
 "Search for a word that is only in the image" = "Yalnızca görselde geçen bir kelimeyi ara";
 "Search hidden items…" = "Gizli öğelerde ara…";
 "Search images…" = "Görsellerde ara…";
+"Search IP addresses…" = "IP adreslerinde ara…";
 "Search links…" = "Bağlantılarda ara…";
 "Search no longer finds images by their text. The images stay in your history." = "Arama, görselleri artık içlerindeki metinle bulamaz. Görseller geçmişinde kalır.";
 "Search phone numbers…" = "Telefon numaralarında ara…";
@@ -665,6 +674,7 @@
 "Unlock with Touch ID to see %@ items." = "%@ öğeyi görmek için Touch ID ile kilidi aç.";
 "Unlock with Touch ID to see 1 item." = "1 öğeyi görmek için Touch ID ile kilidi aç.";
 "Unpin" = "Sabitlemeyi Kaldır";
+"Unspecified" = "Belirtilmemiş";
 "Updates" = "Güncellemeler";
 "Updates are signed and notarized. Your history is never sent anywhere." = "Güncellemeler imzalı ve notarize edilmiştir. Geçmişin hiçbir yere gönderilmez.";
 "UPPERCASE" = "BÜYÜK HARF";

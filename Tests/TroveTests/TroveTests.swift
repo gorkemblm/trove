@@ -622,6 +622,35 @@ struct ContentDetectorTests {
         }
     }
 
+    @Test func ipAddresses() {
+        for text in ["192.168.1.10", "10.0.0.0/8", "203.0.113.5:8080", "::1", "fe80::1%en0", "2001:db8::/32",
+                     "[2001:db8::1]:443", "::ffff:192.168.0.1", "10.0.0.1, 10.0.0.2\n10.0.0.3", "0.0.0.0"] {
+            #expect(ContentDetector.ipAddresses(in: text) != nil, "\(text)")
+        }
+        for text in ["1.2.3", "256.1.1.1", "01.2.3.4", "1.2.3.4.5", "10.0.0.1/33", "10.0.0.1:0", "12:30", "10:30:45",
+                     "aa:bb:cc:dd:ee:ff", "::", "v1.2.3.4", "3.14159", "25.11.2026", "Server 10.0.0.1", "std::vector",
+                     "10.0.0.1/8:80", "[::1]80"] {
+            #expect(ContentDetector.ipAddresses(in: text) == nil, "\(text)")
+        }
+        func scope(_ text: String) -> IPAddress.Scope? { IPAddress(text)?.scope }
+        #expect(scope("8.8.8.8") == .public)
+        #expect(scope("192.168.1.1") == .private)
+        #expect(scope("172.20.0.1") == .private)
+        #expect(scope("172.32.0.1") == .public)
+        #expect(scope("127.0.0.1") == .loopback)
+        #expect(scope("169.254.10.1") == .linkLocal)
+        #expect(scope("239.255.255.250") == .multicast)
+        #expect(scope("::1") == .loopback)
+        #expect(scope("fe80::1") == .linkLocal)
+        #expect(scope("fd12:3456::1") == .private)
+        #expect(scope("2606:4700::1111") == .public)
+        #expect(scope("::ffff:10.0.0.1") == .private)
+        #expect(IPAddress("2001:db8::1")?.version == .v6)
+        // Addresses that look like phone numbers are addresses.
+        #expect(ClipClassifier.textKind(of: "192.168.100.100") == .ip)
+        #expect(ClipClassifier.textKind(of: "http://192.168.1.1") == .link)
+    }
+
     @Test func code() {
         let samples = [
             "git status",

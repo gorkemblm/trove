@@ -108,8 +108,8 @@ struct SidebarView: View {
     @ObservedObject var model: PanelModel
 
     /// Sized so that every group fits the panel (see the "Sidebar fits" layout check).
-    static let rowHeight: CGFloat = 30
-    static let subrowHeight: CGFloat = 25
+    static let rowHeight: CGFloat = 29
+    static let subrowHeight: CGFloat = 23
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {

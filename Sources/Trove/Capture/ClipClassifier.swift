@@ -129,10 +129,12 @@ enum ClipClassifier {
         return (png, width, height)
     }
 
-    /// Link, colour, e-mail, phone, code or plain text. The whole text must be of the kind.
+    /// Link, IP address, colour, e-mail, phone, data, code or plain text. The whole text must be of the kind.
     static func textKind(of string: String) -> ClipKind {
         let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
         if isLink(trimmed) { return .link }
+        // Before phone numbers: Apple's detector reads some IPv4 addresses as numbers.
+        if ContentDetector.ipAddresses(in: trimmed) != nil { return .ip }
         if isColor(trimmed) { return .color }
         if ContentDetector.emailAddresses(in: trimmed) != nil { return .email }
         if ContentDetector.phoneNumber(in: trimmed) != nil { return .phone }

@@ -84,7 +84,7 @@ The panel has three parts:
 
 | Left | Middle | Right |
 | --- | --- | --- |
-| **Groups**: All, Text (with Code, Data, Emails, Phones, Colors), Links, Images (with Screenshots), Files, Pinned, Snippets, Hidden | The **items**, newest first, by day | A **preview** and the item's **details** (source app, size, dates, how often you copied it) |
+| **Groups**: All, Text (with Code, Data, Emails, Phones, IP Addresses, Colors), Links, Images (with Screenshots), Files, Pinned, Snippets, Hidden | The **items**, newest first, by day | A **preview** and the item's **details** (source app, size, dates, how often you copied it) |
 
 The bottom bar always shows the same two buttons on the right — **Paste ↵** and **Actions ⌘K** — and, on the left, the one action that fits the selected item: *Open in Browser* for a link, *Show in Finder* for a file or screenshot, *Compose Email*, *Call*, *Copy Formatted* for JSON, *Save Image…* for a copied image (all on **⌘↵**).
 

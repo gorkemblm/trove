@@ -98,9 +98,9 @@ struct DetailView: View {
             case nil:
                 Color.clear
             }
-        case .email, .phone:
+        case .email, .phone, .ip:
             VStack(alignment: .leading, spacing: 8) {
-                Text(clip.kind == .email ? clip.contentTitle : (clip.text ?? ""))
+                Text(clip.kind == .phone ? (clip.text ?? "") : clip.contentTitle)
                     .font(.system(size: 17, weight: .medium))
                     .textSelection(.enabled)
                     .lineLimit(6)
@@ -277,6 +277,15 @@ struct InfoRow: Identifiable {
             rows.append(InfoRow(label: L("Domain"), value: domains.count == 1 ? domains.first! : (domains.isEmpty ? missing : String(localized: "\(domains.count.formatted()) domains"))))
         case .phone:
             rows.append(InfoRow(label: L("Number"), value: ContentDetector.phoneNumber(in: clip.text ?? "") ?? missing))
+        case .ip:
+            let addresses = ContentDetector.ipAddresses(in: clip.text ?? "") ?? []
+            if addresses.count > 1 {
+                rows.append(InfoRow(label: L("Addresses"), value: addresses.count.formatted()))
+            }
+            let versions = Set(addresses.map(\.version.rawValue)).sorted()
+            rows.append(InfoRow(label: L("Version"), value: versions.isEmpty ? missing : versions.joined(separator: ", ")))
+            let scopes = Set(addresses.map(\.scope))
+            rows.append(InfoRow(label: L("Network"), value: scopes.count == 1 ? L(scopes.first!.rawValue) : (scopes.isEmpty ? missing : L("Mixed"))))
         case .secret:
             rows.append(InfoRow(label: L("Detected as"), value: clip.secretReason.map(L) ?? missing))
             rows.append(InfoRow(label: L("Characters"), value: clip.characterCount.formatted()))

@@ -493,6 +493,23 @@ final class Store {
             try db.execute(sql: "ALTER TABLE clip ADD COLUMN snippetName TEXT")
             try db.execute(sql: "CREATE INDEX clip_snippet ON clip(snippetName) WHERE snippetName IS NOT NULL")
         }
+        // v10: IP addresses get their own kind. Text, phone and code rows that hold only
+        // addresses move to it, as in v4: when the new hash already exists, the row stays.
+        migrator.registerMigration("v10-ip-addresses") { db in
+            let rows = try Row.fetchAll(db, sql: "SELECT id, text FROM clip WHERE kind IN ('text', 'phone', 'code') AND snippetName IS NULL")
+            for row in rows {
+                guard let text: String = row["text"] else { continue }
+                let content = ClipClassifier.textContent(text, rtf: nil)
+                guard content.kind == .ip, let value = content.text else { continue }
+                var clip = Clip(id: row["id"], kind: .ip, text: value, rtf: nil, byteSize: 0, contentHash: "",
+                                pinned: false, timesCopied: 0, firstCopiedAt: Date(), lastCopiedAt: Date())
+                clip.prepareDerivedFields()
+                try db.execute(
+                    sql: "UPDATE OR IGNORE clip SET kind = ?, text = ?, contentHash = ?, searchText = ?, format = NULL, rtf = NULL WHERE id = ?",
+                    arguments: [ClipKind.ip.rawValue, value, content.hash, clip.searchText, row["id"] as Int64]
+                )
+            }
+        }
         return migrator
     }
 
